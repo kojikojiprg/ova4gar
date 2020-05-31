@@ -71,3 +71,18 @@ vecLib_INCLUDE_DIR:PATH=/Applications/Xcode.app/Contents/Developer/Platforms/Mac
 ```
 sudo make install
 ```
+
+
+# Python で openpose を import
+
+```~/openpose/build/python/openpose/``` をフォルダごとコピー
+
+```.venv/lib/python3.7/site-packages/``` にペースト
+
+```openpose/``` 内の ```CMakeFiles/``` , ```cmake_install.cmake``` , ```MakeFile``` は削除しても大丈夫
+
+呼び出しには以下を記述
+
+``` python
+from openpose import pyopenpose
+```
