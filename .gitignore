@@ -3,3 +3,6 @@
 .vscode
 
 __pycache__
+openpose
+tf-pose-estimation
+tf_pose
