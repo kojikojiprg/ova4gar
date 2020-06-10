@@ -6,3 +6,5 @@ __pycache__
 openpose
 tf-pose-estimation
 tf_pose
+
+*.zip
