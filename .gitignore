@@ -8,3 +8,5 @@ tf-pose-estimation
 tf_pose
 
 *.zip
+*.mp4
+*.json
