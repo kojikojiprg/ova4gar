@@ -1,4 +1,4 @@
-FROM jupyter/datascience-notebook:latest
+FROM jupyter/minimal-notebook:latest
 
 LABEL maintainer "NVIDIA CORPORATION <cudatools@nvidia.com>"
 
@@ -40,46 +40,41 @@ ENV NVIDIA_DRIVER_CAPABILITIES compute,utility
 ENV NVIDIA_REQUIRE_CUDA "cuda>=10.2 brand=tesla,driver>=384,driver<385 brand=tesla,driver>=396,driver<397 brand=tesla,driver>=410,driver<411 brand=tesla,driver>=418,driver<419"
 
 ########################################################################
-## datascience-notebook
+## minimal-notebook
 ########################################################################
 
 USER root
 
-RUN apt-get update
-RUN apt-get install -y sqlite3 git emacs
-RUN apt-get install -y sudo
-RUN apt-get install -y aptitude ffmpeg imagemagick
+RUN apt-get update \
+ && apt-get install -y sqlite3 git vi \
+ && apt-get install -y sudo \
+ && apt-get install -y aptitude ffmpeg imagemagick \
+ && apt-get install --no-install-recommends -y fonts-ipaexfont libglib2.0-0 git gcc \
+ # for opencv
+ && apt-get install --no-install-recommends -y libsm-dev libxrender-dev libxext-dev \
+ # for openpose
+ && apt-get -qq install -y libatlas-base-dev libprotobuf-dev libleveldb-dev libsnappy-dev libhdf5-serial-dev protobuf-compiler libgflags-dev libgoogle-glog-dev liblmdb-dev opencl-headers ocl-icd-opencl-dev libviennacl-dev\
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
 
 # setup sudoers
+RUN echo 'Defaults visiblepw'             >> /etc/sudoers \
+ && echo 'jovyan ALL=(ALL) NOPASSWD:ALL'  >> /etc/sudoers
 
-RUN echo 'Defaults visiblepw'             >> /etc/sudoers
-RUN echo 'jovyan ALL=(ALL) NOPASSWD:ALL'  >> /etc/sudoers
+RUN mkdir -p /opt/local/work \
+ && chown -R ${NB_USER}. /opt/local/work
 
-# RUN conda update -c conda-forge jupyterlab
+USER $NB_USER
+WORKDIR /opt/local/work
 
-ADD requirements.txt /tmp/requirements.txt
-RUN chmod 777 /tmp/requirements.txt
-ADD lab /tmp/lab
+RUN conda update -n base conda \
+ && conda install --yes --channel conda-forge jupyter_contrib_nbextensions \
+ && conda install -y jupyterlab \
+ && conda install -y poetry==1.0.5 \
+ && conda clean --all --yes
 
-# Start the notebook server
-WORKDIR /tmp
-RUN pip uninstall tensorflow
-RUN conda config --set channel_priority false
-RUN conda install tensorflow-gpu
-RUN conda install -c conda-forge opencv
-RUN pip install -r requirements.txt
-RUN pip install git+https://github.com/jupyterlab/jupyterlab.git
+COPY pyproject.toml poetry.lock ./
+RUN poetry config virtualenvs.create false \
+ && poetry install
 
-RUN mv /opt/conda/share/jupyter/lab /opt/conda/share/jupyter/lab.orig
-RUN mv lab /opt/conda/share/jupyter/lab
-RUN chmod -R 777 /opt/conda/share/jupyter/lab
-
-# USER $NB_UID
-
-WORKDIR /home/jovyan
-# # Expose the notebook port
-# EXPOSE 8000
-EXPOSE 8888
-
-# # Start the notebook server
-CMD jupyter notebook --no-browser --port 8888 --ip=*
+RUN jupyter nbextension enable code_prettify/code_prettify
