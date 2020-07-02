@@ -37,6 +37,32 @@ class Tracker:
                 gate_through.append(point)
         return gate_through
 
+    def _track(self, x, y, keypoint_lst, gate_size):
+        # 近くのキーポイントのみ抽出
+        x1 = x - int(gate_size / 2)
+        x2 = x + int(gate_size / 2)
+        y1 = y - int(gate_size / 2)
+        y2 = y + int(gate_size / 2)
+        targets = self._gate_keypoint_lst(keypoint_lst, ((x1, y1), (x2, y2)))
+
+        nearest = np.inf
+        point = None
+        for target in targets:
+            # マハラノビス距離を求める
+            distance = mh.calc(target, self.pf.particles)
+
+            if distance < nearest:
+                point = target
+                nearest = distance
+
+        # パーティクルフィルタを更新
+        if point is not None:
+            x = point[0]
+            y = point[1]
+            self.pf.predict(x, y)
+
+        return point
+
     def track_person(self, person_id, gate_size=50):
         person = self.persons[person_id]
         x = person[0]
@@ -44,31 +70,11 @@ class Tracker:
 
         self.pf = pf.ParticleFilter(x, y)
 
-        track = [person]
+        track = []
         for keypoint_lst in self.keypoints_frame_lst:
-            # 近くのキーポイントのみ抽出
-            x1 = x - int(gate_size / 2)
-            x2 = x + int(gate_size / 2)
-            y1 = y - int(gate_size / 2)
-            y2 = y + int(gate_size / 2)
-            targets = self._gate_keypoint_lst(keypoint_lst, ((x1, y1), (x2, y2)))
+            point = self._track(x, y, keypoint_lst, gate_size)
 
-            nearest = np.inf
-            point = None
-            for target in targets:
-                # マハラノビス距離を求める
-                distance = mh.calc(target, self.pf.particles)
-
-                if distance < nearest:
-                    point = target
-                    nearest = distance
-
-            track.append(point)
-
-            # パーティクルフィルタを更新
             if point is not None:
-                x = point[0]
-                y = point[1]
-                self.pf.predict(x, y)
+                track.append(tuple(point))
 
         return track

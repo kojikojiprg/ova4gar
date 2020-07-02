@@ -22,3 +22,7 @@ if __name__ == '__main__':
     utils.show_img(frame)
 
     result = tr.track_person(person_id)
+
+    for r in result:
+        cv2.circle(frame, r, 7, (0, 0, 255), thickness=-1)
+    utils.show_img(frame)

@@ -2,18 +2,18 @@ import numpy as np
 
 
 class ParticleFilter:
-    def __init__(self, x, y, n_particle=500, sigma=[[5, 0], [0, 5]], noize_sigma=2):
+    def __init__(self, x, y, n_particle=500, sigma=[[5, 0], [0, 5]], noize_sigma=10):
         self.n_particle = n_particle    # number of particle
         self.sigma = np.array(sigma)    # var of gaussian
         self.noize_sigma = noize_sigma  # var of noize
 
         # init particles
-        self.particles = self._init_particles(x, y, self.sigma[0, 0], self.sigma[1, 1])
+        self.particles = self._init_particles(x, y)
         self.weights = np.zeros((2, n_particle))
 
-    def _init_particles(self, x, y, x_sigma, y_sigma):
-        particles_x = np.random.normal(x, np.sqrt(x_sigma), self.n_particle)
-        particles_y = np.random.normal(y, np.sqrt(y_sigma), self.n_particle)
+    def _init_particles(self, x, y):
+        particles_x = np.random.normal(x, np.sqrt(self.noize_sigma), self.n_particle)
+        particles_y = np.random.normal(y, np.sqrt(self.noize_sigma), self.n_particle)
         return np.stack([particles_x, particles_y], axis=1)
 
     def _add_noize(self):
@@ -59,5 +59,6 @@ class ParticleFilter:
         v = self._filtered_value()
         # パーティクルをリサンプリング
         self._resample()
+        self._add_noize()
 
         return v

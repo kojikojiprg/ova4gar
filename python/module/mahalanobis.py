@@ -7,5 +7,4 @@ def calc(x, data):
     sigma = np.cov(data.T)
 
     inv = np.linalg.inv(sigma)
-    print(sigma)
     return mahalanobis(x, mu, inv)
