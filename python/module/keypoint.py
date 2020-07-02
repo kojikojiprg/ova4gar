@@ -26,10 +26,10 @@ class Keypoints(list):
     def __init__(self, keypoint):
         super().__init__([])
         for i in range(0, len(keypoint), 3):
-            self.append((
-                int(keypoint[i]),
-                int(keypoint[i + 1]),
-                int(keypoint[i + 2])))
+            self.append([
+                keypoint[i],
+                keypoint[i + 1],
+                keypoint[i + 2]])
 
     def get(self, body_name):
         return self[body[body_name]]
@@ -40,9 +40,6 @@ class KeypointsList(list):
         super().__init__([])
         for keypoint in keypoints:
             self.append(Keypoints(keypoint))
-
-    def get_person(self, person_id):
-        return self[person_id]
 
 
 class Frame(list):
@@ -62,10 +59,3 @@ class Frame(list):
 
                 keypoints_lst.append(item['keypoints'])
                 pre_no = frame_no
-
-    def track(self, person_id):
-        tracker = []
-        for keypoints_lst in self:
-            tracker.append(keypoints_lst[person_id])
-
-        return tracker
