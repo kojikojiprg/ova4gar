@@ -2,7 +2,7 @@ import numpy as np
 
 
 class ParticleFilter:
-    def __init__(self, x, y, n_particle=500, sigma=[[5, 0], [0, 5]], noize_sigma=10):
+    def __init__(self, x, y, n_particle=500, sigma=[[50, 0], [0, 50]], noize_sigma=20):
         self.n_particle = n_particle    # number of particle
         self.sigma = np.array(sigma)    # var of gaussian
         self.noize_sigma = noize_sigma  # var of noize
@@ -51,14 +51,13 @@ class ParticleFilter:
         return k
 
     def predict(self, x, y):
-        # 全てのパーティクルにノイズを乗せる
-        self._add_noize()
         # 尤度関数(ガウス分布)からパーティクルの重みを計算
         self._liklihood(x, y)
         # 推定値を取得
         v = self._filtered_value()
         # パーティクルをリサンプリング
         self._resample()
+        # 全てのパーティクルにノイズを乗せる
         self._add_noize()
 
         return v

@@ -13,12 +13,7 @@ class Tracker:
     def _obtain_point(self, keypoints):
         R = np.array(keypoints.get('RAnkle'))
         L = np.array(keypoints.get('LAnkle'))
-        if R[2] == 0.0:
-            point = L
-        elif L[2] == 0.0:
-            point = R
-        else:
-            point = (R + L) / 2
+        point = (R + L) / 2
         return point[:2].astype(int)
 
     def _is_gate(self, point, size):
@@ -63,7 +58,7 @@ class Tracker:
 
         return point
 
-    def track_person(self, person_id, gate_size=50):
+    def track_person(self, person_id, gate_size=100):
         person = self.persons[person_id]
         x = person[0]
         y = person[1]
@@ -73,8 +68,6 @@ class Tracker:
         track = []
         for keypoint_lst in self.keypoints_frame_lst:
             point = self._track(x, y, keypoint_lst, gate_size)
-
-            if point is not None:
-                track.append(tuple(point))
+            track.append(point)
 
         return track
