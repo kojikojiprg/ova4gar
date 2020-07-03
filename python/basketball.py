@@ -1,15 +1,14 @@
 import cv2
 import numpy as np
-from module import common, video, transform, utils, keypoint, tracker
+from module import common, video, utils, keypoint, tracker
 
 
 if __name__ == '__main__':
-    video_path = common.data_dir + 'basketball/basketball.mp4'
+    video_path = common.data_dir + 'basketball/basketball_alphapose.mp4'
     court_path = common.data_dir + 'basketball/court.png'
     json_path = common.data_dir + 'basketball/keypoints.json'
 
-    reader = video.Reader(video_path)
-    frame = reader.read()
+    video = video.Video(video_path)
     court = cv2.imread(court_path)
 
     keypoints_frame = keypoint.Frame(json_path)
@@ -18,11 +17,10 @@ if __name__ == '__main__':
     # p_court = np.float32([[205, 24], [383, 24], [383, 232], [205, 232]])
     person_id = 3
     tr = tracker.Tracker(keypoints_frame, ((15, 350), (1080, 632)))
-    cv2.circle(frame, tuple(tr.persons[person_id]), 7, (0, 0, 255), thickness=-1)
-    utils.show_img(frame)
-
     result = tr.track_person(person_id)
 
-    for r in result:
-        cv2.circle(frame, r, 7, (0, 0, 255), thickness=-1)
-    utils.show_img(frame)
+    for i, r in enumerate(result):
+        frame = video.read()
+        if r is not None:
+            cv2.circle(frame, tuple(r), 7, (0, 0, 255), thickness=-1)
+        utils.show_img(frame)
