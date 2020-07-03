@@ -29,6 +29,7 @@ class Video:
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  # BGR to RGB
         return frame
 
-    def writer(self, frames):
+    def write(self, frames):
         for frame in frames:
+            frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)  # BGR to RGB
             self._writer.write(frame)
