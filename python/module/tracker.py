@@ -4,41 +4,32 @@ import mahalanobis as mh
 
 
 class Tracker:
-    def __init__(self, keypoints_frame_lst, init_gate_size):
+    def __init__(self, keypoints_frame_lst):
         self.keypoints_frame_lst = keypoints_frame_lst
 
         keypoints_lst = keypoints_frame_lst[0]
-        self.persons = self._gate_keypoint_lst(keypoints_lst, init_gate_size)
+        self.persons = self._obtain_targets(keypoints_lst)
 
     def _obtain_point(self, keypoints):
         R = np.array(keypoints.get('RAnkle'))
         L = np.array(keypoints.get('LAnkle'))
-        point = (R + L) / 2
+        if R[2] < 0.05:
+            point = L
+        elif L[2] < 0.05:
+            point = R
+        else:
+            point = (R + L) / 2
         return point[:2].astype(int)
 
-    def _is_gate(self, point, size):
-        x = point[0]
-        y = point[1]
-        size = np.array(size)
-        return (
-            (size[0, 0] <= x and x <= size[1, 0]) and
-            (size[0, 1] <= y and y <= size[1, 1]))
-
-    def _gate_keypoint_lst(self, keypoints_lst, size):
-        gate_through = []
+    def _obtain_targets(self, keypoints_lst):
+        targets = []
         for keypoints in keypoints_lst:
             point = self._obtain_point(keypoints)
-            if self._is_gate(point, size):
-                gate_through.append(point)
-        return gate_through
+            targets.append(point)
+        return targets
 
-    def _track(self, x, y, keypoint_lst, gate_size):
-        # 近くのキーポイントのみ抽出
-        x1 = x - int(gate_size / 2)
-        x2 = x + int(gate_size / 2)
-        y1 = y - int(gate_size / 2)
-        y2 = y + int(gate_size / 2)
-        targets = self._gate_keypoint_lst(keypoint_lst, ((x1, y1), (x2, y2)))
+    def _track(self, x, y, keypoint_lst):
+        targets = self._obtain_targets(keypoint_lst)
 
         nearest = np.inf
         point = None
@@ -46,6 +37,7 @@ class Tracker:
             # マハラノビス距離を求める
             distance = mh.calc(target, self.pf.particles)
 
+            # 一番距離が近いポイントを取り出す
             if distance < nearest:
                 point = target
                 nearest = distance
@@ -58,16 +50,18 @@ class Tracker:
 
         return point
 
-    def track_person(self, person_id, gate_size=100):
+    def track_person(self, person_id):
         person = self.persons[person_id]
         x = person[0]
         y = person[1]
 
         self.pf = pf.ParticleFilter(x, y)
 
-        track = []
+        track = [person]
+        particles = [self.pf.particles]
         for keypoint_lst in self.keypoints_frame_lst:
-            point = self._track(x, y, keypoint_lst, gate_size)
+            point = self._track(x, y, keypoint_lst)
             track.append(point)
+            particles.append(self.pf.particles)
 
-        return track
+        return track, particles
