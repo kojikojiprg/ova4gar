@@ -2,7 +2,7 @@ import numpy as np
 
 
 class ParticleFilter:
-    def __init__(self, x, y, n_particle=500, sigma=[[50, 0], [0, 50]], noize_sigma=20):
+    def __init__(self, x, y, n_particle=1000, sigma=[[100, 0], [0, 100]], noize_sigma=100):
         self.n_particle = n_particle    # number of particle
         self.sigma = np.array(sigma)    # var of gaussian
         self.noize_sigma = noize_sigma  # var of noize
@@ -16,12 +16,6 @@ class ParticleFilter:
         particles_y = np.random.normal(y, np.sqrt(self.noize_sigma), self.n_particle)
         return np.stack([particles_x, particles_y], axis=1)
 
-    def _add_noize(self):
-        x = np.random.normal(0, np.sqrt(self.noize_sigma), self.n_particle)
-        y = np.random.normal(0, np.sqrt(self.noize_sigma), self.n_particle)
-        v = np.stack([x, y], axis=1)
-        self.particles = self.particles + v
-
     def _liklihood(self, x, y):
         mu = np.array([x, y])
         det = np.linalg.det(self.sigma)
@@ -31,33 +25,27 @@ class ParticleFilter:
             -np.diag((self.particles - mu) @ inv @ (self.particles - mu).T) / 2.0
         ) / (np.sqrt((2 * np.pi) ** n * det))
 
-    def _filtered_value(self):
-        # パーティクルの加重平均
-        return np.average(self.particles.T, weights=self.weights, axis=1)
-
     def _resample(self):
-        idx = np.asanyarray(range(self.n_particle))
-        u0 = np.random.uniform(0, 1 / self.n_particle)
-        u = [1 / self.n_particle * i + u0 for i in range(self.n_particle)]
-        w_cumsum = np.cumsum(self.weights)
-        k = np.asanyarray([self._f_inv(w_cumsum, idx, val) for val in u])
-        self.particles = self.particles[k]
+        tmp_particles = self.particles.copy()
+        w_cumsum = self.weights.cumsum()
+        for i in range(self.n_particle):
+            u = np.random.rand() * w_cumsum[-1]
+            self.particles[i] = tmp_particles[(w_cumsum > u).argmax()]
 
-    def _f_inv(self, w_cumsum, idx, u):
-        if not np.any(w_cumsum < u):
-            return 0
-
-        k = np.max(idx[w_cumsum < u])
-        return k
+    def _predict(self):
+        x_noize = np.random.normal(0, np.sqrt(self.noize_sigma), self.n_particle)
+        y_noize = np.random.normal(0, np.sqrt(self.noize_sigma), self.n_particle)
+        v = np.stack([x_noize, y_noize], axis=1)
+        self.particles = self.particles + v
 
     def predict(self, x, y):
         # 尤度関数(ガウス分布)からパーティクルの重みを計算
         self._liklihood(x, y)
-        # 推定値を取得
-        v = self._filtered_value()
         # パーティクルをリサンプリング
         self._resample()
-        # 全てのパーティクルにノイズを乗せる
-        self._add_noize()
+        # 次の動きをランダムに予測する(パーティクルにノイズを乗せる)
+        self._predict()
 
-        return v
+    def filtered_value(self):
+        # パーティクルの加重平均から推定値を求める
+        return np.average(self.particles.T, weights=self.weights, axis=1)
