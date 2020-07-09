@@ -1,5 +1,4 @@
 import cv2
-import numpy as np
 from module import common, video, utils, keypoint, tracker
 
 
