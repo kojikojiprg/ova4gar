@@ -16,14 +16,25 @@ if __name__ == '__main__':
 
     # p_video = np.float32([[499, 364], [784, 363], [836, 488], [438, 489]])
     # p_court = np.float32([[205, 24], [383, 24], [383, 232], [205, 232]])
-    person_id = 3
-    tr = tracker.Tracker(keypoints_frame, ((15, 350), (1080, 632)))
-    result = tr.track_person(person_id)
+    person_id = 8
+    tr = tracker.Tracker(keypoints_frame)
+    result, particles = tr.track_person(person_id)
 
     frames = []
-    for i, r in enumerate(result):
+    for i, z in enumerate(zip(result, particles)):
+        r = z[0]
+        p = z[1]
         frame = video.read()
+        # フレーム番号を表示
+        cv2.putText(frame, 'Frame:{}'.format(i + 1), (10, 50), cv2.FONT_HERSHEY_PLAIN, 2, (255, 255, 255))
+
+        # パーティクルを表示
+        for par in p:
+            cv2.circle(frame, (int(par[0]), int(par[1])), 2, (0, 255, 0), thickness=-1)
+
+        # ポイントを表示
         if r is not None:
             cv2.circle(frame, tuple(r), 7, (0, 0, 255), thickness=-1)
+
         frames.append(frame)
     video.write(frames)
