@@ -1,8 +1,9 @@
 import numpy as np
+import mahalanobis as mh
 
 
 class ParticleFilter:
-    def __init__(self, x, y, n_particle=1000, sigma=[[100, 0], [0, 100]], noize_sigma=100):
+    def __init__(self, x, y, n_particle=300, sigma=[[50, 0], [0, 50]], noize_sigma=10):
         self.n_particle = n_particle    # number of particle
         self.sigma = np.array(sigma)    # var of gaussian
         self.noize_sigma = noize_sigma  # var of noize
@@ -49,3 +50,6 @@ class ParticleFilter:
     def filtered_value(self):
         # パーティクルの加重平均から推定値を求める
         return np.average(self.particles.T, weights=self.weights, axis=1)
+
+    def mahalanobis(self, point):
+        return mh.calc(point, self.particles)

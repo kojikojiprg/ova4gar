@@ -1,6 +1,5 @@
 import numpy as np
 import particle_filter as pf
-import mahalanobis as mh
 
 
 class Tracker:
@@ -35,7 +34,7 @@ class Tracker:
         point = None
         for target in targets:
             # マハラノビス距離を求める
-            distance = mh.calc(target, self.pf.particles)
+            distance = self.pf.mahalanobis(target)
 
             # 一番距離が近いポイントを取り出す
             if distance < nearest:
