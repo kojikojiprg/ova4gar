@@ -47,10 +47,10 @@ class Keypoints(list):
 
 
 class KeypointsList(list):
-    def __init__(self, keypoints):
+    def __init__(self, keypoints_lst):
         super().__init__([])
-        for keypoint in keypoints:
-            self.append(Keypoints(keypoint))
+        for keypoints in keypoints_lst:
+            self.append(Keypoints(keypoints))
 
     def get_middle_ankle_points(self):
         return [kp.get_middle_ankle() for kp in self]

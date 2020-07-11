@@ -25,12 +25,12 @@ if __name__ == '__main__':
 
     # tracking
     tr = tracker.Tracker(keypoints_frame)
-    result, particles = tr.track_person(person_id)
+    points, particles = tr.track_person(person_id)
 
     frames = []
-    for i, z in enumerate(zip(result, particles)):
-        r = z[0]    # result point
-        p = z[1]    # particles
+    for i, z in enumerate(zip(points, particles)):
+        point = z[0]        # result point
+        particles = z[1]    # particles
 
         # read frame
         frame = video.read()
@@ -39,16 +39,16 @@ if __name__ == '__main__':
         cv2.putText(frame, 'Frame:{}'.format(i + 1), (10, 50), cv2.FONT_HERSHEY_PLAIN, 2, (255, 255, 255))
 
         # パーティクルを表示
-        for par in p:
+        for par in particles:
             cv2.circle(frame, (int(par[0]), int(par[1])), 2, (0, 255, 0), thickness=-1)
 
         # ポイントを表示
-        if r is not None:
+        if point is not None:
             # add point on a frame
-            cv2.circle(frame, tuple(r), 7, (0, 0, 255), thickness=-1)
+            cv2.circle(frame, tuple(point), 7, (0, 0, 255), thickness=-1)
 
             # homography convert
-            homo_p = homo.transform_point(r)
+            homo_p = homo.transform_point(point)
             cv2.circle(court, tuple(homo_p), 7, (0, 0, 255), thickness=-1)
 
         # 画像を合成
