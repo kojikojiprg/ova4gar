@@ -16,4 +16,4 @@ class Homography:
         return np.array([
             result[0] / result[2],
             result[1] / result[2],
-        ])
+        ]).astype(int)
