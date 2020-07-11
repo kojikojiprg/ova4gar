@@ -21,9 +21,9 @@ if __name__ == '__main__':
 
     # keypoints
     keypoints_frame = keypoint.Frame(json_path)
-    person_id = 8
 
     # tracking
+    person_id = 8
     tr = tracker.Tracker(keypoints_frame)
     points, particles = tr.track_person(person_id)
 
@@ -59,5 +59,5 @@ if __name__ == '__main__':
         #utils.show_img(frame)
 
         frames.append(frame)
-    print(frame.shape)
+
     video.write(frames, out_path, frame.shape[1::-1])
