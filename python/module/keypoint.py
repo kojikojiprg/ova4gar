@@ -1,5 +1,5 @@
 import json
-
+import numpy as np
 
 body = {
     "Nose": 0,
@@ -34,12 +34,26 @@ class Keypoints(list):
     def get(self, body_name):
         return self[body[body_name]]
 
+    def get_middle_ankle(self):
+        R = np.array(self.get('RAnkle'))
+        L = np.array(self.get('LAnkle'))
+        if R[2] < 0.05:
+            point = L
+        elif L[2] < 0.05:
+            point = R
+        else:
+            point = (R + L) / 2
+        return point[:2].astype(int)
+
 
 class KeypointsList(list):
     def __init__(self, keypoints):
         super().__init__([])
         for keypoint in keypoints:
             self.append(Keypoints(keypoint))
+
+    def get_middle_ankle_points(self):
+        return [kp.get_middle_ankle() for kp in self]
 
 
 class Frame(list):
