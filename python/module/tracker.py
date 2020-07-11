@@ -7,28 +7,10 @@ class Tracker:
         self.keypoints_frame_lst = keypoints_frame_lst
 
         keypoints_lst = keypoints_frame_lst[0]
-        self.persons = self._obtain_targets(keypoints_lst)
-
-    def _obtain_point(self, keypoints):
-        R = np.array(keypoints.get('RAnkle'))
-        L = np.array(keypoints.get('LAnkle'))
-        if R[2] < 0.05:
-            point = L
-        elif L[2] < 0.05:
-            point = R
-        else:
-            point = (R + L) / 2
-        return point[:2].astype(int)
-
-    def _obtain_targets(self, keypoints_lst):
-        targets = []
-        for keypoints in keypoints_lst:
-            point = self._obtain_point(keypoints)
-            targets.append(point)
-        return targets
+        self.persons = keypoints_lst.get_middle_ankle_points()
 
     def _track(self, x, y, keypoint_lst):
-        targets = self._obtain_targets(keypoint_lst)
+        targets = keypoint_lst.get_middle_ankle_points()
 
         nearest = np.inf
         point = None
