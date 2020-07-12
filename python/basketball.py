@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 from module import common, video, utils, keypoint, tracker, transform
+from heatmap import Heatmap
 
 
 if __name__ == '__main__':
@@ -25,12 +26,17 @@ if __name__ == '__main__':
     # tracking
     person_id = 8
     tr = tracker.Tracker(keypoints_frame)
-    points, particles = tr.track_person(person_id)
+    points, particles, speeds = tr.track_person(person_id)
+    speed_max = max(speeds)
+    speed_min = min(speeds)
+    speed_heatmap = Heatmap(speed_min, speed_max)
 
     frames = []
-    for i, z in enumerate(zip(points, particles)):
-        point = z[0]        # result point
-        particles = z[1]    # particles
+    prepoint = None
+    for i, rslt in enumerate(zip(points, particles, speeds)):
+        point = rslt[0]         # result point
+        particles = rslt[1]     # particles
+        speed = rslt[2]         # speed heatmap
 
         # read frame
         frame = video.read()
@@ -47,9 +53,13 @@ if __name__ == '__main__':
             # add point on a frame
             cv2.circle(frame, tuple(point), 7, (0, 0, 255), thickness=-1)
 
-            # homography convert
-            homo_p = homo.transform_point(point)
-            cv2.circle(court, tuple(homo_p), 7, (0, 0, 255), thickness=-1)
+        # スピードのヒートマップを表示
+        if i > 1:
+            p = homo.transform_point(point)
+            pre = homo.transform_point(prepoint)
+            speed = speed_heatmap.calc(speed)
+            cv2.line(court, tuple(pre), tuple(p), tuple(speed), 3)
+        prepoint = point
 
         # 画像を合成
         ratio = 1 - (frame.shape[0] - court.shape[0]) / frame.shape[0]

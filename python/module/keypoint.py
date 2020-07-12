@@ -37,9 +37,9 @@ class Keypoints(list):
     def get_middle_ankle(self):
         R = np.array(self.get('RAnkle'))
         L = np.array(self.get('LAnkle'))
-        if R[2] < 0.05:
+        if R[2] < 0.01:
             point = L
-        elif L[2] < 0.05:
+        elif L[2] < 0.01:
             point = R
         else:
             point = (R + L) / 2
@@ -47,10 +47,11 @@ class Keypoints(list):
 
 
 class KeypointsList(list):
-    def __init__(self, keypoints_lst):
+    def __init__(self, keypoints_lst=None):
         super().__init__([])
-        for keypoints in keypoints_lst:
-            self.append(Keypoints(keypoints))
+        if keypoints_lst is not None:
+            for keypoints in keypoints_lst:
+                self.append(Keypoints(keypoints))
 
     def get_middle_ankle_points(self):
         return [kp.get_middle_ankle() for kp in self]
