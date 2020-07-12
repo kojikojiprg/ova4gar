@@ -12,7 +12,6 @@ class Video:
 
     def __del__(self):
         self._video.release()
-        self._writer.release()
         cv2.destroyAllWindows()
 
     def read(self):
@@ -21,7 +20,6 @@ class Video:
         return frame
 
     def write(self, frames, out_path, size):
-
         # writer object
         fmt = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
         self._writer = cv2.VideoWriter(
@@ -30,3 +28,5 @@ class Video:
         for frame in frames:
             frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)  # RGB to BGR
             self._writer.write(frame)
+
+        self._writer.release()
