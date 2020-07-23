@@ -47,15 +47,6 @@ class Keypoints(list):
             point = (R + L) / 2
         return point[:2].astype(int)
 
-    def coordinate_system(self):
-        ms = self.get_middle('Shoulder')
-        mh = self.get_middle('Hip')
-        ma = self.get_middle('Ankle')
-
-        vx = mh * 2     # Vector of X of the person
-        vy = ms - mh    # Vector of Y of the person
-        # WIP 必要になるかわからない
-
 
 class KeypointsList(list):
     def __init__(self, keypoints_lst=None):
