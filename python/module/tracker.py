@@ -15,7 +15,7 @@ class Tracker:
     def track_person(self, person_id):
         person = self.persons[person_id]
         for keypoints_lst in self.keypoints_frame_lst:
-            targets = keypoints_lst.get_middle_ankle_points()
+            targets = keypoints_lst.get_middle_points('Ankle')
 
             point = None
             keypoints = None
@@ -33,4 +33,4 @@ class Tracker:
             # パーティクルフィルタを更新
             person.update(point, keypoints)
 
-        return person.track_rslts()
+        return person.track_results()

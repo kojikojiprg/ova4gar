@@ -1,7 +1,6 @@
 import numpy as np
 from keypoint import KeypointsList
 from particle_filter import ParticleFilter
-from transform import Homography
 
 
 class Person:
@@ -10,12 +9,12 @@ class Person:
         self.keypoints_lst = KeypointsList()
         self.keypoints_lst.append(keypoints)
 
-        point = keypoints.get_middle_ankle()
+        point = keypoints.get_middle('Ankle')
         self.state = State(point)
         self.pf = ParticleFilter(point[0], point[1])
         self.particles_lst = [self.pf.particles]
 
-        self.speed_lst = [0.]
+        self.verocity_lst = [0.]
 
     def update(self, point, keypoints):
         self.state.update(point)
@@ -25,19 +24,19 @@ class Person:
         self.particles_lst.append(self.pf.particles)
         self.keypoints_lst.append(keypoints)
 
-        self.speed()
+        self.verocity()
 
-    def track_rslts(self):
+    def track_results(self):
         points = []
         for keypoints in self.keypoints_lst:
             if keypoints is not None:
-                points.append(keypoints.get_middle_ankle())
+                points.append(keypoints.get_middle('Ankle'))
             else:
                 points.append(None)
 
-        return points, self.particles_lst, self.speed_lst
+        return points, self.particles_lst, self.verocity_lst
 
-    def speed(self):
+    def verocity(self):
         point = self.state.now
         prepoint = self.state.pre
         interval = self.state.interval
