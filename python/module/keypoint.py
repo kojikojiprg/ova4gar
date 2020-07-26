@@ -56,7 +56,14 @@ class KeypointsList(list):
                 self.append(Keypoints(keypoints))
 
     def get_middle_points(self, name):
-        return [kp.get_middle(name) for kp in self]
+        points = []
+        for keypoints in self:
+            if keypoints is not None:
+                points.append(keypoints.get_middle('Ankle'))
+            else:
+                points.append(None)
+
+        return points
 
 
 class Frame(list):

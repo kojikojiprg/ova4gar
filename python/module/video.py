@@ -8,7 +8,7 @@ class Video:
         # video info
         self.frame_count = int(self._video.get(cv2.CAP_PROP_FRAME_COUNT))
         self.frame_rate = int(self._video.get(cv2.CAP_PROP_FPS))
-        self.frame_num = self._video.get(cv2.CAP_PROP_FRAME_COUNT)
+        self.frame_num = int(self._video.get(cv2.CAP_PROP_FRAME_COUNT))
 
     def __del__(self):
         self._video.release()

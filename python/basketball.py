@@ -26,17 +26,15 @@ if __name__ == '__main__':
     # tracking
     person_id = 8
     tr = tracker.Tracker(keypoints_frame)
-    points, particles, verocities = tr.track_person(person_id)
-    verocitiy_max = max(verocities)
-    verocitiy_min = min(verocities)
-    verocitiy_heatmap = Heatmap(verocitiy_min, verocitiy_max)
+    keypoints_lst, particles_lst = tr.track_person(person_id)
+    points = keypoints_lst.get_middle_points('Ankle')
+    heatmap = Heatmap(keypoints_lst)
 
     frames = []
     prepoint = None
-    for i, rslt in enumerate(zip(points, particles, verocities)):
-        point = rslt[0]         # result point
-        particles = rslt[1]     # particles
-        v = rslt[2]             # verocity
+    for i in range(video.frame_num):
+        point = points[i]
+        particles = particles_lst[i]
 
         # read frame
         frame = video.read()
@@ -54,11 +52,13 @@ if __name__ == '__main__':
             cv2.circle(frame, tuple(point), 7, (0, 0, 255), thickness=-1)
 
         # スピードのヒートマップを表示
-        if i > 1:
-            p = homo.transform_point(point)
-            pre = homo.transform_point(prepoint)
-            v = verocitiy_heatmap.calc(v)
-            cv2.line(court, tuple(pre), tuple(p), tuple(v), 3)
+        if heatmap.verocities[i] is not None:
+            now = heatmap.verocities[i][0]
+            nxt = heatmap.verocities[i][1]
+            now = homo.transform_point(now)
+            nxt = homo.transform_point(nxt)
+            color = heatmap.verocities[i][2]
+            cv2.line(court, now, nxt, color, 3)
         prepoint = point
 
         # 画像を合成
