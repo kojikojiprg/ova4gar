@@ -33,12 +33,15 @@ class Keypoints(list):
                 keypoint[i + 1],
                 keypoint[i + 2]])
 
-    def get(self, body_name):
-        return np.array(self[body[body_name]])
+    def get(self, body_name, ignore_confidence=False):
+        if ignore_confidence:
+            return np.array(self[body[body_name]])[:2]
+        else:
+            return np.array(self[body[body_name]])
 
     def get_middle(self, name):
-        R = np.array(self.get('R' + name))
-        L = np.array(self.get('L' + name))
+        R = self.get('R' + name)
+        L = self.get('L' + name)
         if R[2] < confidence_th:
             point = L
         elif L[2] < confidence_th:
