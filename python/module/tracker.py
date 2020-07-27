@@ -33,4 +33,4 @@ class Tracker:
             # パーティクルフィルタを更新
             person.update(point, keypoints)
 
-        return person.track_results()
+        return person.keypoints_lst, person.particles_lst

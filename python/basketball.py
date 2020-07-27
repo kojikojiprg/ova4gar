@@ -3,11 +3,17 @@ import numpy as np
 from module import common, video, utils, keypoint, tracker, transform
 from heatmap import Heatmap
 
+# パラメータ
+MODE = [
+    'speed',
+    'move-hand',
+]
+MODE_NUM = 1
 
 if __name__ == '__main__':
     # file path
     video_path = common.data_dir + 'basketball/basketball_alphapose.mp4'
-    out_path = common.out_dir + 'basketball/basketball_particle.mp4'
+    out_path = common.out_dir + 'basketball/basketball_particle_{}.mp4'.format(MODE[MODE_NUM])
     court_path = common.data_dir + 'basketball/court.png'
     json_path = common.data_dir + 'basketball/keypoints.json'
 
@@ -26,17 +32,17 @@ if __name__ == '__main__':
     # tracking
     person_id = 8
     tr = tracker.Tracker(keypoints_frame)
-    points, particles, verocities = tr.track_person(person_id)
-    verocitiy_max = max(verocities)
-    verocitiy_min = min(verocities)
-    verocitiy_heatmap = Heatmap(verocitiy_min, verocitiy_max)
+    keypoints_lst, particles_lst = tr.track_person(person_id)
+    points = keypoints_lst.get_middle_points('Ankle')
+
+    # heatmap
+    heatmap = Heatmap(keypoints_lst)
 
     frames = []
     prepoint = None
-    for i, rslt in enumerate(zip(points, particles, verocities)):
-        point = rslt[0]         # result point
-        particles = rslt[1]     # particles
-        v = rslt[2]             # verocity
+    for i in range(video.frame_num):
+        point = points[i]
+        particles = particles_lst[i]
 
         # read frame
         frame = video.read()
@@ -53,12 +59,23 @@ if __name__ == '__main__':
             # add point on a frame
             cv2.circle(frame, tuple(point), 7, (0, 0, 255), thickness=-1)
 
-        # スピードのヒートマップを表示
-        if i > 1:
-            p = homo.transform_point(point)
-            pre = homo.transform_point(prepoint)
-            v = verocitiy_heatmap.calc(v)
-            cv2.line(court, tuple(pre), tuple(p), tuple(v), 3)
+        if MODE_NUM == 0:
+            # スピードのヒートマップを表示
+            if heatmap.verocity_map[i] is not None:
+                now = heatmap.verocity_map[i][0]
+                nxt = heatmap.verocity_map[i][1]
+                now = homo.transform_point(now)
+                nxt = homo.transform_point(nxt)
+                color = heatmap.verocity_map[i][2]
+                cv2.line(court, now, nxt, color, 3)
+        elif MODE_NUM == 1:
+            # 手の動きのヒートマップを表示
+            if heatmap.move_hand_map[i] is not None:
+                now = heatmap.move_hand_map[i][0]
+                now = homo.transform_point(now)
+                color = heatmap.move_hand_map[i][1]
+                cv2.circle(court, now, 7, color, thickness=-1)
+
         prepoint = point
 
         # 画像を合成

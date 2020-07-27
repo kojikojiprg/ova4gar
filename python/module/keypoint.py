@@ -33,12 +33,15 @@ class Keypoints(list):
                 keypoint[i + 1],
                 keypoint[i + 2]])
 
-    def get(self, body_name):
-        return np.array(self[body[body_name]])
+    def get(self, body_name, ignore_confidence=False):
+        if ignore_confidence:
+            return np.array(self[body[body_name]])[:2]
+        else:
+            return np.array(self[body[body_name]])
 
     def get_middle(self, name):
-        R = np.array(self.get('R' + name))
-        L = np.array(self.get('L' + name))
+        R = self.get('R' + name)
+        L = self.get('L' + name)
         if R[2] < confidence_th:
             point = L
         elif L[2] < confidence_th:
@@ -46,15 +49,6 @@ class Keypoints(list):
         else:
             point = (R + L) / 2
         return point[:2].astype(int)
-
-    def coordinate_system(self):
-        ms = self.get_middle('Shoulder')
-        mh = self.get_middle('Hip')
-        ma = self.get_middle('Ankle')
-
-        vx = mh * 2     # Vector of X of the person
-        vy = ms - mh    # Vector of Y of the person
-        # WIP 必要になるかわからない
 
 
 class KeypointsList(list):
@@ -65,7 +59,14 @@ class KeypointsList(list):
                 self.append(Keypoints(keypoints))
 
     def get_middle_points(self, name):
-        return [kp.get_middle(name) for kp in self]
+        points = []
+        for keypoints in self:
+            if keypoints is not None:
+                points.append(keypoints.get_middle('Ankle'))
+            else:
+                points.append(None)
+
+        return points
 
 
 class Frame(list):
