@@ -18,3 +18,5 @@ class Person:
 
         self.particles_lst.append(self.pf.particles)
         self.keypoints_lst.append(keypoints)
+
+    def vector(self, point):
