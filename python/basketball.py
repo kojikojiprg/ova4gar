@@ -8,7 +8,7 @@ MODE = [
     'speed',
     'move-hand',
 ]
-MODE_NUM = 1
+MODE_NUM = 0
 
 if __name__ == '__main__':
     # file path
