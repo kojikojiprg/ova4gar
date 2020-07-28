@@ -11,6 +11,7 @@ class Tracker:
         self.persons = []
         for i, keypoints in enumerate(keypoints_lst):
             self.persons.append(Person(i, keypoints))
+        self.persons = np.array(self.persons)
 
     def track_person(self, person_id):
         person = self.persons[person_id]
@@ -34,3 +35,7 @@ class Tracker:
             person.update(point, keypoints)
 
         return person.keypoints_lst, person.particles_lst
+
+    def track(self, person_id_lst):
+        persons = self.persons[person_id_lst]
+        # WIP
