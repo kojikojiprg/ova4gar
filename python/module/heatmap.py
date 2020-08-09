@@ -48,7 +48,7 @@ class Heatmap:
         return rslt_lst
 
     def verocity(self):
-        lst = [np.nan]
+        lst = []
         for i in range(len(self.keypoints_lst) - 1):
             now = self.keypoints_lst[i]
             nxt = self.keypoints_lst[i + 1]
@@ -61,6 +61,7 @@ class Heatmap:
             d = nxt - now
             vero = np.linalg.norm(d, ord=2)
             lst.append(vero)
+        lst.append(np.nan)  # last point data
 
         xmin, xmax, xmid, inclination = self._calc_args(lst)
         ret_lst = [None]
