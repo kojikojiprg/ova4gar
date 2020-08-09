@@ -1,14 +1,15 @@
 import cv2
 import numpy as np
-from module import common, video, utils, keypoint, tracker, transform
+from module import common, video, keypoint, tracker, transform
 from heatmap import Heatmap
 
 # パラメータ
 MODE = [
     'speed',
     'move-hand',
+    'vector',
 ]
-MODE_NUM = 1
+MODE_NUM = 2
 
 if __name__ == '__main__':
     # file path
@@ -32,17 +33,17 @@ if __name__ == '__main__':
     # tracking
     person_id = 8
     tr = tracker.Tracker(keypoints_frame)
-    keypoints_lst, particles_lst = tr.track_person(person_id)
-    points = keypoints_lst.get_middle_points('Ankle')
+    person = tr.track_person(person_id)
+    points = person.keypoints_lst.get_middle_points('Ankle')
 
     # heatmap
-    heatmap = Heatmap(keypoints_lst)
+    heatmap = Heatmap(person)
 
     frames = []
     prepoint = None
     for i in range(video.frame_num):
         point = points[i]
-        particles = particles_lst[i]
+        particles = person.particles_lst[i]
 
         # read frame
         frame = video.read()
@@ -75,6 +76,15 @@ if __name__ == '__main__':
                 now = homo.transform_point(now)
                 color = heatmap.move_hand_map[i][1]
                 cv2.circle(court, now, 7, color, thickness=-1)
+        elif MODE_NUM == 2:
+            # ベクトルを表示
+            if heatmap.vector_map[i] is not None:
+                start = heatmap.vector_map[i][0]
+                end = heatmap.vector_map[i][1]
+                start = homo.transform_point(start)
+                end = homo.transform_point(end)
+                color = heatmap.vector_map[i][2]
+                cv2.arrowedLine(court, start, end, color, tipLength=1.5)
 
         prepoint = point
 
