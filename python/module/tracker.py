@@ -34,7 +34,7 @@ class Tracker:
             # パーティクルフィルタを更新
             person.update(point, keypoints)
 
-        return person.keypoints_lst, person.particles_lst
+        return person
 
     def track(self, person_id_lst):
         persons = self.persons[person_id_lst]

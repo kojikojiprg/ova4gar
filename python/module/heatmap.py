@@ -2,8 +2,11 @@ import numpy as np
 
 
 class Heatmap:
-    def __init__(self, keypoints_lst):
-        self.keypoints_lst = keypoints_lst
+    def __init__(self, person):
+        self.keypoints_lst = person.keypoints_lst
+        self.vector_lst = person.vector_lst
+
+        self.vector_map = self.vector()
         self.verocity_map = self.verocity()
         self.move_hand_map = self.move_hand()
 
@@ -26,8 +29,26 @@ class Heatmap:
             b = 0
         return (int(r), int(g), int(b))
 
+    def vector(self):
+        xmin, xmax, xmid, inclination = self._calc_args([0.0, np.pi / 2])
+        rslt_lst = []
+        for i, vec in enumerate(self.vector_lst):
+            if vec is None:
+                rslt_lst.append(None)
+                continue
+
+            angle = np.arccos(np.abs(vec[0]) / (np.linalg.norm(vec) + 0.00000001))
+            start = self.keypoints_lst[i].get_middle('Ankle')
+            end = start + vec
+            rslt_lst.append((
+                start,
+                end,
+                self._colormap(angle, xmin, xmax, xmid, inclination)))
+
+        return rslt_lst
+
     def verocity(self):
-        lst = [np.nan]
+        lst = []
         for i in range(len(self.keypoints_lst) - 1):
             now = self.keypoints_lst[i]
             nxt = self.keypoints_lst[i + 1]
@@ -40,6 +61,7 @@ class Heatmap:
             d = nxt - now
             vero = np.linalg.norm(d, ord=2)
             lst.append(vero)
+        lst.append(np.nan)  # last point data
 
         xmin, xmax, xmid, inclination = self._calc_args(lst)
         ret_lst = [None]
