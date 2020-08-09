@@ -1,5 +1,5 @@
 import numpy as np
-import mahalanobis as mh
+from functions import mahalanobis as mh
 
 
 class ParticleFilter:
@@ -52,4 +52,4 @@ class ParticleFilter:
         return np.average(self.particles.T, weights=self.weights, axis=1)
 
     def mahalanobis(self, point):
-        return mh.calc(point, self.particles)
+        return mh(point, self.particles)
