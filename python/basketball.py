@@ -32,62 +32,65 @@ if __name__ == '__main__':
     keypoints_frame = keypoint.Frame(json_path)
 
     # tracking
-    person_id = 8
+    person_id_lst = [9, 10]
     tr = tracker.Tracker(keypoints_frame)
-    person = tr.track_person(person_id)
-    points = person.keypoints_lst.get_middle_points('Ankle')
+    persons = tr.track(person_id_lst)
+    points_lst = [p.keypoints_lst.get_middle_points('Ankle') for p in persons]
 
     # heatmap
-    heatmap = Heatmap(person)
+    heatmaps = [Heatmap(p) for p in persons]
 
     frames = []
     prepoint = None
     for i in range(video.frame_num):
-        point = points[i]
-        particles = person.particles_lst[i]
-
         # read frame
         frame = video.read()
 
         # フレーム番号を表示
         cv2.putText(frame, 'Frame:{}'.format(i + 1), (10, 50), cv2.FONT_HERSHEY_PLAIN, 2, (255, 255, 255))
 
-        # パーティクルを表示
-        for par in particles:
-            cv2.circle(frame, (int(par[0]), int(par[1])), 2, (0, 255, 0), thickness=-1)
+        for j in range(len(person_id_lst)):
+            person = persons[j]
+            point = points_lst[j][i]
+            particles = person.particles_lst[i]
+            heatmap = heatmaps[j]
 
-        # ポイントを表示
-        if point is not None:
-            # add point on a frame
-            cv2.circle(frame, tuple(point), 7, (0, 0, 255), thickness=-1)
+            # パーティクルを表示
+            for par in particles:
+                cv2.circle(frame, (int(par[0]), int(par[1])), 2, (0, 255, 0), thickness=-1)
 
-        if MODE_NUM == 0:
-            # スピードのヒートマップを表示
-            if heatmap.verocity_map[i] is not None:
-                now = heatmap.verocity_map[i][0]
-                nxt = heatmap.verocity_map[i][1]
-                now = homo.transform_point(now)
-                nxt = homo.transform_point(nxt)
-                color = heatmap.verocity_map[i][2]
-                cv2.line(court, now, nxt, color, 3)
-        elif MODE_NUM == 1:
-            # 手の動きのヒートマップを表示
-            if heatmap.move_hand_map[i] is not None:
-                now = heatmap.move_hand_map[i][0]
-                now = homo.transform_point(now)
-                color = heatmap.move_hand_map[i][1]
-                cv2.circle(court, now, 7, color, thickness=-1)
-        elif MODE_NUM == 2:
-            # ベクトルを表示
-            if heatmap.vector_map[i] is not None:
-                start = heatmap.vector_map[i][0]
-                end = heatmap.vector_map[i][1]
-                start = homo.transform_point(start)
-                end = homo.transform_point(end)
-                color = heatmap.vector_map[i][2]
-                cv2.arrowedLine(court, start, end, color, tipLength=1.5)
+            # ポイントを表示
+            if point is not None:
+                # add point on a frame
+                cv2.circle(frame, tuple(point), 7, (0, 0, 255), thickness=-1)
 
-        prepoint = point
+            if MODE_NUM == 0:
+                # スピードのヒートマップを表示
+                if heatmap.verocity_map[i] is not None:
+                    now = heatmap.verocity_map[i][0]
+                    nxt = heatmap.verocity_map[i][1]
+                    now = homo.transform_point(now)
+                    nxt = homo.transform_point(nxt)
+                    color = heatmap.verocity_map[i][2]
+                    cv2.line(court, now, nxt, color, 3)
+            elif MODE_NUM == 1:
+                # 手の動きのヒートマップを表示
+                if heatmap.move_hand_map[i] is not None:
+                    now = heatmap.move_hand_map[i][0]
+                    now = homo.transform_point(now)
+                    color = heatmap.move_hand_map[i][1]
+                    cv2.circle(court, now, 7, color, thickness=-1)
+            elif MODE_NUM == 2:
+                # ベクトルを表示
+                if heatmap.vector_map[i] is not None:
+                    start = heatmap.vector_map[i][0]
+                    end = heatmap.vector_map[i][1]
+                    start = homo.transform_point(start)
+                    end = homo.transform_point(end)
+                    color = heatmap.vector_map[i][2]
+                    cv2.arrowedLine(court, start, end, color, tipLength=1.5)
+
+            prepoint = point
 
         # 画像を合成
         ratio = 1 - (frame.shape[0] - court.shape[0]) / frame.shape[0]

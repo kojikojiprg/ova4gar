@@ -38,4 +38,25 @@ class Tracker:
 
     def track(self, person_id_lst):
         persons = self.persons[person_id_lst]
-        # WIP
+
+        for keypoints_lst in self.keypoints_frame_lst:
+            targets = keypoints_lst.get_middle_points('Ankle')
+
+            for person in persons:
+                point = None
+                keypoints = None
+                nearest = np.inf
+                for i, target in enumerate(targets):
+                    # マハラノビス距離を求める
+                    distance = person.pf.mahalanobis(target)
+
+                    # 一番距離が近いポイントを取り出す
+                    if distance < nearest:
+                        point = target
+                        keypoints = keypoints_lst[i]
+                        nearest = distance
+
+                # パーティクルフィルタを更新
+                person.update(point, keypoints)
+
+        return persons
