@@ -16,7 +16,7 @@ class Tracker:
     def track_person(self, person_id):
         person = self.persons[person_id]
         for keypoints_lst in self.keypoints_frame_lst:
-            targets = keypoints_lst.get_middle_points('Ankle')
+            targets = keypoints_lst.get_middle_points('Hip')
 
             point = None
             keypoints = None
@@ -40,7 +40,7 @@ class Tracker:
         persons = self.persons[person_id_lst]
 
         for keypoints_lst in self.keypoints_frame_lst:
-            targets = keypoints_lst.get_middle_points('Ankle')
+            targets = keypoints_lst.get_middle_points('Hip')
 
             for person in persons:
                 point = None

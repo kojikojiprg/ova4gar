@@ -10,7 +10,7 @@ class Person:
         self.keypoints_lst = KeypointsList()
         self.keypoints_lst.append(keypoints)
 
-        point = keypoints.get_middle('Ankle')
+        point = keypoints.get_middle('Hip')
         self.pf = ParticleFilter(point[0], point[1])
         self.particles_lst = [self.pf.particles]
 
@@ -34,8 +34,9 @@ class Person:
         kp_reversed = self.keypoints_lst[::-1]
         diffs = []
         for i in range(self.vector_size):
-            diffs.append(
-                kp_reversed[i - 1].get_middle('Ankle') - kp_reversed[i].get_middle('Ankle') + 0.00000001)
+            now = kp_reversed[i].get_middle('Hip')
+            nxt = kp_reversed[i - 1].get_middle('Hip')
+            diffs.append(nxt - now + 0.00000001)
         diffs = np.array(diffs[::-1])
 
         # 類似度を計算

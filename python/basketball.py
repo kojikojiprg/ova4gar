@@ -32,13 +32,13 @@ if __name__ == '__main__':
     keypoints_frame = keypoint.Frame(json_path)
 
     # tracking
-    person_id_lst = [9, 10]
+    person_id_lst = [8, 9]
     tr = tracker.Tracker(keypoints_frame)
     persons = tr.track(person_id_lst)
-    points_lst = [p.keypoints_lst.get_middle_points('Ankle') for p in persons]
+    points_lst = [p.keypoints_lst.get_middle_points('Hip') for p in persons]
 
     # heatmap
-    heatmaps = [Heatmap(p) for p in persons]
+    heatmaps = [Heatmap(p, homo) for p in persons]
 
     frames = []
     prepoint = None
@@ -69,8 +69,6 @@ if __name__ == '__main__':
                 if heatmap.verocity_map[i] is not None:
                     now = heatmap.verocity_map[i][0]
                     nxt = heatmap.verocity_map[i][1]
-                    now = homo.transform_point(now)
-                    nxt = homo.transform_point(nxt)
                     color = heatmap.verocity_map[i][2]
                     cv2.line(court, now, nxt, color, 3)
             elif MODE_NUM == 1:
@@ -85,8 +83,6 @@ if __name__ == '__main__':
                 if heatmap.vector_map[i] is not None:
                     start = heatmap.vector_map[i][0]
                     end = heatmap.vector_map[i][1]
-                    start = homo.transform_point(start)
-                    end = homo.transform_point(end)
                     color = heatmap.vector_map[i][2]
                     cv2.arrowedLine(court, start, end, color, tipLength=1.5)
 

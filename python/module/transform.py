@@ -13,7 +13,7 @@ class Homography:
     def transform_point(self, point):
         point = np.append(point, 1)
         result = np.dot(self.M, point)
-        return tuple([
+        return np.array([
             int(result[0] / result[2]),
             int(result[1] / result[2]),
         ])

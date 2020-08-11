@@ -2,7 +2,8 @@ import numpy as np
 
 
 class Heatmap:
-    def __init__(self, person):
+    def __init__(self, person, homography):
+        self.homo = homography
         self.keypoints_lst = person.keypoints_lst
         self.vector_lst = person.vector_lst
 
@@ -38,11 +39,16 @@ class Heatmap:
                 continue
 
             angle = np.arccos(np.abs(vec[0]) / (np.linalg.norm(vec) + 0.00000001))
-            start = self.keypoints_lst[i].get_middle('Ankle')
+
+            start = self.keypoints_lst[i].get_middle('Hip')
+            start[1] += 50  # 適当に設定
             end = start + vec
+            start = self.homo.transform_point(start)
+            end = self.homo.transform_point(end)
+
             rslt_lst.append((
-                start,
-                end,
+                tuple(start),
+                tuple(end),
                 self._colormap(angle, xmin, xmax, xmid, inclination)))
 
         return rslt_lst
@@ -55,8 +61,11 @@ class Heatmap:
             if now is None or nxt is None:
                 lst.append(np.nan)
                 continue
-            now = now.get_middle('Ankle')
-            nxt = nxt.get_middle('Ankle')
+
+            now = now.get_middle('Hip')
+            nxt = nxt.get_middle('Hip')
+            now = self.homo.transform_point(now)
+            nxt = self.homo.transform_point(nxt)
 
             d = nxt - now
             vero = np.linalg.norm(d, ord=2)
