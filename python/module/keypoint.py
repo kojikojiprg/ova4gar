@@ -62,7 +62,7 @@ class KeypointsList(list):
         points = []
         for keypoints in self:
             if keypoints is not None:
-                points.append(keypoints.get_middle('Ankle'))
+                points.append(keypoints.get_middle(name))
             else:
                 points.append(None)
 
