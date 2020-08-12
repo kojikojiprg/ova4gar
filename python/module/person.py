@@ -1,6 +1,6 @@
 from keypoint import KeypointsList
 from particle_filter import ParticleFilter
-from functions import euclidean, cosine, normalize
+from functions import euclidean, cosine, normalize, softmax
 import numpy as np
 
 
@@ -51,7 +51,8 @@ class Person:
 
         # ユークリッド距離 * コサイン類似度の逆数を重みとする(0 ~ 1)
         weights = 1 / (np.array(euclidieans) * np.array(cosines) + 0.00000001)
-        weights = normalize(weights)
+        # 重みの合計を1にする
+        weights = softmax(weights)
 
         # ベクトルを求める
         vec = 0.0
