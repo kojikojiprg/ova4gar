@@ -32,7 +32,7 @@ if __name__ == '__main__':
     keypoints_frame = keypoint.Frame(json_path)
 
     # tracking
-    person_id_lst = [8, 9]
+    person_id_lst = [8, 9, 10]
     tr = tracker.Tracker(keypoints_frame)
     persons = tr.track(person_id_lst)
     points_lst = [p.keypoints_lst.get_middle_points('Hip') for p in persons]

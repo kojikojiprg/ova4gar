@@ -80,8 +80,10 @@ class Heatmap:
             if lst[i] is np.nan:
                 ret_lst.append(None)
             else:
-                now = now.get_middle('Ankle')
-                nxt = nxt.get_middle('Ankle')
+                now = now.get_middle('Hip')
+                nxt = nxt.get_middle('Hip')
+                now = self.homo.transform_point(now)
+                nxt = self.homo.transform_point(nxt)
                 ret_lst.append((
                     tuple(now),
                     tuple(nxt),
