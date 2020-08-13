@@ -116,7 +116,9 @@ class Heatmap:
                 norm = np.linalg.norm(vec, ord=2)
 
                 # 体軸と前肢の角度(左右の大きい方を選択する)
-                angle = max(ankle, np.arccos(np.dot(axis, vec) / (norm_axis * norm)))
+                angle = max(
+                    ankle,
+                    np.arccos(np.dot(axis, vec) / (norm_axis * norm + 0.00000001)))
 
             ret_lst.append((
                 mid_ankle,
