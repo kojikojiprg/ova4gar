@@ -47,7 +47,7 @@ class ParticleFilter:
         # 次の動きをランダムに予測する(パーティクルにノイズを乗せる)
         self._predict()
 
-    def filtered_value(self):
+    def filter(self):
         # パーティクルの加重平均から推定値を求める
         return np.average(self.particles.T, weights=self.weights, axis=1)
 
