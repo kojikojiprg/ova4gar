@@ -25,13 +25,13 @@ confidence_th = 0.00001
 
 
 class Keypoints(list):
-    def __init__(self, keypoint):
+    def __init__(self, keypoints):
         super().__init__([])
-        for i in range(0, len(keypoint), 3):
+        for i in range(0, len(keypoints), 3):
             self.append([
-                keypoint[i],
-                keypoint[i + 1],
-                keypoint[i + 2]])
+                keypoints[i],
+                keypoints[i + 1],
+                keypoints[i + 2]])
 
     def get(self, body_name, ignore_confidence=False):
         if ignore_confidence:
@@ -52,11 +52,8 @@ class Keypoints(list):
 
 
 class KeypointsList(list):
-    def __init__(self, keypoints_lst=None):
+    def __init__(self):
         super().__init__([])
-        if keypoints_lst is not None:
-            for keypoints in keypoints_lst:
-                self.append(Keypoints(keypoints))
 
     def get_middle_points(self, name):
         points = []
@@ -75,14 +72,16 @@ class Frame(list):
         with open(json_path) as f:
             dat = json.load(f)
 
-            keypoints_lst = []
+            keypoints_lst = KeypointsList()
             pre_no = 0
             for item in dat:
                 frame_no = int(item['image_id'].split('.')[0])
 
                 if frame_no != pre_no:
-                    self.append(KeypointsList(keypoints_lst))
-                    keypoints_lst = []
+                    self.append(keypoints_lst)
+                    keypoints_lst = KeypointsList()
 
-                keypoints_lst.append(item['keypoints'])
+                keypoints_lst.append(Keypoints(item['keypoints']))
                 pre_no = frame_no
+            else:
+                self.append(keypoints_lst)
