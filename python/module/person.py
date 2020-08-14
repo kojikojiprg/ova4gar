@@ -10,19 +10,25 @@ class Person:
         self.keypoints_lst = KeypointsList()
         self.keypoints_lst.append(keypoints)
 
-        point = keypoints.get_middle('Hip')
-        self.pf = ParticleFilter(point[0], point[1])
-        self.particles_lst = [self.pf.particles]
+        point = self.get_point(keypoints)
+        self.pf = ParticleFilter(point)
+        self.particles_lst = []
 
         self.vector_size = vector_size
-        self.vector_lst = [None]
+        self.vector_lst = []
 
-    def update(self, point, keypoints):
-        if point is not None:
-            self.pf.predict(point[0], point[1])
+    def get_point(self, keypoints):
+        return keypoints.get_middle('Hip')
 
-        self.particles_lst.append(self.pf.particles)
-        self.keypoints_lst.append(keypoints)
+    def update(self, keypoints):
+        self.pf.predict()
+        self.particles_lst.append(self.pf.particles.copy())
+
+        if keypoints is not None:
+            self.keypoints_lst.append(keypoints)
+            point = self.get_point(keypoints)
+            self.pf.filter(point)
+
         self.vector()
 
     def vector(self):
@@ -55,10 +61,7 @@ class Person:
         weights = softmax(weights)
 
         # ベクトルを求める
-        vec = 0.0
-        for diff, weight in zip(diffs[1:], weights):
-            vec += (diff * weight).astype(int)
-        # 単位ベクトルに変換
+        vec = np.average(diffs[1:], weights=weights, axis=0)
         vec = vec.astype(int)
 
         self.vector_lst.append(tuple(vec))

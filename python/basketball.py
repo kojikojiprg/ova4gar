@@ -32,9 +32,8 @@ if __name__ == '__main__':
     keypoints_frame = keypoint.Frame(json_path)
 
     # tracking
-    person_id_lst = [8, 9, 10]
     tr = tracker.Tracker(keypoints_frame)
-    persons = tr.track(person_id_lst)
+    persons = tr.track()
     points_lst = [p.keypoints_lst.get_middle_points('Hip') for p in persons]
 
     # heatmap
@@ -49,7 +48,7 @@ if __name__ == '__main__':
         # フレーム番号を表示
         cv2.putText(frame, 'Frame:{}'.format(i + 1), (10, 50), cv2.FONT_HERSHEY_PLAIN, 2, (255, 255, 255))
 
-        for j in range(len(person_id_lst)):
+        for j in range(len(persons)):
             person = persons[j]
             point = points_lst[j][i]
             particles = person.particles_lst[i]

@@ -11,8 +11,8 @@ def mahalanobis(x, data):
     return distance.mahalanobis(x, mu, inv)
 
 
-def euclidean(a, b):
-    return np.linalg.norm(b - a)
+def euclidean(a, b, axis=None):
+    return np.linalg.norm(a - b, axis=axis)
 
 
 def cosine(a, b):
