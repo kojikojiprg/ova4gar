@@ -33,10 +33,9 @@ class Person:
     def is_updated(self):
         return self.state == State.Updated
 
-    def probability(self, point, th):
+    def probability(self, point):
         weights = self.pf.liklihood(point)
-        if weights.sum() >= th:
-            return weights.sum()
+        return weights.sum()
         else:
             return 0.0
 
