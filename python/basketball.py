@@ -62,6 +62,7 @@ if __name__ == '__main__':
             if point is not None:
                 point = point.get_middle('Hip')
                 cv2.circle(frame, tuple(point), 7, (0, 0, 255), thickness=-1)
+                cv2.putText(frame, str(j), tuple(point), cv2.FONT_HERSHEY_PLAIN, 2, (255, 255, 255))
 
             if MODE_NUM == 1:
                 # スピードのヒートマップを表示

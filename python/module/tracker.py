@@ -27,7 +27,7 @@ class Tracker:
                         continue
 
                     # パーティクルが移動する確率を求める
-                    prob = person.probability(target)
+                    prob = person.probability(target, 0.0)
 
                     # 一番確率が高い人を取り出す
                     if max_prob < prob:
@@ -47,5 +47,7 @@ class Tracker:
                 # アップデートされていない人にNoneを入力してアップデート
                 if not person.is_updated():
                     person.update(None)
+                elif person.is_deleted():
+                    person.delete()
 
         return self.persons

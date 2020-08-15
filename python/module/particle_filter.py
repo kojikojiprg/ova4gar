@@ -5,7 +5,7 @@ class ParticleFilter:
     def __init__(
         self,
         point,
-        n_particle=300,
+        n_particle=100,
         cov_gaus=np.eye(2) * 50,
         cov_predict=np.eye(2) * 10
     ):

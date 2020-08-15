@@ -6,9 +6,11 @@ from enum import Enum, auto
 
 
 class Person:
-    def __init__(self, person_id, keypoints, vector_size=10, frame_num=0):
+    def __init__(self, person_id, keypoints, max_age=5, vector_size=10, frame_num=0):
         self.state = State.Reset
         self.id = person_id
+        self.age = 0
+        self.max_age = max_age
 
         self.keypoints_lst = KeypointsList()
 
@@ -28,16 +30,18 @@ class Person:
         return keypoints.get_middle('Hip')
 
     def reset(self):
-        self.state = State.Reset
+        if not self.is_deleted():
+            self.state = State.Reset
 
     def is_updated(self):
         return self.state == State.Updated
 
-    def probability(self, point):
-        weights = self.pf.liklihood(point)
-        return weights.sum()
-        else:
-            return 0.0
+    def is_deleted(self):
+        return self.state == State.Deleted
+
+    def probability(self, point, th):
+        prob = self.pf.liklihood(point).sum()
+        return prob if prob >= th else 0.0
 
     def update(self, keypoints):
         self.keypoints_lst.append(keypoints)
@@ -48,10 +52,22 @@ class Person:
         if keypoints is not None:
             point = self._get_point(keypoints)
             self.pf.filter(point)
+            self.age = 0
+        else:
+            self.age += 1
 
         # Noneの処理を考える
         #self.vector()
-        self.state = State.Updated
+
+        if self.age > self.max_age:
+            self.state = State.Deleted
+        else:
+            self.state = State.Updated
+
+    def delete(self):
+        self.keypoints_lst.append(None)
+        self.particles_lst.append(None)
+        self.vector_lst.append(None)
 
     def vector(self):
         if len(self.keypoints_lst) < self.vector_size:
