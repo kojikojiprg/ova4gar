@@ -5,12 +5,13 @@ from heatmap import Heatmap
 
 # パラメータ
 MODE = [
+    'none',
     'speed',
     'move-hand',
     'vector',
 ]
 
-MODE_NUM = 2
+MODE_NUM = 0
 
 if __name__ == '__main__':
     # file path
@@ -34,10 +35,9 @@ if __name__ == '__main__':
     # tracking
     tr = tracker.Tracker(keypoints_frame)
     persons = tr.track()
-    points_lst = [p.keypoints_lst.get_middle_points('Hip') for p in persons]
 
     # heatmap
-    heatmaps = [Heatmap(p, homo) for p in persons]
+    #heatmaps = [Heatmap(p, homo) for p in persons]
 
     frames = []
     prepoint = None
@@ -48,36 +48,36 @@ if __name__ == '__main__':
         # フレーム番号を表示
         cv2.putText(frame, 'Frame:{}'.format(i + 1), (10, 50), cv2.FONT_HERSHEY_PLAIN, 2, (255, 255, 255))
 
-        for j in range(len(persons)):
-            person = persons[j]
-            point = points_lst[j][i]
+        for j, person in enumerate(persons):
+            point = person.keypoints_lst[i]
             particles = person.particles_lst[i]
-            heatmap = heatmaps[j]
+            #heatmap = heatmaps[j]
 
             # パーティクルを表示
-            for par in particles:
-                cv2.circle(frame, (int(par[0]), int(par[1])), 2, (0, 255, 0), thickness=-1)
+            if particles is not None:
+                for par in particles:
+                    cv2.circle(frame, (int(par[0]), int(par[1])), 2, (0, 255, 0), thickness=-1)
 
             # ポイントを表示
             if point is not None:
-                # add point on a frame
+                point = point.get_middle('Hip')
                 cv2.circle(frame, tuple(point), 7, (0, 0, 255), thickness=-1)
 
-            if MODE_NUM == 0:
+            if MODE_NUM == 1:
                 # スピードのヒートマップを表示
                 if heatmap.verocity_map[i] is not None:
                     now = heatmap.verocity_map[i][0]
                     nxt = heatmap.verocity_map[i][1]
                     color = heatmap.verocity_map[i][2]
                     cv2.line(court, now, nxt, color, 3)
-            elif MODE_NUM == 1:
+            elif MODE_NUM == 2:
                 # 手の動きのヒートマップを表示
                 if heatmap.move_hand_map[i] is not None:
                     now = heatmap.move_hand_map[i][0]
                     now = homo.transform_point(now)
                     color = heatmap.move_hand_map[i][1]
                     cv2.circle(court, now, 7, color, thickness=-1)
-            elif MODE_NUM == 2:
+            elif MODE_NUM == 3:
                 # ベクトルを表示
                 if heatmap.vector_map[i] is not None:
                     start = heatmap.vector_map[i][0]

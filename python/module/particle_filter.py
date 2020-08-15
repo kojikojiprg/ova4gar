@@ -1,5 +1,4 @@
 import numpy as np
-from functions import mahalanobis as mh
 
 
 class ParticleFilter:
@@ -38,21 +37,18 @@ class ParticleFilter:
         # 次の動きをランダムに予測する(パーティクルにノイズを乗せる)
         self._predict()
 
-    def _liklihood(self, point):
+    def liklihood(self, point):
         mu = np.array(point)
         det = np.linalg.det(self.cov_gaus)
         inv = np.linalg.inv(self.cov_gaus)
         n = self.particles.ndim
-        self.weights = np.exp(
+        return np.exp(
             -np.diag((self.particles - mu) @ inv @ (self.particles - mu).T) / 2.0
         ) / (np.sqrt((2 * np.pi) ** n * det))
 
     def filter(self, point):
         # 尤度関数(ガウス分布)からパーティクルの重みを計算
-        self._liklihood(point)
+        self.weights = self.liklihood(point)
 
         # パーティクルの加重平均から推定値を求める
         return np.average(self.particles.T, weights=self.weights, axis=1)
-
-    def mahalanobis(self, point):
-        return mh(point, self.particles)

@@ -68,7 +68,7 @@ class Heatmap:
             nxt = self.homo.transform_point(nxt)
 
             d = nxt - now
-            vero = np.linalg.norm(d, ord=2)
+            vero = np.linalg.norm(d, ord=2) + 0.00000001
             lst.append(vero)
         lst.append(np.nan)  # last point data
 
