@@ -1,29 +1,73 @@
 from keypoint import KeypointsList
 from particle_filter import ParticleFilter
-from functions import euclidean, cosine, normalize
+from functions import euclidean, cosine, normalize, softmax
 import numpy as np
+from enum import Enum, auto
 
 
 class Person:
-    def __init__(self, person_id, keypoints, vector_size=10):
+    def __init__(self, person_id, keypoints, max_age=5, vector_size=10, frame_num=0):
+        self.state = State.Reset
         self.id = person_id
-        self.keypoints_lst = KeypointsList()
-        self.keypoints_lst.append(keypoints)
+        self.age = 0
+        self.max_age = max_age
 
-        point = keypoints.get_middle('Ankle')
-        self.pf = ParticleFilter(point[0], point[1])
-        self.particles_lst = [self.pf.particles]
+        self.keypoints_lst = KeypointsList()
+
+        point = self._get_point(keypoints)
+        self.pf = ParticleFilter(point)
+        self.particles_lst = []
 
         self.vector_size = vector_size
-        self.vector_lst = [None]
+        self.vector_lst = []
 
-    def update(self, point, keypoints):
-        if point is not None:
-            self.pf.predict(point[0], point[1])
+        for _ in range(frame_num):
+            self.keypoints_lst.append(None)
+            self.particles_lst.append(None)
+            self.vector_lst.append(None)
 
-        self.particles_lst.append(self.pf.particles)
+    def _get_point(self, keypoints):
+        return keypoints.get_middle('Hip')
+
+    def reset(self):
+        if not self.is_deleted():
+            self.state = State.Reset
+
+    def is_updated(self):
+        return self.state == State.Updated
+
+    def is_deleted(self):
+        return self.state == State.Deleted
+
+    def probability(self, point, th):
+        prob = self.pf.liklihood(point).sum()
+        return prob if prob >= th else 0.0
+
+    def update(self, keypoints):
         self.keypoints_lst.append(keypoints)
-        self.vector()
+
+        self.pf.predict()
+        self.particles_lst.append(self.pf.particles.copy())
+
+        if keypoints is not None:
+            point = self._get_point(keypoints)
+            self.pf.filter(point)
+            self.age = 0
+        else:
+            self.age += 1
+
+        # Noneの処理を考える
+        #self.vector()
+
+        if self.age > self.max_age:
+            self.state = State.Deleted
+        else:
+            self.state = State.Updated
+
+    def delete(self):
+        self.keypoints_lst.append(None)
+        self.particles_lst.append(None)
+        self.vector_lst.append(None)
 
     def vector(self):
         if len(self.keypoints_lst) < self.vector_size:
@@ -34,8 +78,9 @@ class Person:
         kp_reversed = self.keypoints_lst[::-1]
         diffs = []
         for i in range(self.vector_size):
-            diffs.append(
-                kp_reversed[i - 1].get_middle('Ankle') - kp_reversed[i].get_middle('Ankle') + 0.00000001)
+            now = self._get_point(kp_reversed[i])
+            nxt = self._get_point(kp_reversed[i - 1])
+            diffs.append(nxt - now + 0.00000001)
         diffs = np.array(diffs[::-1])
 
         # 類似度を計算
@@ -50,13 +95,17 @@ class Person:
 
         # ユークリッド距離 * コサイン類似度の逆数を重みとする(0 ~ 1)
         weights = 1 / (np.array(euclidieans) * np.array(cosines) + 0.00000001)
-        weights = normalize(weights)
+        # 重みの合計を1にする
+        weights = softmax(weights)
 
         # ベクトルを求める
-        vec = 0.0
-        for diff, weight in zip(diffs[1:], weights):
-            vec += (diff * weight).astype(int)
-        # 単位ベクトルに変換
+        vec = np.average(diffs[1:], weights=weights, axis=0)
         vec = vec.astype(int)
 
         self.vector_lst.append(tuple(vec))
+
+
+class State(Enum):
+    Reset = auto()
+    Updated = auto()
+    Deleted = auto()

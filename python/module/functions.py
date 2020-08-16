@@ -11,8 +11,8 @@ def mahalanobis(x, data):
     return distance.mahalanobis(x, mu, inv)
 
 
-def euclidean(a, b):
-    return np.linalg.norm(b - a)
+def euclidean(a, b, axis=None):
+    return np.linalg.norm(a - b, axis=axis)
 
 
 def cosine(a, b):
@@ -25,3 +25,11 @@ def normalize(x):
 
 def standardize(x):
     return pp.scale(x)
+
+
+def softmax(x):
+    c = np.max(x)
+    exp_a = np.exp(x - c)
+    sum_exp_a = np.sum(exp_a)
+    y = exp_a / sum_exp_a
+    return y

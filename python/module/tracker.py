@@ -1,36 +1,53 @@
-import numpy as np
 from person import Person
 
 
 class Tracker:
     def __init__(self, keypoints_frame_lst):
         self.keypoints_frame_lst = keypoints_frame_lst
-
-        keypoints_lst = keypoints_frame_lst[0]
-
         self.persons = []
+
+        keypoints_lst = self.keypoints_frame_lst[0]
         for i, keypoints in enumerate(keypoints_lst):
             self.persons.append(Person(i, keypoints))
 
-    def track_person(self, person_id):
-        person = self.persons[person_id]
-        for keypoints_lst in self.keypoints_frame_lst:
-            targets = keypoints_lst.get_middle_points('Ankle')
+    def track(self):
+        for frame_num, keypoints_lst in enumerate(self.keypoints_frame_lst):
+            targets = keypoints_lst.get_middle_points('Hip')
 
-            point = None
-            keypoints = None
-            nearest = np.inf
-            for i, target in enumerate(targets):
-                # マハラノビス距離を求める
-                distance = person.pf.mahalanobis(target)
+            # 状態をリセット
+            for person in self.persons:
+                person.reset()
 
-                # 一番距離が近いポイントを取り出す
-                if distance < nearest:
-                    point = target
-                    keypoints = keypoints_lst[i]
-                    nearest = distance
+            for target, keypoints in zip(targets, keypoints_lst):
+                max_person = None
+                max_prob = 0.0
+                for person in self.persons:
+                    if person.is_updated():
+                        # アップデート済は飛ばす
+                        continue
 
-            # パーティクルフィルタを更新
-            person.update(point, keypoints)
+                    # パーティクルが移動する確率を求める
+                    prob = person.probability(target, 0.0)
 
-        return person
+                    # 一番確率が高い人を取り出す
+                    if max_prob < prob:
+                        max_person = person
+                        max_prob = prob
+
+                if max_person is not None:
+                    # パーティクルフィルタを更新
+                    max_person.update(keypoints)
+                else:
+                    # 近くに人が見つからなかったときは新しい人を追加
+                    new = Person(len(self.persons), keypoints, frame_num=frame_num)
+                    new.update(keypoints)
+                    self.persons.append(new)
+
+            for person in self.persons:
+                # アップデートされていない人にNoneを入力してアップデート
+                if not person.is_updated():
+                    person.update(None)
+                elif person.is_deleted():
+                    person.delete()
+
+        return self.persons
