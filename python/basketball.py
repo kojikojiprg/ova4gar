@@ -53,8 +53,8 @@ if __name__ == '__main__':
         persons = tr.track(i, keypoints_lst)
 
         for j, person in enumerate(persons):
-            point = person.keypoints_lst[i]
-            particles = person.particles_lst[i]
+            point = person.keypoints_lst[-1]
+            particles = person.particles_lst[-1]
             #heatmap = heatmaps[j]
 
             # パーティクルを表示

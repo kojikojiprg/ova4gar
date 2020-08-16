@@ -18,7 +18,7 @@ class Tracker:
             max_person = None
             max_prob = 0.0
             for person in self.persons:
-                if person.is_updated():
+                if not person.is_reset():
                     # アップデート済は飛ばす
                     continue
 
@@ -35,13 +35,13 @@ class Tracker:
                 max_person.update(keypoints)
             else:
                 # 近くに人が見つからなかったときは新しい人を追加
-                new = Person(len(self.persons), keypoints, frame_num=frame_num)
+                new = Person(len(self.persons), keypoints)
                 new.update(keypoints)
                 self.persons.append(new)
 
         for person in self.persons:
-            # アップデートされていない人にNoneを入力してアップデート
-            if not person.is_updated():
+            if person.is_reset():
+                # アップデートされていない人にNoneを入力してアップデート
                 person.update(None)
             elif person.is_deleted():
                 person.delete()
