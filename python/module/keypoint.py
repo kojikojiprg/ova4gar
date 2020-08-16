@@ -21,7 +21,7 @@ body = {
     "RAnkle": 16,
 }
 
-confidence_th = 0.00001
+confidence_th = 0.2
 
 
 class Keypoints(list):
@@ -46,6 +46,8 @@ class Keypoints(list):
             point = L
         elif L[2] < confidence_th:
             point = R
+        elif R[2] < confidence_th and L[2] < confidence_th:
+            return None
         else:
             point = (R + L) / 2
         return point[:2].astype(int)
