@@ -10,8 +10,11 @@ MODE = [
     'move-hand',
     'vector',
 ]
-
 MODE_NUM = 0
+
+SHOW_PARTICLE = False
+SHOW_POINT = True
+SHOW_ID = True
 
 if __name__ == '__main__':
     # file path
@@ -33,14 +36,12 @@ if __name__ == '__main__':
     keypoints_frame = keypoint.Frame(json_path)
 
     # tracking
-    tr = tracker.Tracker(keypoints_frame)
-    persons = tr.track()
+    tr = tracker.Tracker(keypoints_frame[0])
 
     # heatmap
     #heatmaps = [Heatmap(p, homo) for p in persons]
 
     frames = []
-    prepoint = None
     for i in range(video.frame_num):
         # read frame
         frame = video.read()
@@ -48,21 +49,28 @@ if __name__ == '__main__':
         # フレーム番号を表示
         cv2.putText(frame, 'Frame:{}'.format(i + 1), (10, 50), cv2.FONT_HERSHEY_PLAIN, 2, (255, 255, 255))
 
+        keypoints_lst = keypoints_frame[i]
+        persons = tr.track(i, keypoints_lst)
+
         for j, person in enumerate(persons):
             point = person.keypoints_lst[i]
             particles = person.particles_lst[i]
             #heatmap = heatmaps[j]
 
             # パーティクルを表示
-            if particles is not None:
+            if SHOW_PARTICLE and particles is not None:
                 for par in particles:
                     cv2.circle(frame, (int(par[0]), int(par[1])), 2, (0, 255, 0), thickness=-1)
 
             # ポイントを表示
-            if point is not None:
-                point = point.get_middle('Hip')
-                cv2.circle(frame, tuple(point), 7, (0, 0, 255), thickness=-1)
-                cv2.putText(frame, str(j), tuple(point), cv2.FONT_HERSHEY_PLAIN, 2, (255, 255, 255))
+            if SHOW_POINT and point is not None:
+                tmp = point.get_middle('Hip')
+                cv2.circle(frame, tuple(tmp), 7, (0, 0, 255), thickness=-1)
+
+            # IDを表示
+            if SHOW_ID and point is not None:
+                tmp = point.get_middle('Hip')
+                cv2.putText(frame, str(j), tuple(tmp), cv2.FONT_HERSHEY_PLAIN, 2, (255, 255, 255), 2)
 
             if MODE_NUM == 1:
                 # スピードのヒートマップを表示
@@ -85,8 +93,6 @@ if __name__ == '__main__':
                     end = heatmap.vector_map[i][1]
                     color = heatmap.vector_map[i][2]
                     cv2.arrowedLine(court, start, end, color, tipLength=1.5)
-
-            prepoint = point
 
         # 画像を合成
         ratio = 1 - (frame.shape[0] - court.shape[0]) / frame.shape[0]
