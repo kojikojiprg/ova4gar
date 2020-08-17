@@ -1,5 +1,6 @@
 from keypoint import KeypointsList
 from particle_filter import ParticleFilter
+from heatmap import Heatmap
 from functions import euclidean, cosine, normalize, softmax
 import numpy as np
 from enum import Enum, auto
@@ -22,6 +23,10 @@ class Person:
         self.vector_size = vector_size
         self.vector_lst = []
         self.vector = np.array([0, 0])
+
+        self.heatmap = Heatmap()
+        self.vector_map = []
+        self.move_hand_map = []
 
     def _get_point(self, keypoints):
         return keypoints.get_middle('Hip')
@@ -58,6 +63,9 @@ class Person:
 
         self.calc_vector()
 
+        self.vector_map.append(self.heatmap.vector(self.vector, x))
+        self.move_hand_map.append(self.heatmap.move_hand(keypoints))
+
         # ageがmax_ageを超えると削除
         if self.age > self.max_age:
             self.state = State.Deleted
@@ -69,6 +77,8 @@ class Person:
         self.particles_lst.append(None)
         self.mean_lst.append(None)
         self.vector_lst.append(None)
+        self.vector_map.append(None)
+        self.move_hand_map.append(None)
 
     def calc_vector(self):
         if self.is_deleted() or len(self.mean_lst) < self.vector_size:

@@ -2,14 +2,10 @@ import numpy as np
 
 
 class Heatmap:
-    def __init__(self, person, homography):
-        self.homo = homography
-        self.keypoints_lst = person.keypoints_lst
-        self.vector_lst = person.vector_lst
-
-        self.vector_map = self.vector()
-        self.verocity_map = self.verocity()
-        self.move_hand_map = self.move_hand()
+    def __init__(self):
+        self.vector_args = self._calc_args([0.0, np.pi / 2])
+        self.move_hand_args = self._calc_args([0.0, np.pi])
+        self.hip2ankle = 50
 
     def _calc_args(self, distribution):
         xmax = np.nanmax(distribution)
@@ -17,9 +13,13 @@ class Heatmap:
         half = (xmax - xmin) / 2
         inclination = 255 / half
         xmid = half + xmin
-        return xmin, xmax, xmid, inclination
+        return [xmin, xmax, xmid, inclination]
 
-    def _colormap(self, x, xmin, xmax, xmid, inclination):
+    def _colormap(self, x, args):
+        xmin = args[0]
+        xmax = args[1]
+        xmid = args[2]
+        inclination = args[3]
         if x <= xmid:
             r = 0
             g = inclination * (x - xmin)
@@ -30,98 +30,42 @@ class Heatmap:
             b = 0
         return (int(r), int(g), int(b))
 
-    def vector(self):
-        xmin, xmax, xmid, inclination = self._calc_args([0.0, np.pi / 2])
-        rslt_lst = []
-        for i, vec in enumerate(self.vector_lst):
-            if vec is None:
-                rslt_lst.append(None)
-                continue
+    def vector(self, vec, mean_point):
+        if vec is None or mean_point is None:
+            return None
 
-            angle = np.arccos(np.abs(vec[0]) / (np.linalg.norm(vec) + 0.00000001))
+        angle = np.arccos(np.abs(vec[0]) / (np.linalg.norm(vec) + 0.00000001))
 
-            start = self.keypoints_lst[i].get_middle('Hip')
-            start[1] += 50  # 適当に設定
-            end = start + vec
-            start = self.homo.transform_point(start)
-            end = self.homo.transform_point(end)
+        start = mean_point
+        start[1] += self.hip2ankle
+        end = start + vec
 
-            rslt_lst.append((
-                tuple(start),
-                tuple(end),
-                self._colormap(angle, xmin, xmax, xmid, inclination)))
+        return start, end, self._colormap(angle, self.vector_args)
 
-        return rslt_lst
+    def move_hand(self, keypoints):
+        if keypoints is None:
+            return None
 
-    def verocity(self):
-        lst = []
-        for i in range(len(self.keypoints_lst) - 1):
-            now = self.keypoints_lst[i]
-            nxt = self.keypoints_lst[i + 1]
-            if now is None or nxt is None:
-                lst.append(np.nan)
-                continue
+        mid_shoulder = keypoints.get_middle('Shoulder')
+        mid_hip = keypoints.get_middle('Hip')
 
-            now = now.get_middle('Hip')
-            nxt = nxt.get_middle('Hip')
-            now = self.homo.transform_point(now)
-            nxt = self.homo.transform_point(nxt)
+        # 体軸ベクトルとノルム
+        axis = mid_shoulder - mid_hip
+        norm_axis = np.linalg.norm(axis, ord=2)
 
-            d = nxt - now
-            vero = np.linalg.norm(d, ord=2) + 0.00000001
-            lst.append(vero)
-        lst.append(np.nan)  # last point data
+        ankle = 0.
+        for side in ('R', 'L'):
+            elbow = keypoints.get(side + 'Elbow', ignore_confidence=True)
+            wrist = keypoints.get(side + 'Wrist', ignore_confidence=True)
 
-        xmin, xmax, xmid, inclination = self._calc_args(lst)
-        ret_lst = [None]
-        for i in range(len(self.keypoints_lst) - 1):
-            now = self.keypoints_lst[i]
-            nxt = self.keypoints_lst[i + 1]
-            if lst[i] is np.nan:
-                ret_lst.append(None)
-            else:
-                now = now.get_middle('Hip')
-                nxt = nxt.get_middle('Hip')
-                now = self.homo.transform_point(now)
-                nxt = self.homo.transform_point(nxt)
-                ret_lst.append((
-                    tuple(now),
-                    tuple(nxt),
-                    self._colormap(lst[i], xmin, xmax, xmid, inclination)))
+            # 前肢ベクトルとノルム
+            vec = wrist - elbow
+            norm = np.linalg.norm(vec, ord=2)
 
-        return ret_lst
+            # 体軸と前肢の角度(左右の大きい方を選択する)
+            angle = max(
+                ankle,
+                np.arccos(np.dot(axis, vec) / (norm_axis * norm + 0.00000001)))
 
-    def move_hand(self):
-        ret_lst = []
-        xmin, xmax, xmid, inclination = self._calc_args([0., np.pi])
-        for kp in self.keypoints_lst:
-            if kp is None:
-                ret_lst.append(None)
-                continue
-            mid_shoulder = kp.get_middle('Shoulder')
-            mid_hip = kp.get_middle('Hip')
-            mid_ankle = kp.get_middle('Ankle')
-
-            # 体軸ベクトルとノルム
-            axis = mid_shoulder - mid_hip
-            norm_axis = np.linalg.norm(axis, ord=2)
-
-            ankle = 0.
-            for side in ('R', 'L'):
-                elbow = kp.get(side + 'Elbow', ignore_confidence=True)
-                wrist = kp.get(side + 'Wrist', ignore_confidence=True)
-
-                # 前肢ベクトルとノルム
-                vec = wrist - elbow
-                norm = np.linalg.norm(vec, ord=2)
-
-                # 体軸と前肢の角度(左右の大きい方を選択する)
-                angle = max(
-                    ankle,
-                    np.arccos(np.dot(axis, vec) / (norm_axis * norm + 0.00000001)))
-
-            ret_lst.append((
-                mid_ankle,
-                self._colormap(angle, xmin, xmax, xmid, inclination)))
-
-        return ret_lst
+        point = mid_hip + self.hip2ankle
+        return point, self._colormap(angle, self.move_hand_args)
