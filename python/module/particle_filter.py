@@ -5,11 +5,11 @@ class ParticleFilter:
     def __init__(
         self,
         point,
-        n_particle=100,
+        n_particle=300,
         cov_gaus=np.eye(2) * 50,
     ):
         self.n_particle = n_particle
-        self.cov_gaus = cov_gaus        # var of gaussian
+        self.cov_gaus = cov_gaus
 
         # init particles
         self.particles = np.random.multivariate_normal(
