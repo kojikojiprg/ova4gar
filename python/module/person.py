@@ -7,7 +7,7 @@ from enum import Enum, auto
 
 
 class Person:
-    def __init__(self, person_id, keypoints, max_age=5, vector_size=5):
+    def __init__(self, person_id, keypoints, max_age=5, vector_size=10):
         self.state = State.Reset
         self.id = person_id
         self.age = 0

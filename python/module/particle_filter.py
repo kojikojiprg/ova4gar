@@ -7,13 +7,15 @@ class ParticleFilter:
         point,
         n_particle=300,
         cov_gaus=np.eye(2) * 50,
+        cov_pred=np.eye(2) * 10
     ):
         self.n_particle = n_particle
         self.cov_gaus = cov_gaus
+        self.cov_pred = cov_pred
 
         # init particles
         self.particles = np.random.multivariate_normal(
-            point, np.eye(2) * 10, self.n_particle)
+            point, self.cov_pred, self.n_particle)
         self.weights = np.ones(self.n_particle) / self.n_particle
 
     def _resample(self):
@@ -24,9 +26,8 @@ class ParticleFilter:
             self.particles[i] = tmp_particles[(w_cumsum > u).argmax()]
 
     def _predict(self, vec):
-        # WIP
-        cov = np.eye(2) * 10
-        self.particles += np.random.multivariate_normal(vec, cov, self.n_particle)
+        self.particles += np.random.multivariate_normal(
+            vec, self.cov_pred, self.n_particle)
         self.weights = np.ones(self.n_particle) / self.n_particle
 
     def predict(self, vec):
