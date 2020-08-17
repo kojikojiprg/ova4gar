@@ -17,9 +17,11 @@ class Person:
         point = self._get_point(keypoints)
         self.pf = ParticleFilter(point)
         self.particles_lst = []
+        self.mean_lst = []
 
         self.vector_size = vector_size
         self.vector_lst = []
+        self.vector = np.array([0, 0])
 
     def _get_point(self, keypoints):
         return keypoints.get_middle('Hip')
@@ -41,18 +43,22 @@ class Person:
     def update(self, keypoints):
         self.keypoints_lst.append(keypoints)
 
-        self.pf.predict()
+        self.pf.predict(self.vector)
         self.particles_lst.append(self.pf.particles.copy())
 
         if keypoints is not None:
             point = self._get_point(keypoints)
-            self.pf.filter(point)
+            x = self.pf.filter(point)
+            self.mean_lst.append(x)
             self.age = 0
         else:
+            x = self.pf.weighted_average()
+            self.mean_lst.append(x)
             self.age += 1
 
-        #self.vector()
+        self.calc_vector()
 
+        # ageがmax_ageを超えると削除
         if self.age > self.max_age:
             self.state = State.Deleted
         else:
@@ -61,26 +67,21 @@ class Person:
     def delete(self):
         self.keypoints_lst.append(None)
         self.particles_lst.append(None)
+        self.mean_lst.append(None)
         self.vector_lst.append(None)
 
-    def vector(self):
-        if len(self.keypoints_lst) < self.vector_size:
+    def calc_vector(self):
+        if self.is_deleted() or len(self.mean_lst) < self.vector_size:
             self.vector_lst.append(None)
             return
 
         # 差分を求める
-        kp_reversed = self.keypoints_lst[::-1]
+        means = self.mean_lst[-self.vector_size:]
         diffs = []
-        for i in range(self.vector_size):
-            now = kp_reversed[i]
-            nxt = kp_reversed[i - 1]
-            if now is None or nxt is None:
-                continue
-
-            now = self._get_point(now)
-            nxt = self._get_point(nxt)
+        for i in range(self.vector_size - 1):
+            now = means[i]
+            nxt = means[i + 1]
             diffs.append(nxt - now + 0.00000001)
-        diffs = np.array(diffs[::-1])
 
         # 類似度を計算
         euclidieans = []
@@ -102,6 +103,7 @@ class Person:
         vec = vec.astype(int)
 
         self.vector_lst.append(tuple(vec))
+        self.vector = vec
 
 
 class State(Enum):
