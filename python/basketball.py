@@ -17,7 +17,7 @@ SHOW_ID = True
 if __name__ == '__main__':
     # file path
     video_path = common.data_dir + 'basketball/basketball_alphapose.mp4'
-    out_path = common.out_dir + 'basketball/basketball_particle_{}.mp4'.format(MODE[MODE_NUM])
+    out_path = common.out_dir + 'basketball/basketball_{}.mp4'.format(MODE[MODE_NUM])
     court_path = common.data_dir + 'basketball/court.png'
     json_path = common.data_dir + 'basketball/keypoints.json'
 

@@ -1,10 +1,10 @@
 import numpy as np
 
 
-class Heatmap:
-    def __init__(self):
-        self.vector_args = self._calc_args([0.0, np.pi / 2])
-        self.move_hand_args = self._calc_args([0.0, np.pi])
+class Heatmap(list):
+    def __init__(self, distribution):
+        super().__init__([])
+        self.args = self._calc_args([0.0, np.pi / 2])
         self.hip2ankle = 50
 
     def _calc_args(self, distribution):
@@ -30,7 +30,12 @@ class Heatmap:
             b = 0
         return (int(r), int(g), int(b))
 
-    def vector(self, vec, mean_point):
+
+class Vector(Heatmap):
+    def __init__(self):
+        super().__init__([0.0, np.pi / 2.0])
+
+    def calc(self, vec, mean_point):
         if vec is None or mean_point is None:
             return None
 
@@ -40,9 +45,14 @@ class Heatmap:
         start[1] += self.hip2ankle
         end = start + vec
 
-        return start, end, self._colormap(angle, self.vector_args)
+        self.append((start, end, self._colormap(angle, self.args)))
 
-    def move_hand(self, keypoints):
+
+class MoveHand(Heatmap):
+    def __init__(self):
+        super().__init__([0.0, np.pi])
+
+    def calc(self, keypoints):
         if keypoints is None:
             return None
 
@@ -68,4 +78,9 @@ class Heatmap:
                 np.arccos(np.dot(axis, vec) / (norm_axis * norm + 0.00000001)))
 
         point = mid_hip + self.hip2ankle
-        return point, self._colormap(angle, self.move_hand_args)
+        self.append((point, self._colormap(angle, self.args)))
+
+
+class Population(Heatmap):
+    def __init__(self):
+        super().__init__([])
