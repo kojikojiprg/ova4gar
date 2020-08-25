@@ -28,8 +28,8 @@ if __name__ == '__main__':
     court = court_raw.copy()
 
     # homography
-    p_video = np.float32([[499, 364], [784, 363], [836, 488], [438, 489]])
-    p_court = np.float32([[205, 24], [383, 24], [383, 232], [205, 232]])
+    p_video = np.float32([[210, 364], [1082, 362], [836, 488], [438, 489]])
+    p_court = np.float32([[24, 24], [568, 24], [383, 232], [205, 232]])
     homo = transform.Homography(p_video, p_court, court.shape)
 
     # keypoints
