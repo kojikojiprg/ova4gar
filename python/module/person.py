@@ -40,9 +40,8 @@ class Person:
     def is_deleted(self):
         return self.state == State.Deleted
 
-    def probability(self, point, th):
-        prob = self.pf.liklihood(point).sum()
-        return prob if prob >= th else 0.0
+    def probability(self, point):
+        return self.pf.liklihood(point).sum()
 
     def update(self, keypoints):
         self.keypoints_lst.append(keypoints)

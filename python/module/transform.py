@@ -5,7 +5,7 @@ import cv2
 class Homography:
     def __init__(self, p_src, p_dst, dst_size):
         self.M = cv2.getPerspectiveTransform(p_src, p_dst)
-        self.size = dst_size
+        self.size = dst_size[1::-1]
 
     def transform_image(self, src):
         return cv2.warpPerspective(src, self.M, self.size)

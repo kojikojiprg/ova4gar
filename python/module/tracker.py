@@ -1,14 +1,20 @@
 from person import Person
+from heatmap import Population
 
 
 class Tracker:
-    def __init__(self, initial_keypoints_lst):
+    def __init__(self, initial_keypoints_lst, homography):
         self.persons = []
         for i, keypoints in enumerate(initial_keypoints_lst):
             self.persons.append(Person(i, keypoints))
 
+        self.populations = Population(homography)
+
     def track(self, frame_num, keypoints_lst):
         targets = keypoints_lst.get_middle_points('Hip')
+
+        # 人口密度を計算
+        self.populations.calc(targets)
 
         # 状態をリセット
         for person in self.persons:
@@ -23,7 +29,7 @@ class Tracker:
                     continue
 
                 # パーティクルが移動する確率を求める
-                prob = person.probability(target, 0.0)
+                prob = person.probability(target)
 
                 # 一番確率が高い人を取り出す
                 if max_prob < prob:
@@ -46,4 +52,4 @@ class Tracker:
             elif person.is_deleted():
                 person.delete()
 
-        return self.persons
+        return self.persons, self.populations

@@ -1,32 +1,28 @@
 import numpy as np
+from functions import normalize
 
 
 class Heatmap(list):
-    def __init__(self, distribution):
+    def __init__(self, distribution, hip2ankle=50):
         super().__init__([])
-        self.args = self._calc_args([0.0, np.pi / 2])
-        self.hip2ankle = 50
+        self._calc_args(distribution)
+        self.hip2ankle = hip2ankle
 
     def _calc_args(self, distribution):
-        xmax = np.nanmax(distribution)
-        xmin = np.nanmin(distribution)
-        half = (xmax - xmin) / 2
-        inclination = 255 / half
-        xmid = half + xmin
-        return [xmin, xmax, xmid, inclination]
+        self.xmax = np.nanmax(distribution)
+        self.xmin = np.nanmin(distribution)
+        half = (self.xmax - self.xmin) / 2
+        self.inclination = 255 / half
+        self.xmid = half + self.xmin
 
-    def _colormap(self, x, args):
-        xmin = args[0]
-        xmax = args[1]
-        xmid = args[2]
-        inclination = args[3]
-        if x <= xmid:
+    def _colormap(self, x):
+        if x <= self.xmid:
             r = 0
-            g = inclination * (x - xmin)
-            b = inclination * (xmid - x)
+            g = self.inclination * (x - self.xmin)
+            b = self.inclination * (self.xmid - x)
         else:
-            r = inclination * (x - xmid)
-            g = inclination * (xmax - x)
+            r = self.inclination * (x - self.xmid)
+            g = self.inclination * (self.xmax - x)
             b = 0
         return (int(r), int(g), int(b))
 
@@ -45,7 +41,7 @@ class Vector(Heatmap):
         start[1] += self.hip2ankle
         end = start + vec
 
-        self.append((start, end, self._colormap(angle, self.args)))
+        self.append((start, end, self._colormap(angle)))
 
 
 class MoveHand(Heatmap):
@@ -78,9 +74,38 @@ class MoveHand(Heatmap):
                 np.arccos(np.dot(axis, vec) / (norm_axis * norm + 0.00000001)))
 
         point = mid_hip + self.hip2ankle
-        self.append((point, self._colormap(angle, self.args)))
+        self.append((point, self._colormap(angle)))
 
 
 class Population(Heatmap):
-    def __init__(self):
-        super().__init__([])
+    def __init__(self, homography, bins=(10, 9)):
+        super().__init__([0.0, 2.0])
+        self.homo = homography
+        self.bins = bins
+        size = list(homography.size)
+        self.range = [[0, size[0]], [0, size[1]]]
+
+    def calc(self, targets):
+        # ターゲットにホモグラフィ変換する
+        points = []
+        for target in targets:
+            p = self.homo.transform_point(target)
+            p[1] += self.hip2ankle
+            points.append(p)
+        x, y = zip(*points)
+
+        # 密度を計算
+        H, xedges, yedges = np.histogram2d(x, y, self.bins, self.range)
+        H = normalize(H)
+
+        # 四角形の頂点とカラーマップを求める
+        ds = []
+        for i in range(self.bins[0]):
+            for j in range(self.bins[1]):
+                if H[i][j] > 0:
+                    # 密度が0以上の場合のみ追加
+                    p1 = (int(xedges[i]), int(yedges[j]))
+                    p2 = (int(xedges[i + 1]), int(yedges[j + 1]))
+                    ds.append((p1, p2, self._colormap(H[i][j])))
+
+        self.append(ds)

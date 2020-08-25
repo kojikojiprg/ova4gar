@@ -4,11 +4,12 @@ from module import common, video, keypoint, tracker, transform
 
 # パラメータ
 MODE = [
-    'none',
+    'none',         # 0
     'vector',
     'move-hand',
+    'population',   # 3
 ]
-MODE_NUM = 1
+MODE_NUM = 3
 
 SHOW_PARTICLE = True
 SHOW_POINT = True
@@ -23,7 +24,8 @@ if __name__ == '__main__':
 
     # open video and image
     video = video.Video(video_path)
-    court = cv2.imread(court_path)
+    court_raw = cv2.imread(court_path)
+    court = court_raw.copy()
 
     # homography
     p_video = np.float32([[499, 364], [784, 363], [836, 488], [438, 489]])
@@ -34,7 +36,7 @@ if __name__ == '__main__':
     keypoints_frame = keypoint.Frame(json_path)
 
     # tracking
-    tr = tracker.Tracker(keypoints_frame[0])
+    tr = tracker.Tracker(keypoints_frame[0], homo)
 
     frames = []
     for i in range(video.frame_num):
@@ -45,7 +47,7 @@ if __name__ == '__main__':
         cv2.putText(frame, 'Frame:{}'.format(i + 1), (10, 50), cv2.FONT_HERSHEY_PLAIN, 2, (255, 255, 255))
 
         keypoints_lst = keypoints_frame[i]
-        persons = tr.track(i, keypoints_lst)
+        persons, populations = tr.track(i, keypoints_lst)
 
         for j, person in enumerate(persons):
             point = person.keypoints_lst[-1]
@@ -84,6 +86,16 @@ if __name__ == '__main__':
                     now = homo.transform_point(now)
                     color = move_hand_map[1]
                     cv2.circle(court, tuple(now), 7, color, thickness=-1)
+            elif MODE_NUM == 3:
+                # 毎回コート画像を読み込む
+                court = court_raw.copy()
+                # 人口密度を表示
+                population = populations[-1]
+                for item in population:
+                    p1 = item[0]
+                    p2 = item[1]
+                    color = item[2]
+                    cv2.rectangle(court, p1, p2, color, thickness=-1)
 
         # 画像を合成
         ratio = 1 - (frame.shape[0] - court.shape[0]) / frame.shape[0]
