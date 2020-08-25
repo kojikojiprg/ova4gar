@@ -1,5 +1,4 @@
 import numpy as np
-from functions import normalize
 
 
 class Heatmap(list):
@@ -78,8 +77,8 @@ class MoveHand(Heatmap):
 
 
 class Population(Heatmap):
-    def __init__(self, homography, bins=(10, 9)):
-        super().__init__([0.0, 5.0])
+    def __init__(self, homography, bins=(8, 8)):
+        super().__init__([0.0, 3.0])
         self.homo = homography
         self.bins = bins
         size = list(homography.size)
