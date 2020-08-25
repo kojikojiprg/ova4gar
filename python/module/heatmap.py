@@ -79,7 +79,7 @@ class MoveHand(Heatmap):
 
 class Population(Heatmap):
     def __init__(self, homography, bins=(10, 9)):
-        super().__init__([0.0, 2.0])
+        super().__init__([0.0, 5.0])
         self.homo = homography
         self.bins = bins
         size = list(homography.size)
@@ -89,14 +89,13 @@ class Population(Heatmap):
         # ターゲットにホモグラフィ変換する
         points = []
         for target in targets:
+            target[1] += self.hip2ankle
             p = self.homo.transform_point(target)
-            p[1] += self.hip2ankle
             points.append(p)
         x, y = zip(*points)
 
         # 密度を計算
         H, xedges, yedges = np.histogram2d(x, y, self.bins, self.range)
-        H = normalize(H)
 
         # 四角形の頂点とカラーマップを求める
         ds = []
