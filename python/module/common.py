@@ -9,3 +9,4 @@ else:
 sys.path.append(root + 'python/module/')
 data_dir = root + 'data/'
 out_dir = root + 'out/'
+db_dir = root + 'db/'
