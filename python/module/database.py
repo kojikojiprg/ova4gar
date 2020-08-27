@@ -33,7 +33,7 @@ class DataBase:
         datas_syntax = '('
         for _ in range(len(datas)):
             datas_syntax += '?,'
-        datas_syntax = datas_syntax[:-1]
+        datas_syntax[-1] = ')'
 
         syntax = 'insert into {} values {}'.format(name, datas_syntax)
         c.executemany(syntax, datas)
