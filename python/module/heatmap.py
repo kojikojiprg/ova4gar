@@ -32,9 +32,10 @@ class Vector(Heatmap):
 
     def calc(self, vec, mean_point):
         if vec is None or mean_point is None:
-            return None
+            self.append(None)
+            return
 
-        angle = np.arccos(np.abs(vec[0]) / (np.linalg.norm(vec) + 0.00000001))
+        angle = np.arccos(np.abs(vec[0]) / (np.linalg.norm(vec) + 1e-10))
 
         start = mean_point
         start[1] += self.hip2ankle
@@ -49,7 +50,8 @@ class MoveHand(Heatmap):
 
     def calc(self, keypoints):
         if keypoints is None:
-            return None
+            self.append(None)
+            return
 
         mid_shoulder = keypoints.get_middle('Shoulder')
         mid_hip = keypoints.get_middle('Hip')
@@ -70,7 +72,7 @@ class MoveHand(Heatmap):
             # 体軸と前肢の角度(左右の大きい方を選択する)
             angle = max(
                 ankle,
-                np.arccos(np.dot(axis, vec) / (norm_axis * norm + 0.00000001)))
+                np.arccos(np.dot(axis, vec) / (norm_axis * norm + 1e-10)))
 
         point = mid_hip + self.hip2ankle
         self.append((point, self._colormap(angle)))
@@ -84,12 +86,12 @@ class Population(Heatmap):
         size = list(homography.size)
         self.range = [[0, size[0]], [0, size[1]]]
 
-    def calc(self, targets):
+    def calc(self, keypoints_lst):
         # ターゲットにホモグラフィ変換する
         points = []
-        for target in targets:
-            target[1] += self.hip2ankle
-            p = self.homo.transform_point(target)
+        for keypoints in keypoints_lst:
+            p = keypoints.get_middle('Ankle')
+            p = self.homo.transform_point(p)
             points.append(p)
         x, y = zip(*points)
 

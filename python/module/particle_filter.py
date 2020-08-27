@@ -7,7 +7,7 @@ class ParticleFilter:
         point,
         n_particle=300,
         cov_gaus=np.eye(2) * 50,
-        cov_pred=np.eye(2) * 10
+        cov_pred=np.eye(2) * 5
     ):
         self.n_particle = n_particle
         self.cov_gaus = cov_gaus

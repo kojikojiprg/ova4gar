@@ -7,7 +7,7 @@ from enum import Enum, auto
 
 
 class Person:
-    def __init__(self, person_id, keypoints, max_age=5, vector_size=10):
+    def __init__(self, person_id, keypoints, max_age=10, vector_size=10):
         self.state = State.Reset
         self.id = person_id
         self.age = 0
@@ -41,7 +41,9 @@ class Person:
         return self.state == State.Deleted
 
     def probability(self, point):
-        return self.pf.liklihood(point).sum()
+        prob = self.pf.liklihood(point)
+        prob = prob.sum()
+        return prob
 
     def update(self, keypoints):
         self.keypoints_lst.append(keypoints)
@@ -89,7 +91,7 @@ class Person:
         for i in range(self.vector_size - 1):
             now = means[i]
             nxt = means[i + 1]
-            diffs.append(nxt - now + 0.00000001)
+            diffs.append(nxt - now + 1e-10)
 
         # 類似度を計算
         euclidieans = []
@@ -102,12 +104,14 @@ class Person:
         euclidieans = normalize(euclidieans)
 
         # ユークリッド距離 * コサイン類似度の逆数を重みとする(0 ~ 1)
-        weights = 1 / (np.array(euclidieans) * np.array(cosines) + 0.00000001)
+        weights = 1 / (np.array(euclidieans) * np.array(cosines) + 1e-10)
         # 重みの合計を1にする
         weights = softmax(weights)
 
         # ベクトルを求める
         vec = np.average(diffs[1:], weights=weights, axis=0)
+        # 見つからない状態が続くごとにベクトルを小さくする
+        vec = vec / (self.age + 1)
         vec = vec.astype(int)
 
         self.vector_lst.append(tuple(vec))
