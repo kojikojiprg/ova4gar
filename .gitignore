@@ -10,3 +10,4 @@ out
 *.mp4
 *.json
 *.db
+*.db-journal
