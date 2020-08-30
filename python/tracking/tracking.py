@@ -1,28 +1,41 @@
+from common import keypoint, database
 from person import Person
-from heatmap import Population
+import numpy as np
+
+TABLE_NAME = 'Tracking'
+COLS = {
+    'Person_ID': 'integer',
+    'Frame_No': 'integer',
+    'Keypoint': 'array'
+}
 
 
-class Tracker:
-    def __init__(self, initial_keypoints_lst, homography):
-        self.persons = []
-        for i, keypoints in enumerate(initial_keypoints_lst):
-            self.persons.append(Person(i, keypoints))
+def track(keypoints_path, result_db_path):
+    # keypoints.json を開く
+    keypoints_frame = keypoint.Frame(keypoints_path)
 
-        self.populations = Population(homography)
+    # データベースとテーブルを作成
+    db = database.DataBase(result_db_path)
+    db.drop_table(TABLE_NAME)
+    db.create_table(TABLE_NAME, COLS)
 
-    def track(self, frame_num, keypoints_lst):
-        # 人口密度を計算
-        self.populations.calc(keypoints_lst)
+    # person クラスを初期化
+    persons = []
+    for i, keypoints in enumerate(keypoints_frame[0]):
+        persons.append(Person(i, keypoints))
 
+    # トラッキング
+    datas = []
+    for i, keypoints_lst in enumerate(keypoints_frame):
         # 状態をリセット
-        for person in self.persons:
+        for person in persons:
             person.reset()
 
         for keypoints in keypoints_lst:
             target = keypoints.get_middle('Hip')
             max_person = None
             max_prob = 0.0
-            for person in self.persons:
+            for person in persons:
                 if not person.is_reset():
                     # アップデート済は飛ばす
                     continue
@@ -40,15 +53,19 @@ class Tracker:
                 max_person.update(keypoints)
             else:
                 # 近くに人が見つからなかったときは新しい人を追加
-                new = Person(len(self.persons), keypoints)
+                new = Person(len(persons), keypoints)
                 new.update(keypoints)
-                self.persons.append(new)
+                persons.append(new)
 
-        for person in self.persons:
+        for person in persons:
             if person.is_reset():
                 # アップデートされていない人にNoneを入力してアップデート
                 person.update(None)
             elif person.is_deleted():
                 person.delete()
 
-        return self.persons, self.populations
+        for person in persons:
+            datas.append((person.id, i + 1, np.array(person.keypoints_lst[-1])))
+
+    # データベースに書き込み
+    db.insert_datas(TABLE_NAME, list(COLS.keys()), datas)
