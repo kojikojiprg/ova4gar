@@ -91,3 +91,25 @@ class DataBase:
         c.executemany(syntax, datas)
 
         self.conn.commit()
+
+    def select(self, name, cols=None, where=None, array_size=1000):
+        c = self.conn.cursor()
+        c.arraysize(array_size)
+
+        col_syntax = '*'
+        if cols is not None:
+            col_syntax = ''
+            for col in cols:
+                col_syntax += '{}, '.format(col)
+            col_syntax = col_syntax[:-1]
+
+        where_syntax = ''
+        if where is not None:
+            where_syntax = 'where {}'.format(where)
+
+        syntax = 'select {} from {} {}'.format(col_syntax, name, where_syntax)
+
+        c.execute(syntax)
+        data = c.fetchall()
+
+        return data
