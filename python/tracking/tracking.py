@@ -1,13 +1,6 @@
-from common import keypoint, database
+from common import common, keypoint, database
 from person import Person
 import numpy as np
-
-TABLE_NAME = 'Tracking'
-COLS = {
-    'Person_ID': 'integer',
-    'Frame_No': 'integer',
-    'Keypoint': 'array'
-}
 
 
 def track(keypoints_path, result_db_path):
@@ -16,8 +9,8 @@ def track(keypoints_path, result_db_path):
 
     # データベースとテーブルを作成
     db = database.DataBase(result_db_path)
-    db.drop_table(TABLE_NAME)
-    db.create_table(TABLE_NAME, COLS)
+    db.drop_table(common.TRACKING_TABLE_NAME)
+    db.create_table(common.TRACKING_TABLE_NAME, common.TRACKING_TABLE_COLS)
 
     # person クラスを初期化
     persons = []
@@ -68,4 +61,7 @@ def track(keypoints_path, result_db_path):
             datas.append((person.id, i + 1, np.array(person.keypoints_lst[-1])))
 
     # データベースに書き込み
-    db.insert_datas(TABLE_NAME, list(COLS.keys()), datas)
+    db.insert_datas(
+        common.TRACKING_TABLE_NAME,
+        list(common.TRACKING_TABLE_COLS.keys()),
+        datas)
