@@ -6,9 +6,10 @@ import io
 
 class DataBase:
     def __init__(self, path):
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        with open(path, 'w') as f:
-            f.write('')
+        if not os.path.exists(path):
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            with open(path, 'w') as f:
+                f.write('')
 
         # Converts np.array to TEXT when inserting
         sql.register_adapter(np.ndarray, self._adapt_array)
@@ -31,7 +32,7 @@ class DataBase:
     def _convert_array(self, text):
         out = io.BytesIO(text)
         out.seek(0)
-        return np.load(out)
+        return np.load(out, allow_pickle=True)
 
     def create_table(self, name, cols):
         c = self.conn.cursor()
@@ -94,14 +95,13 @@ class DataBase:
 
     def select(self, name, cols=None, where=None, array_size=1000):
         c = self.conn.cursor()
-        c.arraysize(array_size)
 
         col_syntax = '*'
         if cols is not None:
             col_syntax = ''
             for col in cols:
                 col_syntax += '{}, '.format(col)
-            col_syntax = col_syntax[:-1]
+            col_syntax = col_syntax[:-2]
 
         where_syntax = ''
         if where is not None:
