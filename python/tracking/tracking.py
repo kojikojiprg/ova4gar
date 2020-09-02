@@ -58,7 +58,7 @@ def track(keypoints_path, result_db_path):
                 person.delete()
 
         for person in persons:
-            datas.append((person.id, i + 1, np.array(person.keypoints_lst[-1])))
+            datas.append((person.id, i, np.array(person.keypoints_lst[-1])))
 
     # データベースに書き込み
     db.insert_datas(

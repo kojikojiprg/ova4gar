@@ -8,7 +8,7 @@ from enum import Enum, auto
 class Person:
     def __init__(self, person_id, keypoints, max_age=10, vector_size=10):
         self.state = State.Reset
-        self.id = person_id + 1
+        self.id = person_id
         self.age = 0
         self.max_age = max_age
 
