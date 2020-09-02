@@ -5,7 +5,7 @@ import numpy as np
 
 def track(keypoints_path, result_db_path):
     # keypoints.json を開く
-    keypoints_frame = keypoint.Frame(keypoints_path)
+    keypoints_all_frame = keypoint.read_json(keypoints_path)
 
     # データベースとテーブルを作成
     db = database.DataBase(result_db_path)
@@ -14,12 +14,12 @@ def track(keypoints_path, result_db_path):
 
     # person クラスを初期化
     persons = []
-    for i, keypoints in enumerate(keypoints_frame[0]):
+    for i, keypoints in enumerate(keypoints_all_frame[0]):
         persons.append(Person(i, keypoints))
 
     # トラッキング
     datas = []
-    for i, keypoints_lst in enumerate(keypoints_frame):
+    for i, keypoints_lst in enumerate(keypoints_all_frame):
         # 状態をリセット
         for person in persons:
             person.reset()
