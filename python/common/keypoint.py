@@ -1,5 +1,6 @@
 import json
 import numpy as np
+from common import common, database
 
 body = {
     "Nose": 0,
@@ -68,22 +69,50 @@ class KeypointsList(list):
         return points
 
 
-class Frame(list):
-    def __init__(self, json_path):
-        super().__init__([])
-        with open(json_path) as f:
-            dat = json.load(f)
+def read_json(json_path):
+    return_lst = []
+    with open(json_path) as f:
+        dat = json.load(f)
 
-            keypoints_lst = KeypointsList()
-            pre_no = 0
-            for item in dat:
-                frame_no = int(item['image_id'].split('.')[0])
+        keypoints_lst = KeypointsList()
+        pre_no = 0
+        for item in dat:
+            frame_no = int(item['image_id'].split('.')[0])
 
-                if frame_no != pre_no:
-                    self.append(keypoints_lst)
-                    keypoints_lst = KeypointsList()
+            if frame_no != pre_no:
+                return_lst.append(keypoints_lst)
+                keypoints_lst = KeypointsList()
 
-                keypoints_lst.append(Keypoints(item['keypoints']))
-                pre_no = frame_no
-            else:
-                self.append(keypoints_lst)
+            keypoints_lst.append(Keypoints(item['keypoints']))
+            pre_no = frame_no
+        else:
+            return_lst.append(keypoints_lst)
+
+    return return_lst
+
+
+def read_sql(tracking_db_path):
+    db = database.DataBase(tracking_db_path)
+    datas = db.select(common.TRACKING_TABLE_NAME)
+
+    persons = []
+    frames = []
+    for row in datas:
+        person_id = row[0]
+        frame_num = row[1]
+        keypoints = row[2]
+
+        if len(persons) == person_id:
+            persons.append(KeypointsList())
+
+        if len(frames) == frame_num:
+            frames.append(KeypointsList())
+
+        if keypoints is not None:
+            persons[person_id].append(Keypoints(keypoints))
+            frames[frame_num].append(Keypoints(keypoints))
+        else:
+            persons[person_id].append(None)
+            frames[frame_num].append(None)
+
+    return persons, frames
