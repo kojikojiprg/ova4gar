@@ -9,7 +9,7 @@ MODE = [
     'move-hand',
     'population',   # 3
 ]
-MODE_NUM = 3
+MODE_NUM = 0
 
 SHOW_PARTICLE = True
 SHOW_POINT = True
@@ -97,10 +97,11 @@ if __name__ == '__main__':
                     cv2.rectangle(court, p1, p2, color, thickness=-1)
 
         # 画像を合成
-        ratio = 1 - (court.shape[0] - frame.shape[0]) / court.shape[0]
-        size = (int(court.shape[1] * ratio), int(court.shape[0] * ratio))
-        court = cv2.resize(court, size)
-        frame = np.concatenate([frame, court], axis=1)
+        if MODE_NUM != 0:
+            ratio = 1 - (court.shape[0] - frame.shape[0]) / court.shape[0]
+            size = (int(court.shape[1] * ratio), int(court.shape[0] * ratio))
+            court = cv2.resize(court, size)
+            frame = np.concatenate([frame, court], axis=1)
 
         frames.append(frame)
 
