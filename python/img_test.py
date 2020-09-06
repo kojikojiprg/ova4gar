@@ -6,19 +6,20 @@ import numpy as np
 
 if __name__ == '__main__':
     # file path
-    video_path = common.data_dir + 'basketball/basketball_alphapose.mp4'
-    court_path = common.data_dir + 'basketball/court.png'
+    name = 'tenis'
+    video_path = common.data_dir + '{0}/{0}_alphapose.mp4'.format(name)
+    court_path = common.data_dir + '{}/court.png'.format(name)
 
     # open video and image
     video = video.Video(video_path)
     court = cv2.imread(court_path)
 
-    # utils.show_img(court)
+    utils.show_img(court)
     frame = video.read()
-    # utils.show_img(frame)
+    utils.show_img(frame)
 
-    p_video = np.float32([[210, 364], [1082, 362], [836, 488], [438, 489]])
-    p_court = np.float32([[24, 24], [568, 24], [383, 232], [205, 232]])
+    p_video = np.float32([[381, 201], [897, 201], [1104, 567], [171, 567]])
+    p_court = np.float32([[27, 24], [160, 24], [160, 238], [27, 238]])
     homo = Homography(p_video, p_court, court.shape)
     frame = homo.transform_image(frame)
     utils.show_img(frame)
