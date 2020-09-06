@@ -17,7 +17,7 @@ SHOW_ID = True
 
 if __name__ == '__main__':
     # file path
-    name = 'basketball'
+    name = 'tenis'
     video_path = common.data_dir + '{0}/{0}_alphapose.mp4'.format(name)
     out_path = common.out_dir + '{0}/{0}_{1}.mp4'.format(name, MODE[MODE_NUM])
     court_path = common.data_dir + '{}/court.png'.format(name)
@@ -29,9 +29,7 @@ if __name__ == '__main__':
     court = court_raw.copy()
 
     # homography
-    p_video = np.float32([[210, 364], [1082, 362], [836, 488], [438, 489]])
-    p_court = np.float32([[24, 24], [568, 24], [383, 232], [205, 232]])
-    homo = transform.Homography(p_video, p_court, court.shape)
+    homo = transform.Homography(common.homo[name][0], common.homo[name][1], court.shape)
 
     # keypoints
     keypoints_frame = keypoint.Frame(json_path)
@@ -99,9 +97,9 @@ if __name__ == '__main__':
                     cv2.rectangle(court, p1, p2, color, thickness=-1)
 
         # 画像を合成
-        ratio = 1 - (frame.shape[0] - court.shape[0]) / frame.shape[0]
-        size = (int(frame.shape[1] * ratio), int(frame.shape[0] * ratio))
-        frame = cv2.resize(frame, size)
+        ratio = 1 - (court.shape[0] - frame.shape[0]) / court.shape[0]
+        size = (int(court.shape[1] * ratio), int(court.shape[0] * ratio))
+        court = cv2.resize(court, size)
         frame = np.concatenate([frame, court], axis=1)
 
         frames.append(frame)
