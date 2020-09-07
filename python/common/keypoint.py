@@ -1,6 +1,6 @@
 import json
 import numpy as np
-from common import common, database
+from common import common
 
 body = {
     "Nose": 0,
@@ -91,8 +91,7 @@ def read_json(json_path):
     return return_lst
 
 
-def read_sql(tracking_db_path):
-    db = database.DataBase(tracking_db_path)
+def read_sql(db):
     datas = db.select(common.TRACKING_TABLE_NAME)
 
     persons = []
@@ -108,7 +107,8 @@ def read_sql(tracking_db_path):
         if len(frames) == frame_num:
             frames.append(KeypointsList())
 
-        if keypoints is not None:
+        if keypoints.shape == (17, 3):
+            keypoints = keypoints.flatten()
             persons[person_id].append(Keypoints(keypoints))
             frames[frame_num].append(Keypoints(keypoints))
         else:

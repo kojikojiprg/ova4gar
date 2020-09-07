@@ -32,7 +32,7 @@ class DataBase:
     def _convert_array(self, text):
         out = io.BytesIO(text)
         out.seek(0)
-        return np.load(out, allow_pickle=True)
+        return np.load(out, allow_pickle=True).astype(float)
 
     def create_table(self, name, cols):
         c = self.conn.cursor()
