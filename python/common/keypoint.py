@@ -28,17 +28,14 @@ confidence_th = 0.2
 class Keypoints(list):
     def __init__(self, keypoints):
         super().__init__([])
-        for i in range(0, len(keypoints), 3):
-            self.append([
-                keypoints[i],
-                keypoints[i + 1],
-                keypoints[i + 2]])
+        for keypoint in keypoints:
+            super().append(keypoint)
 
     def get(self, body_name, ignore_confidence=False):
         if ignore_confidence:
-            return np.array(self[body[body_name]])[:2]
+            return self[body[body_name]][:2]
         else:
-            return np.array(self[body[body_name]])
+            return self[body[body_name]]
 
     def get_middle(self, name):
         R = self.get('R' + name)
@@ -68,6 +65,12 @@ class KeypointsList(list):
 
         return points
 
+    def append(self, keypoints):
+        if keypoints is not None:
+            super().append(Keypoints(keypoints))
+        else:
+            super().append(None)
+
 
 def read_json(json_path):
     return_lst = []
@@ -83,7 +86,7 @@ def read_json(json_path):
                 return_lst.append(keypoints_lst)
                 keypoints_lst = KeypointsList()
 
-            keypoints_lst.append(Keypoints(item['keypoints']))
+            keypoints_lst.append(np.array(item['keypoints']).reshape(17, 3))
             pre_no = frame_no
         else:
             return_lst.append(keypoints_lst)
