@@ -6,9 +6,8 @@ if 'python' in os.getcwd():
 else:
     root = './'
 
-sys.path.append(root + 'python/common/')
-sys.path.append(root + 'python/extract_indicator/')
-sys.path.append(root + 'python/tracking/')
+sys.path.append(root + 'python/')
+
 data_dir = root + 'data/'
 out_dir = root + 'out/'
 db_dir = root + 'db/'

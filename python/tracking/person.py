@@ -1,6 +1,6 @@
-from keypoint import KeypointsList
-from particle_filter import ParticleFilter
-from functions import euclidean, cosine, normalize, softmax
+from common.keypoint import KeypointsList
+from common.functions import euclidean, cosine, normalize, softmax
+from tracking.particle_filter import ParticleFilter
 import numpy as np
 from enum import Enum, auto
 

@@ -1,5 +1,5 @@
 from common import common, keypoint, database
-from person import Person
+from tracking.person import Person
 import numpy as np
 
 

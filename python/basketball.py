@@ -1,10 +1,10 @@
 from common import common
-from tracking import track
-from extract_indicator import extract_indicator
+from tracking.tracking import track
+from extract_indicator.extract_indicator import extract_indicator
 
 
-IS_TRACKING = False
-IS_INDICATOR = True
+IS_TRACKING = True
+IS_INDICATOR = False
 
 
 if __name__ == '__main__':
