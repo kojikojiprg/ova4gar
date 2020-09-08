@@ -34,3 +34,9 @@ MOVE_HAND_TABLE_COLS = {
     'Frame_No': 'integer',
     'Move_Hand': 'float',
 }
+
+DENSITY_TABLE_NAME = 'Density'
+DENSITY_TABLE_COLS = {
+    'Frame_No': 'integer',
+    'Density': 'array',
+}
