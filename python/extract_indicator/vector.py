@@ -2,9 +2,6 @@ from common import common
 
 
 def calc_save(persons, db):
-    db.drop_table(common.VECTOR_TABLE_NAME)
-    db.create_table(common.VECTOR_TABLE_NAME, common.VECTOR_TABLE_COLS)
-
     datas = []
 
     for person in persons:
@@ -15,6 +12,8 @@ def calc_save(persons, db):
             frame_num += 1
 
     # データベースに書き込み
+    db.drop_table(common.VECTOR_TABLE_NAME)
+    db.create_table(common.VECTOR_TABLE_NAME, common.VECTOR_TABLE_COLS)
     db.insert_datas(
         common.VECTOR_TABLE_NAME,
         list(common.VECTOR_TABLE_COLS.keys()),

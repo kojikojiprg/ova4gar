@@ -3,11 +3,7 @@ import numpy as np
 
 
 def calc_save(persons, db):
-    db.drop_table(common.MOVE_HAND_TABLE_NAME)
-    db.create_table(common.MOVE_HAND_TABLE_NAME, common.MOVE_HAND_TABLE_COLS)
-
     datas = []
-
     for person in persons:
         frame_num = person.start_frame_num
 
@@ -17,6 +13,8 @@ def calc_save(persons, db):
             frame_num += 1
 
     # データベースに書き込み
+    db.drop_table(common.MOVE_HAND_TABLE_NAME)
+    db.create_table(common.MOVE_HAND_TABLE_NAME, common.MOVE_HAND_TABLE_COLS)
     db.insert_datas(
         common.MOVE_HAND_TABLE_NAME,
         list(common.MOVE_HAND_TABLE_COLS.keys()),
