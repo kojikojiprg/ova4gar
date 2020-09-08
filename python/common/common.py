@@ -27,3 +27,10 @@ VECTOR_TABLE_COLS = {
     'Frame_No': 'integer',
     'Vector': 'array',
 }
+
+MOVE_HAND_TABLE_NAME = 'Move_Hand'
+MOVE_HAND_TABLE_COLS = {
+    'Person_ID': 'integer',
+    'Frame_No': 'integer',
+    'Move_Hand': 'float',
+}
