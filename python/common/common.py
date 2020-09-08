@@ -20,3 +20,10 @@ TRACKING_TABLE_COLS = {
     'Keypoints': 'array',
     'Vector': 'array',
 }
+
+VECTOR_TABLE_NAME = 'Vector'
+VECTOR_TABLE_COLS = {
+    'Person_ID': 'integer',
+    'Frame_No': 'integer',
+    'Vector': 'array',
+}

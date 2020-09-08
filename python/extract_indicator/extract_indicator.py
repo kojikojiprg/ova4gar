@@ -2,6 +2,7 @@ from common import common
 from common import database
 from extract_indicator.person import Person
 from extract_indicator.frame import Frame
+from extract_indicator import vector
 
 
 def extract_indicator(tracking_db_path, analysis_db_path):
@@ -9,9 +10,8 @@ def extract_indicator(tracking_db_path, analysis_db_path):
     analysis_db = database.DataBase(analysis_db_path)
 
     persons, frames = read_sql(tracking_db)
-    print(persons[0].keypoints_lst[0])
-    print(persons[0].vector_lst[0])
-    print(frames[0].keypoints_lst[0])
+
+    vector.calc_save(persons, analysis_db)
 
 
 def read_sql(db):
