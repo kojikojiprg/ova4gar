@@ -62,7 +62,12 @@ class KeypointsList(list):
         return points
 
     def append(self, keypoints):
-        if keypoints.shape == (17, 3):
-            super().append(Keypoints(keypoints))
-        else:
+        if type(keypoints) == Keypoints:
+            super().append(keypoints)
+        elif keypoints is None:
             super().append(None)
+        else:
+            if keypoints.shape == (17, 3):
+                super().append(Keypoints(keypoints))
+            else:
+                super().append(None)
