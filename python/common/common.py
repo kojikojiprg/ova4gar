@@ -18,5 +18,6 @@ TRACKING_TABLE_NAME = 'Tracking'
 TRACKING_TABLE_COLS = {
     'Person_ID': 'integer',
     'Frame_No': 'integer',
-    'Keypoints': 'array'
+    'Keypoints': 'array',
+    'Vector': 'array',
 }
