@@ -3,8 +3,8 @@ from tracking.tracking import track
 from extract_indicator.extract_indicator import extract_indicator
 
 
-IS_TRACKING = True
-IS_INDICATOR = False
+IS_TRACKING = False
+IS_INDICATOR = True
 
 
 if __name__ == '__main__':
