@@ -1,11 +1,13 @@
-from common import common, keypoint, database
+from common import common, database
+from common.keypoint import KeypointsList
 from tracking.person import Person
 import numpy as np
+import json
 
 
 def track(keypoints_path, result_db_path):
     # keypoints.json を開く
-    keypoints_all_frame = keypoint.read_json(keypoints_path)
+    keypoints_all_frame = read_json(keypoints_path)
 
     # データベースとテーブルを作成
     db = database.DataBase(result_db_path)
@@ -69,3 +71,25 @@ def track(keypoints_path, result_db_path):
         common.TRACKING_TABLE_NAME,
         list(common.TRACKING_TABLE_COLS.keys()),
         datas)
+
+
+def read_json(json_path):
+    return_lst = []
+    with open(json_path) as f:
+        dat = json.load(f)
+
+        keypoints_lst = KeypointsList()
+        pre_no = 0
+        for item in dat:
+            frame_no = int(item['image_id'].split('.')[0])
+
+            if frame_no != pre_no:
+                return_lst.append(keypoints_lst)
+                keypoints_lst = KeypointsList()
+
+            keypoints_lst.append(np.array(item['keypoints']).reshape(17, 3))
+            pre_no = frame_no
+        else:
+            return_lst.append(keypoints_lst)
+
+    return return_lst

@@ -1,7 +1,3 @@
-import json
-import numpy as np
-from common import common
-
 body = {
     "Nose": 0,
     "LEye": 1,
@@ -70,52 +66,3 @@ class KeypointsList(list):
             super().append(Keypoints(keypoints))
         else:
             super().append(None)
-
-
-def read_json(json_path):
-    return_lst = []
-    with open(json_path) as f:
-        dat = json.load(f)
-
-        keypoints_lst = KeypointsList()
-        pre_no = 0
-        for item in dat:
-            frame_no = int(item['image_id'].split('.')[0])
-
-            if frame_no != pre_no:
-                return_lst.append(keypoints_lst)
-                keypoints_lst = KeypointsList()
-
-            keypoints_lst.append(np.array(item['keypoints']).reshape(17, 3))
-            pre_no = frame_no
-        else:
-            return_lst.append(keypoints_lst)
-
-    return return_lst
-
-
-def read_sql(db):
-    datas = db.select(common.TRACKING_TABLE_NAME)
-
-    persons = []
-    frames = []
-    for row in datas:
-        person_id = row[0]
-        frame_num = row[1]
-        keypoints = row[2]
-
-        if len(persons) == person_id:
-            persons.append(KeypointsList())
-
-        if len(frames) == frame_num:
-            frames.append(KeypointsList())
-
-        if keypoints.shape == (17, 3):
-            keypoints = keypoints.flatten()
-            persons[person_id].append(Keypoints(keypoints))
-            frames[frame_num].append(Keypoints(keypoints))
-        else:
-            persons[person_id].append(None)
-            frames[frame_num].append(None)
-
-    return persons, frames
