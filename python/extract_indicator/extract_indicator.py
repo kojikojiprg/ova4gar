@@ -5,15 +5,15 @@ from extract_indicator.frame import Frame
 from extract_indicator import vector, move_hand, density
 
 
-def extract_indicator(tracking_db_path, analysis_db_path):
+def extract_indicator(tracking_db_path, indicator_db_path):
     tracking_db = database.DataBase(tracking_db_path)
-    analysis_db = database.DataBase(analysis_db_path)
+    indicator_db = database.DataBase(indicator_db_path)
 
     persons, frames = read_sql(tracking_db)
 
-    vector.calc_save(persons, analysis_db)
-    move_hand.calc_save(persons, analysis_db)
-    density.calc_save(frames, analysis_db)
+    vector.calc_save(persons, indicator_db)
+    move_hand.calc_save(persons, indicator_db)
+    density.calc_save(frames, indicator_db)
 
 
 def read_sql(db):
