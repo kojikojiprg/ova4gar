@@ -19,6 +19,7 @@ TRACKING_TABLE_COLS = {
     'Frame_No': 'integer',
     'Keypoints': 'array',
     'Vector': 'array',
+    'Average': 'array'
 }
 
 VECTOR_TABLE_NAME = 'Vector'
