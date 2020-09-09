@@ -19,13 +19,14 @@ TRACKING_TABLE_COLS = {
     'Frame_No': 'integer',
     'Keypoints': 'array',
     'Vector': 'array',
-    'Average': 'array'
+    'Average': 'array',
 }
 
 VECTOR_TABLE_NAME = 'Vector'
 VECTOR_TABLE_COLS = {
     'Person_ID': 'integer',
     'Frame_No': 'integer',
+    'Average': 'array',
     'Vector': 'array',
 }
 
@@ -33,6 +34,7 @@ MOVE_HAND_TABLE_NAME = 'Move_Hand'
 MOVE_HAND_TABLE_COLS = {
     'Person_ID': 'integer',
     'Frame_No': 'integer',
+    'Point': 'array',
     'Move_Hand': 'float',
 }
 

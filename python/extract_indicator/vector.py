@@ -7,8 +7,12 @@ def calc_save(persons, db):
     for person in persons:
         frame_num = person.start_frame_num
 
-        for vector in person.vector_lst:
-            datas.append((person.id, frame_num, vector))
+        for average, vector in zip(person.average_lst, person.vector_lst):
+            datas.append((
+                person.id,
+                frame_num,
+                average,
+                vector))
             frame_num += 1
 
     # データベースに書き込み

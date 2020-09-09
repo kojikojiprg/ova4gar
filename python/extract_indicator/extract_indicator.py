@@ -25,7 +25,6 @@ def read_sql(db):
         person_id = row[0]
         frame_num = row[1]
         keypoints = row[2]
-        vector = row[3]
 
         if len(persons) == person_id:
             persons.append(Person(person_id, frame_num))
@@ -33,7 +32,7 @@ def read_sql(db):
         if len(frames) == frame_num:
             frames.append(Frame(frame_num))
 
-        persons[person_id].append(keypoints, vector)
+        persons[person_id].append(row)
         frames[frame_num].append(keypoints)
 
     return persons, frames

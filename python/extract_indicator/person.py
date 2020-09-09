@@ -7,8 +7,11 @@ class Person:
         self.start_frame_num = frame_num
 
         self.keypoints_lst = KeypointsList()
+        self.average_lst = []
         self.vector_lst = []
 
-    def append(self, keypoints, vector):
-        self.keypoints_lst.append(keypoints)
-        self.vector_lst.append(vector)
+    def append(self, db_row):
+        i = 2
+        self.keypoints_lst.append(db_row[i])
+        self.average_lst.append(db_row[i + 1])
+        self.vector_lst.append(db_row[i + 2])

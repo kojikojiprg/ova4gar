@@ -8,8 +8,19 @@ def calc_save(persons, db):
         frame_num = person.start_frame_num
 
         for keypoints in person.keypoints_lst:
-            angle = calc(keypoints)
-            datas.append((person.id, frame_num, angle))
+            if keypoints is not None:
+                point = keypoints.get_middle('Ankle')
+                angle = calc(keypoints)
+            else:
+                point = None
+                angle = None
+
+            datas.append((
+                person.id,
+                frame_num,
+                point,
+                angle))
+
             frame_num += 1
 
     # データベースに書き込み
@@ -22,9 +33,6 @@ def calc_save(persons, db):
 
 
 def calc(keypoints):
-    if keypoints is None:
-        return None
-
     mid_shoulder = keypoints.get_middle('Shoulder')
     mid_hip = keypoints.get_middle('Hip')
 
