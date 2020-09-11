@@ -1,5 +1,6 @@
-from module import common, video, utils
-from transform import Homography
+from common import common, utils
+from common.transform import Homography
+from display import video
 import cv2
 import numpy as np
 
@@ -15,7 +16,7 @@ if __name__ == '__main__':
 
     # utils.show_img(court)
     frame = video.read()
-    # utils.show_img(frame)
+    utils.show_img(frame)
 
     p_video = np.float32([[210, 364], [1082, 362], [836, 488], [438, 489]])
     p_court = np.float32([[24, 24], [568, 24], [383, 232], [205, 232]])
