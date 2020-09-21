@@ -24,11 +24,12 @@ def calc_save(persons, db):
             frame_num += 1
 
     # データベースに書き込み
-    db.drop_table(common.MOVE_HAND_TABLE_NAME)
-    db.create_table(common.MOVE_HAND_TABLE_NAME, common.MOVE_HAND_TABLE_COLS)
+    table = common.MOVE_HAND_TABLE
+    db.drop_table(table.name)
+    db.create_table(table.name, table.cols)
     db.insert_datas(
-        common.MOVE_HAND_TABLE_NAME,
-        list(common.MOVE_HAND_TABLE_COLS.keys()),
+        table.name,
+        list(table.cols.keys()),
         datas)
 
 

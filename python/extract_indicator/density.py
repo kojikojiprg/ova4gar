@@ -14,10 +14,11 @@ def calc_save(frames, db):
         datas.append((frame.num, np.array(points)))
 
     # データベースに書き込み
-    db.drop_table(common.DENSITY_TABLE_NAME)
-    db.create_table(common.DENSITY_TABLE_NAME, common.DENSITY_TABLE_COLS)
+    table = common.DENSITY_TABLE
+    db.drop_table(table.name)
+    db.create_table(table.name, table.cols)
     db.insert_datas(
-        common.DENSITY_TABLE_NAME,
-        list(common.DENSITY_TABLE_COLS.keys()),
+        table.name,
+        list(table.cols.keys()),
         datas
     )

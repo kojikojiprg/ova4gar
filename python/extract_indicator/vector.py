@@ -16,9 +16,10 @@ def calc_save(persons, db):
             frame_num += 1
 
     # データベースに書き込み
-    db.drop_table(common.VECTOR_TABLE_NAME)
-    db.create_table(common.VECTOR_TABLE_NAME, common.VECTOR_TABLE_COLS)
+    table = common.VECTOR_TABLE
+    db.drop_table(table.name)
+    db.create_table(table.name, table.cols)
     db.insert_datas(
-        common.VECTOR_TABLE_NAME,
-        list(common.VECTOR_TABLE_COLS.keys()),
+        table.name,
+        list(table.cols.keys()),
         datas)

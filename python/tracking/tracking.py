@@ -10,9 +10,10 @@ def track(keypoints_path, result_db_path):
     keypoints_all_frame = read_json(keypoints_path)
 
     # データベースとテーブルを作成
+    table = common.TRACKING_TABLE
     db = database.DataBase(result_db_path)
-    db.drop_table(common.TRACKING_TABLE_NAME)
-    db.create_table(common.TRACKING_TABLE_NAME, common.TRACKING_TABLE_COLS)
+    db.drop_table(table.name)
+    db.create_table(table.name, table.cols)
 
     # person クラスを初期化
     persons = []
@@ -69,8 +70,8 @@ def track(keypoints_path, result_db_path):
 
     # データベースに書き込み
     db.insert_datas(
-        common.TRACKING_TABLE_NAME,
-        list(common.TRACKING_TABLE_COLS.keys()),
+        table.name,
+        list(table.cols.keys()),
         datas)
 
 
