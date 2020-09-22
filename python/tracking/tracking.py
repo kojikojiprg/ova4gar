@@ -1,4 +1,4 @@
-from common import common, database
+from common import database
 from common.keypoint import KeypointsList
 from tracking.person import Person
 import numpy as np

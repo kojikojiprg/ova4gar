@@ -1,4 +1,3 @@
-from common import common
 from common import database
 from extract_indicator.person import Person
 from extract_indicator.frame import Frame
