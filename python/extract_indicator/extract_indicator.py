@@ -17,7 +17,7 @@ def extract_indicator(tracking_db_path, indicator_db_path):
 
 
 def read_sql(db):
-    datas = db.select(common.TRACKING_TABLE.name)
+    datas = db.select(database.TRACKING_TABLE.name)
 
     persons = []
     frames = []

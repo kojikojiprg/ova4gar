@@ -113,3 +113,55 @@ class DataBase:
         data = c.fetchall()
 
         return data
+
+
+class table:
+    def __init__(self, name, cols):
+        self.name = name
+        self.cols = cols
+
+
+TRACKING_TABLE = table(
+    'Tracking',
+    {
+        'Person_ID': 'integer',
+        'Frame_No': 'integer',
+        'Keypoints': 'array',
+        'Vector': 'array',
+        'Average': 'array',
+    }
+)
+
+VECTOR_TABLE = table(
+    'Vector',
+    {
+        'Person_ID': 'integer',
+        'Frame_No': 'integer',
+        'Average': 'array',
+        'Vector': 'array',
+    }
+)
+
+MOVE_HAND_TABLE = table(
+    'Move_Hand',
+    {
+        'Person_ID': 'integer',
+        'Frame_No': 'integer',
+        'Point': 'array',
+        'Move_Hand': 'float',
+    }
+)
+
+DENSITY_TABLE = table(
+    'Density',
+    {
+        'Frame_No': 'integer',
+        'Density': 'array',
+    }
+)
+
+INDICATOR_TABLES = [
+    VECTOR_TABLE,
+    MOVE_HAND_TABLE,
+    DENSITY_TABLE,
+]
