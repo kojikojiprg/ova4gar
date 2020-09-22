@@ -1,4 +1,4 @@
-from common import common
+from common import database
 import numpy as np
 
 
@@ -12,8 +12,8 @@ def calc_save(persons, db):
                 point = keypoints.get_middle('Ankle')
                 angle = calc(keypoints)
             else:
-                point = None
-                angle = None
+                point = np.nan
+                angle = np.nan
 
             datas.append((
                 person.id,
@@ -24,7 +24,7 @@ def calc_save(persons, db):
             frame_num += 1
 
     # データベースに書き込み
-    table = common.MOVE_HAND_TABLE
+    table = database.MOVE_HAND_TABLE
     db.drop_table(table.name)
     db.create_table(table.name, table.cols)
     db.insert_datas(

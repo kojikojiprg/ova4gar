@@ -1,4 +1,4 @@
-from common import common
+from common import database
 import numpy as np
 
 
@@ -14,7 +14,7 @@ def calc_save(frames, db):
         datas.append((frame.num, np.array(points)))
 
     # データベースに書き込み
-    table = common.DENSITY_TABLE
+    table = database.DENSITY_TABLE
     db.drop_table(table.name)
     db.create_table(table.name, table.cols)
     db.insert_datas(
