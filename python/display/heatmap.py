@@ -5,7 +5,6 @@ class Heatmap(list):
     def __init__(self, distribution, hip2ankle=50):
         super().__init__([])
         self._calc_args(distribution)
-        self.hip2ankle = hip2ankle
 
     def _calc_args(self, distribution):
         self.xmax = np.nanmax(distribution)
@@ -14,7 +13,7 @@ class Heatmap(list):
         self.inclination = 255 / half
         self.xmid = half + self.xmin
 
-    def _colormap(self, x):
+    def colormap(self, x):
         if x <= self.xmid:
             r = 0
             g = self.inclination * (x - self.xmin)
@@ -24,58 +23,6 @@ class Heatmap(list):
             g = self.inclination * (self.xmax - x)
             b = 0
         return (int(r), int(g), int(b))
-
-
-class Vector(Heatmap):
-    def __init__(self):
-        super().__init__([0.0, np.pi / 2.0])
-
-    def calc(self, vec, mean_point):
-        if vec is None or mean_point is None:
-            self.append(None)
-            return
-
-        angle = np.arccos(np.abs(vec[0]) / (np.linalg.norm(vec) + 1e-10))
-
-        start = mean_point
-        start[1] += self.hip2ankle
-        end = start + vec
-
-        self.append((start, end, self._colormap(angle)))
-
-
-class MoveHand(Heatmap):
-    def __init__(self):
-        super().__init__([0.0, np.pi])
-
-    def calc(self, keypoints):
-        if keypoints is None:
-            self.append(None)
-            return
-
-        mid_shoulder = keypoints.get_middle('Shoulder')
-        mid_hip = keypoints.get_middle('Hip')
-
-        # 体軸ベクトルとノルム
-        axis = mid_shoulder - mid_hip
-        norm_axis = np.linalg.norm(axis, ord=2)
-
-        ankle = 0.
-        for side in ('R', 'L'):
-            elbow = keypoints.get(side + 'Elbow', ignore_confidence=True)
-            wrist = keypoints.get(side + 'Wrist', ignore_confidence=True)
-
-            # 前肢ベクトルとノルム
-            vec = wrist - elbow
-            norm = np.linalg.norm(vec, ord=2)
-
-            # 体軸と前肢の角度(左右の大きい方を選択する)
-            angle = max(
-                ankle,
-                np.arccos(np.dot(axis, vec) / (norm_axis * norm + 1e-10)))
-
-        point = mid_hip + self.hip2ankle
-        self.append((point, self._colormap(angle)))
 
 
 class Population(Heatmap):
@@ -106,6 +53,6 @@ class Population(Heatmap):
                     # 密度が0以上の場合のみ追加
                     p1 = (int(xedges[i]), int(yedges[j]))
                     p2 = (int(xedges[i + 1]), int(yedges[j + 1]))
-                    ds.append((p1, p2, self._colormap(H[i][j])))
+                    ds.append((p1, p2, self.colormap(H[i][j])))
 
         self.append(ds)
