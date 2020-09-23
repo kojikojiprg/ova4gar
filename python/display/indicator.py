@@ -54,6 +54,7 @@ class Indicator:
 
                 data = np.linalg.norm(data)
                 cmap = hm.colormap(data)
-                data = indicator_data + cmap
+                indicator_data = list(indicator_data)
+                indicator_data.append(cmap)
 
-                self.append(frame_num, data)
+                self.append(frame_num, indicator_data)

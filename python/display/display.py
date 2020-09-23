@@ -41,6 +41,7 @@ def display(video_path, out_dir, tracking_db_path, indicator_db_path, field, hom
                     cv2.circle(frame, tuple(point), 7, (0, 0, 255), thickness=-1)
                     cv2.putText(frame, str(person.id), tuple(point), cv2.FONT_HERSHEY_PLAIN, 2, (255, 255, 255), 2)
 
+        # append tracking result
         frames_lst[0].append(frame)
 
         for indicator_idx, indicator in enumerate(indicators):
@@ -51,8 +52,6 @@ def display(video_path, out_dir, tracking_db_path, indicator_db_path, field, hom
             elif indicator_idx == 1:
                 field_rslt = move_hand(i, indicator, fields[indicator_idx], homography)
                 frame_rslt = combine_image(frame_raw, field_rslt)
-            else:
-                frames_lst = frame_raw
 
             frames_lst[indicator_idx + 1].append(frame_rslt)
 
@@ -136,7 +135,7 @@ def move_hand(frame_num, indicator, field, homo):
 
         point = data[2]
         point = homo.transform_point(point)
-        color = data[3]
+        color = data[4]
         cv2.circle(field, tuple(point), 7, color, thickness=-1)
     return field
 
