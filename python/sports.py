@@ -2,7 +2,6 @@ from common import common, transform
 from tracking.tracking import track
 from extract_indicator.extract_indicator import extract_indicator
 from display.display import display
-import numpy as np
 import cv2
 
 
