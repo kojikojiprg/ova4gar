@@ -27,7 +27,7 @@ class Heatmap(list):
 
 class Population(Heatmap):
     def __init__(self, homography, bins=(8, 8)):
-        super().__init__([0.0, 3.0])
+        super().__init__([0.0, 4.0])
         self.homo = homography
         self.bins = bins
         size = list(homography.size)

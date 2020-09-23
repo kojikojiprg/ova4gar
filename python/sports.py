@@ -11,17 +11,18 @@ IS_INDICATOR = False
 
 
 if __name__ == '__main__':
-    video_path = common.data_dir + 'basketball/basketball_alphapose.mp4'
-    out_dir = common.out_dir + 'basketball/'
-    keypoints_path = common.data_dir + 'basketball/keypoints.json'
-    tracking_db_path = common.db_dir + 'basketball/tracking.db'
-    indicator_db_path = common.db_dir + 'basketball/indicator.db'
-    court_path = common.data_dir + 'basketball/court.png'
+    name = 'basketball'
+    video_path = common.data_dir + '{0}/{0}_alphapose.mp4'.format(name)
+    out_dir = common.out_dir + '{}/'.format(name)
+    court_path = common.data_dir + '{}/court.png'.format(name)
+    keypoints_path = common.data_dir + '{}/keypoints.json'.format(name)
+    tracking_db_path = common.db_dir + '{}/tracking.db'.format(name)
+    indicator_db_path = common.db_dir + '{}/indicator.db'.format(name)
 
     # homography
     court_raw = cv2.imread(court_path)
-    p_video = np.float32([[210, 364], [1082, 362], [836, 488], [438, 489]])
-    p_court = np.float32([[24, 24], [568, 24], [383, 232], [205, 232]])
+    p_video = common.homo['basketball'][0]
+    p_court = common.homo['basketball'][1]
     homo = transform.Homography(p_video, p_court, court_raw.shape)
 
     if IS_TRACKING:
