@@ -1,6 +1,3 @@
-import json
-import numpy as np
-
 body = {
     "Nose": 0,
     "LEye": 1,
@@ -27,17 +24,14 @@ confidence_th = 0.2
 class Keypoints(list):
     def __init__(self, keypoints):
         super().__init__([])
-        for i in range(0, len(keypoints), 3):
-            self.append([
-                keypoints[i],
-                keypoints[i + 1],
-                keypoints[i + 2]])
+        for keypoint in keypoints:
+            super().append(keypoint)
 
     def get(self, body_name, ignore_confidence=False):
         if ignore_confidence:
-            return np.array(self[body[body_name]])[:2]
+            return self[body[body_name]][:2]
         else:
-            return np.array(self[body[body_name]])
+            return self[body[body_name]]
 
     def get_middle(self, name):
         R = self.get('R' + name)
@@ -67,23 +61,13 @@ class KeypointsList(list):
 
         return points
 
-
-class Frame(list):
-    def __init__(self, json_path):
-        super().__init__([])
-        with open(json_path) as f:
-            dat = json.load(f)
-
-            keypoints_lst = KeypointsList()
-            pre_no = 0
-            for item in dat:
-                frame_no = int(item['image_id'].split('.')[0])
-
-                if frame_no != pre_no:
-                    self.append(keypoints_lst)
-                    keypoints_lst = KeypointsList()
-
-                keypoints_lst.append(Keypoints(item['keypoints']))
-                pre_no = frame_no
+    def append(self, keypoints):
+        if type(keypoints) == Keypoints:
+            super().append(keypoints)
+        elif keypoints is None:
+            super().append(None)
+        else:
+            if keypoints.shape == (17, 3):
+                super().append(Keypoints(keypoints))
             else:
-                self.append(keypoints_lst)
+                super().append(None)

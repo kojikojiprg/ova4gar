@@ -1,7 +1,6 @@
-from keypoint import KeypointsList
-from particle_filter import ParticleFilter
-from heatmap import Vector, MoveHand
-from functions import euclidean, cosine, normalize, softmax
+from common.keypoint import KeypointsList
+from common.functions import euclidean, cosine, normalize, softmax
+from tracking.particle_filter import ParticleFilter
 import numpy as np
 from enum import Enum, auto
 
@@ -18,14 +17,10 @@ class Person:
         point = self._get_point(keypoints)
         self.pf = ParticleFilter(point)
         self.particles_lst = []
-        self.mean_lst = []
+        self.average_lst = []
 
         self.vector_size = vector_size
-        self.vector_lst = []
         self.vector = np.array([0, 0])
-
-        self.vector_map = Vector()
-        self.move_hand_map = MoveHand()
 
     def _get_point(self, keypoints):
         return keypoints.get_middle('Hip')
@@ -54,17 +49,14 @@ class Person:
         if keypoints is not None:
             point = self._get_point(keypoints)
             x = self.pf.filter(point)
-            self.mean_lst.append(x)
+            self.average_lst.append(x)
             self.age = 0
         else:
             x = self.pf.weighted_average()
-            self.mean_lst.append(x)
+            self.average_lst.append(x)
             self.age += 1
 
         self.calc_vector()
-
-        self.vector_map.calc(self.vector, x)
-        self.move_hand_map.calc(keypoints)
 
         # ageがmax_ageを超えると削除
         if self.age > self.max_age:
@@ -75,22 +67,18 @@ class Person:
     def delete(self):
         self.keypoints_lst.append(None)
         self.particles_lst.append(None)
-        self.mean_lst.append(None)
-        self.vector_lst.append(None)
-        self.vector_map.append(None)
-        self.move_hand_map.append(None)
+        self.average_lst.append(None)
 
     def calc_vector(self):
-        if self.is_deleted() or len(self.mean_lst) < self.vector_size:
-            self.vector_lst.append(None)
+        if self.is_deleted() or len(self.average_lst) < self.vector_size:
             return
 
         # 差分を求める
-        means = self.mean_lst[-self.vector_size:]
+        average = self.average_lst[-self.vector_size:]
         diffs = []
         for i in range(self.vector_size - 1):
-            now = means[i]
-            nxt = means[i + 1]
+            now = average[i]
+            nxt = average[i + 1]
             diffs.append(nxt - now + 1e-10)
 
         # 類似度を計算
@@ -114,7 +102,6 @@ class Person:
         vec = vec / (self.age + 1)
         vec = vec.astype(int)
 
-        self.vector_lst.append(tuple(vec))
         self.vector = vec
 
 

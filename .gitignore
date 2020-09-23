@@ -9,3 +9,5 @@ out
 *.zip
 *.mp4
 *.json
+*.db
+*.db-journal
