@@ -58,7 +58,7 @@ def track(keypoints_path, result_db_path):
                 # アップデートされていない人にNoneを入力してアップデート
                 person.update(None)
             elif person.is_deleted():
-                person.delete()
+                person.update_deleted()
 
         for person in persons:
             datas.append((
