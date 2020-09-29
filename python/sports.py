@@ -6,7 +6,7 @@ import cv2
 
 
 IS_TRACKING = False
-IS_INDICATOR = False
+IS_INDICATOR = True
 
 
 if __name__ == '__main__':

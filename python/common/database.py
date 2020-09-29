@@ -137,7 +137,7 @@ VECTOR_TABLE = table(
     {
         'Person_ID': 'integer',
         'Frame_No': 'integer',
-        'Average': 'array',
+        'Point': 'array',
         'Vector': 'array',
     }
 )
