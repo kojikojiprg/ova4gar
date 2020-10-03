@@ -1,4 +1,5 @@
 import cv2
+import numpy as np
 
 
 def vector(frame_num, indicator, field, homo):
@@ -33,7 +34,9 @@ def move_hand(frame_num, indicator, field, homo):
 
 def density(frame_num, indicator, field, homo):
     datas = indicator.indicator_lst[frame_num]
-    for point in datas[0][1]:
+    for data in datas:
+        point = np.average(data[2], axis=0)
         point = homo.transform_point(point)
-        cv2.circle(field, tuple(point), 7, (255, 0, 0), thickness=-1)
+        color = data[4]
+        cv2.circle(field, tuple(point), 7, color, thickness=-1)
     return field
