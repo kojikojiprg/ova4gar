@@ -5,7 +5,7 @@ from display.display import display
 import cv2
 
 
-IS_TRACKING = True
+IS_TRACKING = False
 IS_INDICATOR = True
 
 
