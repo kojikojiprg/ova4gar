@@ -1,13 +1,13 @@
-from common import database
-from common.keypoint import KeypointsList
+from common import common, database
+from common.keypoint import Keypoints, KeypointsList
 from tracking.person import Person
 import numpy as np
 import json
 
 
-def track(keypoints_path, result_db_path):
+def track(keypoints_path, result_db_path, name):
     # keypoints.json を開く
-    keypoints_all_frame = read_json(keypoints_path)
+    keypoints_all_frame = read_json(keypoints_path, name)
 
     # データベースとテーブルを作成
     table = database.TRACKING_TABLE
@@ -75,7 +75,7 @@ def track(keypoints_path, result_db_path):
         datas)
 
 
-def read_json(json_path):
+def read_json(json_path, name):
     return_lst = []
     with open(json_path) as f:
         dat = json.load(f)
@@ -89,7 +89,15 @@ def read_json(json_path):
                 return_lst.append(keypoints_lst)
                 keypoints_lst = KeypointsList()
 
-            keypoints_lst.append(np.array(item['keypoints']).reshape(17, 3))
+            keypoints = Keypoints(np.array(item['keypoints']).reshape(17, 3))
+            point = keypoints.get_middle('Ankle')
+            # 範囲内のポイントのみ抽出
+            limit = common.limit[name]
+            l_min = limit[0]
+            l_max = limit[1]
+            if ((l_min[0] <= point[0] and point[0] <= l_max[0]) and
+                    (l_min[1] <= point[1] and point[1] <= l_max[1])):
+                keypoints_lst.append(keypoints)
             pre_no = frame_no
         else:
             return_lst.append(keypoints_lst)

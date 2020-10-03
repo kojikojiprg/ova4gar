@@ -13,6 +13,10 @@ data_dir = root + 'data/'
 out_dir = root + 'out/'
 db_dir = root + 'db/'
 
+limit = {
+    'basketball': [[0, 340], [np.inf, np.inf]]
+}
+
 homo = {
     'basketball': [
         np.float32([[210, 364], [1082, 362], [836, 488], [438, 489]]),

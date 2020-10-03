@@ -7,6 +7,7 @@ import cv2
 
 IS_TRACKING = False
 IS_INDICATOR = True
+IS_DISPLAY = True
 
 
 if __name__ == '__main__':
@@ -25,9 +26,10 @@ if __name__ == '__main__':
     homo = transform.Homography(p_video, p_court, court_raw.shape)
 
     if IS_TRACKING:
-        track(keypoints_path, tracking_db_path)
+        track(keypoints_path, tracking_db_path, name)
 
     if IS_INDICATOR:
         extract_indicator(tracking_db_path, indicator_db_path)
 
-    display(video_path, out_dir, tracking_db_path, indicator_db_path, court_raw, homo)
+    if IS_DISPLAY:
+        display(video_path, out_dir, tracking_db_path, indicator_db_path, court_raw, homo)
