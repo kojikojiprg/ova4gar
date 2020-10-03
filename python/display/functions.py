@@ -32,11 +32,12 @@ def move_hand(frame_num, indicator, field, homo):
     return field
 
 
-def density(frame_num, indicator, field, homo):
+def density(frame_num, indicator, field, homo, min_r=8):
     datas = indicator.indicator_lst[frame_num]
     for data in datas:
         point = np.average(data[2], axis=0)
         point = homo.transform_point(point)
+        r = min_r + data[3]
         color = data[4]
-        cv2.circle(field, tuple(point), 7, color, thickness=-1)
+        cv2.circle(field, tuple(point), r, color, thickness=-1)
     return field

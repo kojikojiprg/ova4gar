@@ -3,7 +3,7 @@ import numpy as np
 from pyclustering.cluster import gmeans
 
 
-def calc_save(frames, db, k_init=5):
+def calc_save(frames, db, k_init=3):
     datas = []
     for frame in frames:
         points = []
