@@ -4,10 +4,11 @@ import numpy as np
 
 
 class Indicator:
-    def __init__(self, table_name, display_method):
+    def __init__(self, table_name, display_method, is_reset):
         self.table_name = table_name
         self.indicator_lst = []
         self.display = display_method
+        self.is_reset_display = is_reset
 
     def append(self, frame_num, indicator_data):
         if frame_num == len(self.indicator_lst):

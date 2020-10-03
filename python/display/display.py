@@ -8,9 +8,10 @@ import cv2
 
 
 DISPLAY_FUNC_DICT = {
-    database.VECTOR_TABLE.name: vector,
-    database.MOVE_HAND_TABLE.name: move_hand,
-    database.DENSITY_TABLE.name: density
+    # [display_method, is_reset_display]
+    database.VECTOR_TABLE.name: [vector, False],
+    database.MOVE_HAND_TABLE.name: [move_hand, False],
+    database.DENSITY_TABLE.name: [density, True],
 }
 
 
@@ -52,9 +53,13 @@ def display(video_path, out_dir, tracking_db_path, indicator_db_path, field, hom
         # append tracking result
         frames_lst[0].append(frame)
 
+        # 指標を表示
         for indicator_idx, indicator in enumerate(indicators):
             frame_raw = frame.copy()
-            field_rslt = indicator.display(i, indicator, fields[indicator_idx], homography)
+            if indicator.is_reset_display:
+                field_rslt = indicator.display(i, indicator, field.copy(), homography)
+            else:
+                field_rslt = indicator.display(i, indicator, fields[indicator_idx], homography)
             frame_rslt = combine_image(frame_raw, field_rslt)
 
             frames_lst[indicator_idx + 1].append(frame_rslt)
@@ -90,7 +95,8 @@ def read_sql(tracking_db, indicator_db):
     for i, items in enumerate(indicator_dict.items()):
         table_name = items[0]
         indicator_datas = items[1]
-        indicators.append(Indicator(table_name, DISPLAY_FUNC_DICT[table_name]))
+        indicators.append(
+            Indicator(table_name, DISPLAY_FUNC_DICT[table_name][0], DISPLAY_FUNC_DICT[table_name][1]))
 
         for indicator_data in indicator_datas:
             for idx, key in enumerate(database.INDICATOR_TABLES[i].cols.keys()):
