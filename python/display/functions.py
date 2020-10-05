@@ -32,6 +32,22 @@ def move_hand(frame_num, indicator, field, homo):
     return field
 
 
+def face_direction(frame_num, indicator, field, homo, arrow_length=10):
+    datas = indicator.indicator_lst[frame_num]
+    for data in datas:
+        if data[2] is None:
+            continue
+
+        start = data[2]
+        start = homo.transform_point(start)
+        x = np.cos(data[3])
+        y = np.sin(data[3])
+        end = (start + np.array([x, y]) * arrow_length).astype(int)
+        color = data[4]
+        cv2.arrowedLine(field, tuple(start), tuple(end), color, tipLength=1.5)
+    return field
+
+
 def density(frame_num, indicator, field, homo, min_r=8):
     datas = indicator.indicator_lst[frame_num]
     for data in datas:

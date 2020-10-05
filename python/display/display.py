@@ -2,7 +2,7 @@ from common import database
 from display.person import Person
 from display.indicator import Indicator
 from display.video import Video
-from display.functions import vector, move_hand, density
+from display.functions import vector, move_hand, face_direction, density
 import numpy as np
 import cv2
 
@@ -11,6 +11,7 @@ DISPLAY_FUNC_DICT = {
     # [display_method, is_reset_display]
     database.VECTOR_TABLE.name: [vector, False],
     database.MOVE_HAND_TABLE.name: [move_hand, False],
+    database.FACE_DIRECTION.name: [face_direction, True],
     database.DENSITY_TABLE.name: [density, True],
 }
 
