@@ -2,8 +2,18 @@ from common import database
 from display.person import Person
 from display.indicator import Indicator
 from display.video import Video
+from display.functions import vector, move_hand, face_direction, density
 import numpy as np
 import cv2
+
+
+DISPLAY_FUNC_DICT = {
+    # [display_method, is_reset_display]
+    database.VECTOR_TABLE.name: [vector, False],
+    database.MOVE_HAND_TABLE.name: [move_hand, False],
+    database.FACE_DIRECTION.name: [face_direction, True],
+    database.DENSITY_TABLE.name: [density, True],
+}
 
 
 def display(video_path, out_dir, tracking_db_path, indicator_db_path, field, homography):
@@ -44,14 +54,14 @@ def display(video_path, out_dir, tracking_db_path, indicator_db_path, field, hom
         # append tracking result
         frames_lst[0].append(frame)
 
+        # 指標を表示
         for indicator_idx, indicator in enumerate(indicators):
             frame_raw = frame.copy()
-            if indicator_idx == 0:
-                field_rslt = vector(i, indicator, fields[indicator_idx], homography)
-                frame_rslt = combine_image(frame_raw, field_rslt)
-            elif indicator_idx == 1:
-                field_rslt = move_hand(i, indicator, fields[indicator_idx], homography)
-                frame_rslt = combine_image(frame_raw, field_rslt)
+            if indicator.is_reset_display:
+                field_rslt = indicator.display(i, indicator, field.copy(), homography)
+            else:
+                field_rslt = indicator.display(i, indicator, fields[indicator_idx], homography)
+            frame_rslt = combine_image(frame_raw, field_rslt)
 
             frames_lst[indicator_idx + 1].append(frame_rslt)
 
@@ -86,7 +96,8 @@ def read_sql(tracking_db, indicator_db):
     for i, items in enumerate(indicator_dict.items()):
         table_name = items[0]
         indicator_datas = items[1]
-        indicators.append(Indicator(table_name))
+        indicators.append(
+            Indicator(table_name, DISPLAY_FUNC_DICT[table_name][0], DISPLAY_FUNC_DICT[table_name][1]))
 
         for indicator_data in indicator_datas:
             for idx, key in enumerate(database.INDICATOR_TABLES[i].cols.keys()):
@@ -108,37 +119,3 @@ def combine_image(frame, field):
     frame = cv2.resize(frame, size)
     frame = np.concatenate([frame, field], axis=1)
     return frame
-
-
-def vector(frame_num, indicator, field, homo):
-    datas = indicator.indicator_lst[frame_num]
-    for data in datas:
-        if data[2] is None or data[3] is None:
-            continue
-
-        start = data[2]
-        end = data[2] + data[3]
-        start = homo.transform_point(start)
-        end = homo.transform_point(end)
-        color = data[4]
-
-        cv2.arrowedLine(field, tuple(start), tuple(end), color, tipLength=1.5)
-
-    return field
-
-
-def move_hand(frame_num, indicator, field, homo):
-    datas = indicator.indicator_lst[frame_num]
-    for data in datas:
-        if data[2] is None:
-            continue
-
-        point = data[2]
-        point = homo.transform_point(point)
-        color = data[4]
-        cv2.circle(field, tuple(point), 7, color, thickness=-1)
-    return field
-
-
-def density(frame_num, indicator, field_raw, homo):
-    pass

@@ -137,7 +137,7 @@ VECTOR_TABLE = table(
     {
         'Person_ID': 'integer',
         'Frame_No': 'integer',
-        'Average': 'array',
+        'Point': 'array',
         'Vector': 'array',
     }
 )
@@ -152,16 +152,29 @@ MOVE_HAND_TABLE = table(
     }
 )
 
+FACE_DIRECTION = table(
+    'Face_Direction',
+    {
+        'Person_ID': 'integer',
+        'Frame_No': 'integer',
+        'Point': 'array',
+        'Face_Direction': 'float',
+    }
+)
+
 DENSITY_TABLE = table(
     'Density',
     {
         'Frame_No': 'integer',
-        'Density': 'array',
+        'Cluster_No': 'integer',
+        'Cluster': 'array',
+        'Num': 'integer',
     }
 )
 
 INDICATOR_TABLES = [
     VECTOR_TABLE,
     MOVE_HAND_TABLE,
+    FACE_DIRECTION,
     DENSITY_TABLE,
 ]

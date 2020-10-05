@@ -7,7 +7,14 @@ def calc_save(persons, db):
     for person in persons:
         frame_num = person.start_frame_num
 
-        for average, vector in zip(person.average_lst, person.vector_lst):
+        for keypoints, average, vector in zip(person.keypoints_lst, person.average_lst, person.vector_lst):
+            # 腰と足首の差分を計算
+            if keypoints is not None:
+                hip = keypoints.get_middle('Hip')
+                ankle = keypoints.get_middle('Ankle')
+                diff_y = (ankle - hip)[1]
+                average[1] += diff_y
+
             datas.append((
                 person.id,
                 frame_num,

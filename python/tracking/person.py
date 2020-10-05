@@ -61,10 +61,17 @@ class Person:
         # ageがmax_ageを超えると削除
         if self.age > self.max_age:
             self.state = State.Deleted
+            self.delete()
         else:
             self.state = State.Updated
 
     def delete(self):
+        for i in range(1, self.max_age):
+            self.keypoints_lst[-i] = None
+            self.particles_lst[-i] = None
+            self.average_lst[-i] = None
+
+    def update_deleted(self):
         self.keypoints_lst.append(None)
         self.particles_lst.append(None)
         self.average_lst.append(None)
