@@ -39,10 +39,16 @@ def face_direction(frame_num, indicator, field, homo, arrow_length=10):
             continue
 
         start = data[2]
-        start = homo.transform_point(start)
         x = np.cos(data[3])
         y = np.sin(data[3])
-        end = (start + np.array([x, y]) * arrow_length).astype(int)
+        end = start + np.array([x, y]) * arrow_length
+        start = homo.transform_point(start)
+        end = homo.transform_point(end)
+
+        # ホモグラフィ変換後の矢印の長さを揃える
+        ratio = arrow_length / np.linalg.norm(end - start)
+        end = start + ((end - start) * ratio).astype(int)
+
         color = data[4]
         cv2.arrowedLine(field, tuple(start), tuple(end), color, tipLength=1.5)
     return field
