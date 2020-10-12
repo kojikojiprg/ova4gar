@@ -152,13 +152,23 @@ MOVE_HAND_TABLE = table(
     }
 )
 
-FACE_DIRECTION = table(
+FACE_DIRECTION_TABLE = table(
     'Face_Direction',
     {
         'Person_ID': 'integer',
         'Frame_No': 'integer',
         'Point': 'array',
         'Face_Direction': 'float',
+    }
+)
+
+MOVING_DISTANCE_TABLE = table(
+    'Moving_Distance',
+    {
+        'Person_ID': 'integer',
+        'Frame_No': 'integer',
+        'Points': 'array',
+        'Distances': 'array',
     }
 )
 
@@ -175,6 +185,7 @@ DENSITY_TABLE = table(
 INDICATOR_TABLES = [
     VECTOR_TABLE,
     MOVE_HAND_TABLE,
-    FACE_DIRECTION,
+    FACE_DIRECTION_TABLE,
+    MOVING_DISTANCE_TABLE,
     DENSITY_TABLE,
 ]
