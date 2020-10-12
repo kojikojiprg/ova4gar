@@ -2,18 +2,9 @@ from common import database
 from display.person import Person
 from display.indicator import Indicator
 from display.video import Video
-from display.functions import vector, move_hand, face_direction, density
+from display.functions import FUNC_DICT
 import numpy as np
 import cv2
-
-
-DISPLAY_FUNC_DICT = {
-    # [display_method, is_reset_display]
-    database.VECTOR_TABLE.name: [vector, False],
-    database.MOVE_HAND_TABLE.name: [move_hand, False],
-    database.FACE_DIRECTION.name: [face_direction, True],
-    database.DENSITY_TABLE.name: [density, True],
-}
 
 
 def display(video_path, out_dir, tracking_db_path, indicator_db_path, field, homography):
@@ -97,7 +88,7 @@ def read_sql(tracking_db, indicator_db):
         table_name = items[0]
         indicator_datas = items[1]
         indicators.append(
-            Indicator(table_name, DISPLAY_FUNC_DICT[table_name][0], DISPLAY_FUNC_DICT[table_name][1]))
+            Indicator(table_name, FUNC_DICT[table_name][0], FUNC_DICT[table_name][1]))
 
         for indicator_data in indicator_datas:
             for idx, key in enumerate(database.INDICATOR_TABLES[i].cols.keys()):

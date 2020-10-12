@@ -1,3 +1,4 @@
+from common import database
 import cv2
 import numpy as np
 
@@ -54,6 +55,10 @@ def face_direction(frame_num, indicator, field, homo, arrow_length=10):
     return field
 
 
+def moving_distance(frame_num, indicator, field, homo):
+    pass
+
+
 def density(frame_num, indicator, field, homo, min_r=8):
     datas = indicator.indicator_lst[frame_num]
     for data in datas:
@@ -63,3 +68,13 @@ def density(frame_num, indicator, field, homo, min_r=8):
         color = data[4]
         cv2.circle(field, tuple(point), r, color, thickness=-1)
     return field
+
+
+FUNC_DICT = {
+    # [display_method, is_reset_display]
+    database.VECTOR_TABLE.name: [vector, False],
+    database.MOVE_HAND_TABLE.name: [move_hand, False],
+    database.FACE_DIRECTION_TABLE.name: [face_direction, True],
+    database.MOVING_DISTANCE_TABLE.name: [moving_distance, False],
+    database.DENSITY_TABLE.name: [density, True],
+}
