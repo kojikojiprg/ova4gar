@@ -25,7 +25,7 @@ def calc_save(persons, db):
             frame_num += 1
 
     # データベースに書き込み
-    table = database.FACE_DIRECTION
+    table = database.FACE_DIRECTION_TABLE
     db.drop_table(table.name)
     db.create_table(table.name, table.cols)
     db.insert_datas(
