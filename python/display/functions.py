@@ -56,7 +56,21 @@ def face_direction(frame_num, indicator, field, homo, arrow_length=10):
 
 
 def moving_distance(frame_num, indicator, field, homo):
-    pass
+    try:
+        datas = indicator.indicator_lst[frame_num]
+    except IndexError:
+        return field
+
+    for data in datas:
+        diff = data[4]
+        if diff != np.nan:
+            start = data[2]
+            end = data[3]
+            start = homo.transform_point(start)
+            end = homo.transform_point(end)
+            color = data[5]
+            cv2.line(field, tuple(start), tuple(end), color, thickness=3)
+    return field
 
 
 def density(frame_num, indicator, field, homo, min_r=8):

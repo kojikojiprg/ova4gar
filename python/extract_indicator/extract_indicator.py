@@ -1,7 +1,7 @@
 from common import database
 from extract_indicator.person import Person
 from extract_indicator.frame import Frame
-from extract_indicator import vector, move_hand, face_direction, density
+from extract_indicator import vector, move_hand, face_direction, moving_distance, density
 
 
 def extract_indicator(tracking_db_path, indicator_db_path):
@@ -13,6 +13,7 @@ def extract_indicator(tracking_db_path, indicator_db_path):
     vector.calc_save(persons, indicator_db)
     move_hand.calc_save(persons, indicator_db)
     face_direction.calc_save(persons, indicator_db)
+    moving_distance.calc_save(persons, indicator_db)
     density.calc_save(frames, indicator_db)
 
 
