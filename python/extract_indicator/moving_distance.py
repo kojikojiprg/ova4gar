@@ -2,7 +2,7 @@ from common import database
 import numpy as np
 
 
-def calc_save(persons, db, distance_th=10):
+def calc_save(persons, db, distance_th=5):
     datas = []
     for person in persons:
         frame_num = person.start_frame_num + 1
@@ -11,16 +11,16 @@ def calc_save(persons, db, distance_th=10):
             if pre is None or now is None:
                 continue
 
-            pre = pre.get_middle('Hip')
-            now = now.get_middle('Hip')
-            diff = np.linalg.norm(pre - now)
+            pre_hip = pre.get_middle('Hip')
+            now_hip = now.get_middle('Hip')
+            diff = np.linalg.norm(pre_hip - now_hip)
 
             if diff > distance_th:
                 datas.append((
                     person.id,
                     frame_num,
-                    pre,
-                    now,
+                    pre.get_middle('Ankle'),
+                    now.get_middle('Ankle'),
                     diff))
 
             frame_num += 1
