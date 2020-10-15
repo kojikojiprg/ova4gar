@@ -2,7 +2,7 @@ from common import database
 import numpy as np
 
 
-def calc_save(persons, db, distance_th=5):
+def calc_save(persons, db, min_th=3, max_th=10):
     datas = []
     for person in persons:
         frame_num = person.start_frame_num + 1
@@ -15,7 +15,7 @@ def calc_save(persons, db, distance_th=5):
             now_hip = now.get_middle('Hip')
             diff = np.linalg.norm(pre_hip - now_hip)
 
-            if diff > distance_th:
+            if min_th <= diff and diff <= max_th:
                 datas.append((
                     person.id,
                     frame_num,
