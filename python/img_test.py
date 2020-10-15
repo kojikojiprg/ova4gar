@@ -2,12 +2,11 @@ from common import common, utils
 from common.transform import Homography
 from display import video
 import cv2
-import numpy as np
 
 
 if __name__ == '__main__':
     # file path
-    name = 'tenis'
+    name = 'basketball'
     video_path = common.data_dir + '{0}/{0}_alphapose.mp4'.format(name)
     court_path = common.data_dir + '{}/court.png'.format(name)
 
@@ -19,8 +18,8 @@ if __name__ == '__main__':
     frame = video.read()
     utils.show_img(frame)
 
-    p_video = np.float32([[381, 201], [897, 201], [1104, 567], [171, 567]])
-    p_court = np.float32([[27, 24], [160, 24], [160, 238], [27, 238]])
+    p_video = common.homo[name][0]
+    p_court = common.homo[name][1]
     homo = Homography(p_video, p_court, court.shape)
     frame = homo.transform_image(frame)
     utils.show_img(frame)

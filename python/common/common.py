@@ -14,7 +14,7 @@ out_dir = root + 'out/'
 db_dir = root + 'db/'
 
 limit = {
-    'basketball': [[0, 340], [np.inf, np.inf]]
+    'basketball': [[0, 340], [np.inf, 660]]
 }
 
 homo = {

@@ -11,8 +11,9 @@ class Indicator:
         self.is_reset_display = is_reset
 
     def append(self, frame_num, indicator_data):
-        if frame_num == len(self.indicator_lst):
-            self.indicator_lst.append([])
+        if frame_num >= len(self.indicator_lst):
+            for _ in range(frame_num - len(self.indicator_lst) + 1):
+                self.indicator_lst.append([])
 
         self.indicator_lst[frame_num].append(indicator_data)
 

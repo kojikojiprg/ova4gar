@@ -43,6 +43,7 @@ class DataBase:
         col_syntax = col_syntax[:-2]
 
         syntax = 'create table if not exists {}({})'.format(name, col_syntax)
+        print(syntax)
         c.execute(syntax)
 
         self.conn.commit()
@@ -51,6 +52,7 @@ class DataBase:
         c = self.conn.cursor()
 
         syntax = 'drop table if exists {}'.format(name)
+        print(syntax)
         c.execute(syntax)
 
         self.conn.commit()
@@ -70,6 +72,7 @@ class DataBase:
         data_syntax = '({})'.format(data_syntax)
 
         syntax = 'insert into {} values {}'.format(name_syntax, data_syntax)
+        print(syntax)
         c.execute(syntax, data)
 
         self.conn.commit()
@@ -89,6 +92,7 @@ class DataBase:
         data_syntax = '({})'.format(data_syntax)
 
         syntax = 'insert into {} values {}'.format(name_syntax, data_syntax)
+        print(syntax)
         c.executemany(syntax, datas)
 
         self.conn.commit()
@@ -108,8 +112,9 @@ class DataBase:
             where_syntax = 'where {}'.format(where)
 
         syntax = 'select {} from {} {}'.format(col_syntax, name, where_syntax)
-
+        print(syntax)
         c.execute(syntax)
+
         data = c.fetchall()
 
         return data
@@ -152,13 +157,24 @@ MOVE_HAND_TABLE = table(
     }
 )
 
-FACE_DIRECTION = table(
+FACE_DIRECTION_TABLE = table(
     'Face_Direction',
     {
         'Person_ID': 'integer',
         'Frame_No': 'integer',
         'Point': 'array',
         'Face_Direction': 'float',
+    }
+)
+
+MOVING_DISTANCE_TABLE = table(
+    'Moving_Distance',
+    {
+        'Person_ID': 'integer',
+        'Frame_No': 'integer',
+        'Pre_Point': 'array',
+        'Now_Point': 'array',
+        'Distances': 'float',
     }
 )
 
@@ -175,6 +191,7 @@ DENSITY_TABLE = table(
 INDICATOR_TABLES = [
     VECTOR_TABLE,
     MOVE_HAND_TABLE,
-    FACE_DIRECTION,
+    FACE_DIRECTION_TABLE,
+    MOVING_DISTANCE_TABLE,
     DENSITY_TABLE,
 ]
