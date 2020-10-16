@@ -137,6 +137,17 @@ TRACKING_TABLE = table(
     }
 )
 
+PERSON_TABLE = table(
+    'Person',
+    {
+        'Person_ID': 'integer',
+        'Frame_No': 'integer',
+        'Keypoints': 'array',
+        'Face_Vector': 'float',
+        'Body_Vector': 'float'
+    }
+)
+
 VECTOR_TABLE = table(
     'Vector',
     {
