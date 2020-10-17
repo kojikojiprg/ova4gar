@@ -13,8 +13,8 @@ class Person:
         self.indicators_dict = {k: [] for k in FUNC_DICT.keys()}
         self.setting_lst = [
             # arrow_length, color, tip_length
-            [8, (255, 0, 0), 1.0],
-            [10, (0, 0, 255), 1.5]
+            [10, (255, 0, 0), 1.0],
+            [15, (0, 0, 255), 1.5]
         ]
 
     def append(self, data):
@@ -47,16 +47,20 @@ class Person:
         if keypoints is None:
             return field
 
-        start = keypoints.get_middle('Hip')
         for i, v in enumerate(self.indicators_dict.values()):
             data = v[idx]
             if data is None:
                 continue
 
             arrow_length = self.setting_lst[i][0]
+            start = keypoints.get_middle('Ankle')
             x = np.cos(data)
             y = np.sin(data)
             end = start + np.array([x, y]) * arrow_length
+
+            # ホモグラフィ変換
+            start = homo.transform_point(start)
+            end = homo.transform_point(end)
 
             # ホモグラフィ変換後の矢印の長さを揃える
             ratio = arrow_length / np.linalg.norm(end - start)
