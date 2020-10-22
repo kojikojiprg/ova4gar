@@ -5,7 +5,7 @@ import numpy as np
 import cv2
 
 
-def display(video_path, out_dir, person_db_path, field, homography):
+def display(video_path, out_dir, person_db_path, field, homo):
     # out video file paths
     out_paths = [
         out_dir + '{}.mp4'.format(database.TRACKING_TABLE.name),
@@ -14,7 +14,7 @@ def display(video_path, out_dir, person_db_path, field, homography):
 
     # connect database and read datas
     person_db = database.DataBase(person_db_path)
-    persons = ps.data.read_database(person_db)
+    persons = ps.data.read_database(person_db, homo)
 
     # load video
     video = Video(video_path)
@@ -33,7 +33,7 @@ def display(video_path, out_dir, person_db_path, field, homography):
             # トラッキングを表示
             frame = person.display_tracking(i, frame)
             # 向きを表示
-            field_tmp = person.display_vector(i, field_tmp, homography)
+            field_tmp = person.display_vector(i, field_tmp)
 
         # append tracking result
         frames_lst[0].append(frame)
