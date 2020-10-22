@@ -1,6 +1,6 @@
 from common import common, transform
 from tracking.tracking import track
-from person.model import make_person_data
+from person.data import make_database
 from display.display import display
 import cv2
 
@@ -29,7 +29,7 @@ if __name__ == '__main__':
         track(keypoints_path, tracking_db_path, name)
 
     if IS_PERSON:
-        make_person_data(tracking_db_path, person_db_path)
+        make_database(tracking_db_path, person_db_path)
 
     if IS_DISPLAY:
         display(video_path, out_dir, person_db_path, court_raw, homo)
