@@ -5,11 +5,13 @@ import cv2
 
 
 class Person:
-    def __init__(self, person_id, start_frame_num):
+    def __init__(self, person_id, start_frame_num, homo):
         self.id = person_id
         self.start_frame_num = start_frame_num
         self.keypoints_lst = kp.KeypointsList()
         self.indicator_dict = {k: [] for k in INDICATOR_DICT.keys()}
+
+        self.homo = homo
         self.setting_lst = [
             # arrow_length, color, tip_length
             [10, (255, 0, 0), 1.0],
@@ -24,7 +26,7 @@ class Person:
         for k in self.indicator_dict.keys():
             if keypoints.shape == (17, 3):
                 keypoints_tmp = kp.Keypoints(keypoints)
-                self.indicator_dict[k].append(INDICATOR_DICT[k](keypoints_tmp))
+                self.indicator_dict[k].append(INDICATOR_DICT[k](keypoints_tmp, self.homo))
             else:
                 self.indicator_dict[k].append(np.nan)
 
@@ -60,7 +62,7 @@ class Person:
 
         return frame
 
-    def display_vector(self, frame_num, field, homo):
+    def display_vector(self, frame_num, field):
         idx = frame_num - self.start_frame_num
         if idx < 0:
             return field
@@ -75,18 +77,12 @@ class Person:
                 continue
 
             arrow_length = self.setting_lst[i][0]
+
             start = keypoints.get_middle('Ankle')
-            x = np.cos(data)
-            y = np.sin(data)
-            end = start + np.array([x, y]) * arrow_length
 
             # ホモグラフィ変換
-            start = homo.transform_point(start)
-            end = homo.transform_point(end)
-
-            # ホモグラフィ変換後の矢印の長さを揃える
-            ratio = arrow_length / np.linalg.norm(end - start)
-            end = start + ((end - start) * ratio).astype(int)
+            start = self.homo.transform_point(start)
+            end = (start + (data * arrow_length)).astype(int)
 
             color = self.setting_lst[i][1]
             tip_length = self.setting_lst[i][2]

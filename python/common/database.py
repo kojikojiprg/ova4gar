@@ -143,7 +143,7 @@ PERSON_TABLE = table(
         'Person_ID': 'integer',
         'Frame_No': 'integer',
         'Keypoints': 'array',
-        'Face_Vector': 'float',
-        'Body_Vector': 'float'
+        'Face_Vector': 'array',
+        'Body_Vector': 'array'
     }
 )

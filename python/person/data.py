@@ -2,7 +2,7 @@ from common import database
 from person.person import Person
 
 
-def make_database(tracking_db_path, person_db_path):
+def make_database(tracking_db_path, person_db_path, homo):
     tracking_db = database.DataBase(tracking_db_path)
     person_db = database.DataBase(person_db_path)
 
@@ -16,7 +16,7 @@ def make_database(tracking_db_path, person_db_path):
         keypoints = row[2]
 
         if len(models) == person_id:
-            models.append(Person(person_id, frame_num))
+            models.append(Person(person_id, frame_num, homo))
 
         models[person_id].append_calc(keypoints)
 
@@ -33,7 +33,7 @@ def make_database(tracking_db_path, person_db_path):
         person_datas)
 
 
-def read_database(person_db):
+def read_database(person_db, homo):
     persons = []
 
     # person data
@@ -43,7 +43,7 @@ def read_database(person_db):
         frame_num = data[1]
 
         if len(persons) == person_id:
-            persons.append(Person(person_id, frame_num))
+            persons.append(Person(person_id, frame_num, homo))
 
         persons[person_id].append_data(data)
 
