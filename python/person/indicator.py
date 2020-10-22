@@ -7,18 +7,18 @@ def calc_face_vector(keypoints):
     lear = keypoints.get('LEar')
     rear = keypoints.get('REar')
 
-    if lear[2] < kp.confidence_th:
-        diff = nose - rear
-        angle = np.arctan(diff[2])
-    elif rear[2] < kp.confidence_th:
-        diff = lear - nose
-        angle = np.arctan(diff[2]) + np.pi
-    elif lear[2] < kp.confidence_th and rear[2] < kp.confidence_th:
+    if lear[2] < kp.confidence_th and rear[2] < kp.confidence_th:
         angle = np.nan
+    elif lear[2] < kp.confidence_th:
+        diff = nose - rear
+        angle = np.arctan2(diff[1], diff[0])
+    elif rear[2] < kp.confidence_th:
+        diff = nose - lear
+        angle = np.arctan2(diff[1], diff[0])
     else:
-        diff = lear - rear
-        angle = np.arctan(diff[2])
-        if diff[0] >= 0:
+        diff = rear - lear
+        angle = np.arctan2(diff[1], diff[0])
+        if diff[0] <= 0:
             angle += np.pi / 2
         else:
             angle -= np.pi / 2
@@ -33,9 +33,9 @@ def calc_body_vector(keypoints):
     if lshoulder[2] < kp.confidence_th or rshoulder[2] < kp.confidence_th:
         angle = np.nan
     else:
-        diff = lshoulder - rshoulder
-        angle = np.arctan(diff[2])
-        if diff[0] >= 0:
+        diff = rshoulder - lshoulder
+        angle = np.arctan2(diff[1], diff[0])
+        if diff[0] <= 0:
             angle += np.pi / 2
         else:
             angle -= np.pi / 2
@@ -43,7 +43,7 @@ def calc_body_vector(keypoints):
     return angle
 
 
-FUNC_DICT = {
+INDICATOR_DICT = {
     'face vector': calc_face_vector,
     'body vector': calc_body_vector,
 }
