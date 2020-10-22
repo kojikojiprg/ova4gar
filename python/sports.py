@@ -29,7 +29,7 @@ if __name__ == '__main__':
         track(keypoints_path, tracking_db_path, name)
 
     if IS_PERSON:
-        make_database(tracking_db_path, person_db_path)
+        make_database(tracking_db_path, person_db_path, homo)
 
     if IS_DISPLAY:
         display(video_path, out_dir, person_db_path, court_raw, homo)
