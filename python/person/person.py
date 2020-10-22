@@ -10,6 +10,11 @@ class Person:
         self.start_frame_num = start_frame_num
         self.keypoints_lst = kp.KeypointsList()
         self.indicator_dict = {k: [] for k in INDICATOR_DICT.keys()}
+        self.setting_lst = [
+            # arrow_length, color, tip_length
+            [10, (255, 0, 0), 1.0],
+            [15, (0, 0, 255), 1.5]
+        ]
 
     def append_calc(self, keypoints):
         if keypoints is None:
@@ -26,7 +31,7 @@ class Person:
     def append_data(self, data):
         self.keypoints_lst.append(data[2])
         for i, k in enumerate(INDICATOR_DICT.keys()):
-            self.indicators_dict[k].append(data[3 + i])
+            self.indicator_dict[k].append(data[3 + i])
 
     def get_data(self, frame_num):
         idx = frame_num - self.start_frame_num
@@ -64,7 +69,7 @@ class Person:
         if keypoints is None:
             return field
 
-        for i, v in enumerate(self.indicators_dict.values()):
+        for i, v in enumerate(self.indicator_dict.values()):
             data = v[idx]
             if data is None:
                 continue
