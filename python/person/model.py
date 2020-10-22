@@ -1,6 +1,6 @@
 from common import keypoint as kp
 from common import database
-from person.functions import FUNC_DICT
+from person.indicator import INDICATOR_DICT
 import numpy as np
 
 
@@ -9,7 +9,7 @@ class Model:
         self.id = person_id
         self.start_frame_num = start_frame_num
         self.keypoints_lst = kp.KeypointsList()
-        self.data_dict = {k: [] for k in FUNC_DICT.keys()}
+        self.data_dict = {k: [] for k in INDICATOR_DICT.keys()}
 
     def append_calc(self, keypoints):
         if keypoints is None:
@@ -19,7 +19,7 @@ class Model:
         for k in self.data_dict.keys():
             if keypoints.shape == (17, 3):
                 keypoints_tmp = kp.Keypoints(keypoints)
-                self.data_dict[k].append(FUNC_DICT[k](keypoints_tmp))
+                self.data_dict[k].append(INDICATOR_DICT[k](keypoints_tmp))
             else:
                 self.data_dict[k].append(np.nan)
 
@@ -35,7 +35,7 @@ class Model:
         return data
 
 
-def make_person_data(tracking_db_path, person_db_path):
+def make_person_database(tracking_db_path, person_db_path):
     tracking_db = database.DataBase(tracking_db_path)
     person_db = database.DataBase(person_db_path)
 
