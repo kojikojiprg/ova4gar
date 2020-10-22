@@ -1,5 +1,5 @@
 from common import database
-from display.person import Person
+import person as ps
 from display.video import Video
 import numpy as np
 import cv2
@@ -14,7 +14,7 @@ def display(video_path, out_dir, person_db_path, field, homography):
 
     # connect database and read datas
     person_db = database.DataBase(person_db_path)
-    persons = read_sql(person_db)
+    persons = ps.data.read_database(person_db)
 
     # load video
     video = Video(video_path)
@@ -41,23 +41,6 @@ def display(video_path, out_dir, person_db_path, field, homography):
 
     for frames, out_path in zip(frames_lst, out_paths):
         video.write(frames, out_path, frames[0].shape[1::-1])
-
-
-def read_sql(person_db):
-    persons = []
-
-    # person data
-    person_datas = person_db.select(database.PERSON_TABLE.name)
-    for data in person_datas:
-        person_id = data[0]
-        frame_num = data[1]
-
-        if len(persons) == person_id:
-            persons.append(Person(person_id, frame_num))
-
-        persons[person_id].append(data)
-
-    return persons
 
 
 def combine_image(frame, field):
