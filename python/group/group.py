@@ -9,7 +9,7 @@ class Group:
 
     def append_calc(self, person_datas):
         for k in self.indicator_dict.keys():
-            self.indicator_dict[k].append(INDICATOR_DICT[k](person_datas))
+            self.indicator_dict[k].append(INDICATOR_DICT[k](person_datas, self.homo))
 
     def get_data(self, frame_num):
         data = [frame_num]
