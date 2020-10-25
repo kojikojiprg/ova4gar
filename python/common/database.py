@@ -144,6 +144,14 @@ PERSON_TABLE = table(
         'Frame_No': 'integer',
         'Keypoints': 'array',
         'Face_Vector': 'array',
-        'Body_Vector': 'array'
+        'Body_Vector': 'array',
+    }
+)
+
+GROUP_TABLE = table(
+    'Group',
+    {
+        'Frame_No': 'integer',
+        'Density': 'array',
     }
 )
