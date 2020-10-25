@@ -2,7 +2,7 @@ import numpy as np
 from pyclustering.cluster import gmeans
 
 
-def calc_density(self, person_datas, homo, k_init=3):
+def calc_density(person_datas, homo, k_init=3):
     points = []
     for data in person_datas:
         keypoints = data[2]
