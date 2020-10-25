@@ -35,12 +35,15 @@ class Person:
         for i, k in enumerate(INDICATOR_DICT.keys()):
             self.indicator_dict[k].append(data[3 + i])
 
-    def get_data(self, frame_num):
+    def get_data(self, frame_num, is_keypoints_numpy=True):
         idx = frame_num - self.start_frame_num
-        if idx < 0:
+        if idx < 0 or len(self.keypoints_lst) <= idx:
             return None
 
-        data = [self.id, frame_num, np.array(self.keypoints_lst[idx])]
+        if is_keypoints_numpy:
+            data = [self.id, frame_num, np.array(self.keypoints_lst[idx])]
+        else:
+            data = [self.id, frame_num, self.keypoints_lst[idx]]
         for k in self.indicator_dict.keys():
             data.append(self.indicator_dict[k][idx])
 
