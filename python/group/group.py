@@ -11,6 +11,10 @@ class Group:
         for k in self.indicator_dict.keys():
             self.indicator_dict[k].append(INDICATOR_DICT[k](person_datas, self.homo))
 
+    def append_data(self, data):
+        for i, k in enumerate(self.indicator_dict.keys()):
+            self.indicator_dict[k].append(data[i + 1])
+
     def get_data(self, frame_num):
         data = [frame_num]
         for k in self.indicator_dict.keys():
