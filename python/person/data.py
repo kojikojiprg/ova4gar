@@ -8,19 +8,19 @@ def make_database(tracking_db_path, person_db_path, homo):
 
     tracking_datas = tracking_db.select(database.TRACKING_TABLE.name)
 
-    models = []
+    persons = []
     person_datas = []
     for row in tracking_datas:
         person_id = row[0]
         frame_num = row[1]
         keypoints = row[2]
 
-        if len(models) == person_id:
-            models.append(Person(person_id, frame_num, homo))
+        if len(persons) == person_id:
+            persons.append(Person(person_id, frame_num, homo))
 
-        models[person_id].append_calc(keypoints)
+        persons[person_id].append_calc(keypoints)
 
-        data = models[person_id].get_data(frame_num)
+        data = persons[person_id].get_data(frame_num)
         if data is not None:
             person_datas.append(data)
 
