@@ -1,5 +1,5 @@
 from common import database
-import person as ps
+from person import data as pd
 from group.group import Group
 
 
@@ -9,12 +9,12 @@ def make_database(person_db_path, group_db_path, homo):
 
     group = Group(homo)
     group_datas = []
-    persons = ps.data.read_database(person_db, homo)
+    persons = pd.read_database(person_db, homo)
     frame_num = 0
     while True:
         person_datas = []
         for person in persons:
-            person_data = person.get_data(frame_num)
+            person_data = person.get_data(frame_num, is_keypoints_numpy=False)
             if person_data is not None:
                 person_datas.append(person_data)
 
