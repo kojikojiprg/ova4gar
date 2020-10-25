@@ -42,7 +42,7 @@ class DataBase:
             col_syntax += '{} {}, '.format(col, typ)
         col_syntax = col_syntax[:-2]
 
-        syntax = 'create table if not exists {}({})'.format(name, col_syntax)
+        syntax = 'create table if not exists "{}"({})'.format(name, col_syntax)
         print(syntax)
         c.execute(syntax)
 
@@ -51,7 +51,7 @@ class DataBase:
     def drop_table(self, name):
         c = self.conn.cursor()
 
-        syntax = 'drop table if exists {}'.format(name)
+        syntax = 'drop table if exists "{}"'.format(name)
         print(syntax)
         c.execute(syntax)
 
@@ -66,7 +66,7 @@ class DataBase:
             col_syntax += '{}, '.format(col)
             data_syntax += '?,'
         col_syntax = col_syntax[:-2]
-        name_syntax = '{} ({})'.format(name, col_syntax)
+        name_syntax = '"{}" ({})'.format(name, col_syntax)
 
         data_syntax = data_syntax[:-1]
         data_syntax = '({})'.format(data_syntax)
@@ -86,7 +86,7 @@ class DataBase:
             col_syntax += '{}, '.format(col)
             data_syntax += '?,'
         col_syntax = col_syntax[:-2]
-        name_syntax = '{} ({})'.format(name, col_syntax)
+        name_syntax = '"{}" ({})'.format(name, col_syntax)
 
         data_syntax = data_syntax[:-1]
         data_syntax = '({})'.format(data_syntax)
@@ -111,7 +111,7 @@ class DataBase:
         if where is not None:
             where_syntax = 'where {}'.format(where)
 
-        syntax = 'select {} from {} {}'.format(col_syntax, name, where_syntax)
+        syntax = 'select {} from "{}" {}'.format(col_syntax, name, where_syntax)
         print(syntax)
         c.execute(syntax)
 
