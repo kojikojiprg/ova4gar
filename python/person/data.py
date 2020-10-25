@@ -33,11 +33,12 @@ def make_database(tracking_db_path, person_db_path, homo):
         person_datas)
 
 
-def read_database(person_db, homo):
-    persons = []
+def read_database(person_db_path, homo):
+    person_db = database.DataBase(person_db_path)
+    person_datas = person_db.select(database.PERSON_TABLE.name)
 
     # person data
-    person_datas = person_db.select(database.PERSON_TABLE.name)
+    persons = []
     for data in person_datas:
         person_id = data[0]
         frame_num = data[1]
