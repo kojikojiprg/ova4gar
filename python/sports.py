@@ -1,12 +1,14 @@
 from common import common, transform
 from tracking.tracking import track
-from extract_indicator.extract_indicator import extract_indicator
+from person import data as pd
+from group import data as gd
 from display.display import display
 import cv2
 
 
 IS_TRACKING = False
-IS_INDICATOR = True
+IS_PERSON = False
+IS_GROUP = False
 IS_DISPLAY = True
 
 
@@ -17,7 +19,8 @@ if __name__ == '__main__':
     court_path = common.data_dir + '{}/court.png'.format(name)
     keypoints_path = common.data_dir + '{}/keypoints.json'.format(name)
     tracking_db_path = common.db_dir + '{}/tracking.db'.format(name)
-    indicator_db_path = common.db_dir + '{}/indicator.db'.format(name)
+    person_db_path = common.db_dir + '{}/person.db'.format(name)
+    group_db_path = common.db_dir + '{}/group.db'.format(name)
 
     # homography
     court_raw = cv2.imread(court_path)
@@ -28,8 +31,11 @@ if __name__ == '__main__':
     if IS_TRACKING:
         track(keypoints_path, tracking_db_path, name)
 
-    if IS_INDICATOR:
-        extract_indicator(tracking_db_path, indicator_db_path)
+    if IS_PERSON:
+        pd.make_database(tracking_db_path, person_db_path, homo)
+
+    if IS_GROUP:
+        gd.make_database(person_db_path, group_db_path, homo)
 
     if IS_DISPLAY:
-        display(video_path, out_dir, tracking_db_path, indicator_db_path, court_raw, homo)
+        display(video_path, out_dir, person_db_path, group_db_path, court_raw, homo)

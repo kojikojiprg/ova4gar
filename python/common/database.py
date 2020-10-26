@@ -42,7 +42,7 @@ class DataBase:
             col_syntax += '{} {}, '.format(col, typ)
         col_syntax = col_syntax[:-2]
 
-        syntax = 'create table if not exists {}({})'.format(name, col_syntax)
+        syntax = 'create table if not exists "{}"({})'.format(name, col_syntax)
         print(syntax)
         c.execute(syntax)
 
@@ -51,7 +51,7 @@ class DataBase:
     def drop_table(self, name):
         c = self.conn.cursor()
 
-        syntax = 'drop table if exists {}'.format(name)
+        syntax = 'drop table if exists "{}"'.format(name)
         print(syntax)
         c.execute(syntax)
 
@@ -66,7 +66,7 @@ class DataBase:
             col_syntax += '{}, '.format(col)
             data_syntax += '?,'
         col_syntax = col_syntax[:-2]
-        name_syntax = '{} ({})'.format(name, col_syntax)
+        name_syntax = '"{}" ({})'.format(name, col_syntax)
 
         data_syntax = data_syntax[:-1]
         data_syntax = '({})'.format(data_syntax)
@@ -86,7 +86,7 @@ class DataBase:
             col_syntax += '{}, '.format(col)
             data_syntax += '?,'
         col_syntax = col_syntax[:-2]
-        name_syntax = '{} ({})'.format(name, col_syntax)
+        name_syntax = '"{}" ({})'.format(name, col_syntax)
 
         data_syntax = data_syntax[:-1]
         data_syntax = '({})'.format(data_syntax)
@@ -111,7 +111,7 @@ class DataBase:
         if where is not None:
             where_syntax = 'where {}'.format(where)
 
-        syntax = 'select {} from {} {}'.format(col_syntax, name, where_syntax)
+        syntax = 'select {} from "{}" {}'.format(col_syntax, name, where_syntax)
         print(syntax)
         c.execute(syntax)
 
@@ -137,44 +137,14 @@ TRACKING_TABLE = table(
     }
 )
 
-VECTOR_TABLE = table(
-    'Vector',
+PERSON_TABLE = table(
+    'Person',
     {
         'Person_ID': 'integer',
         'Frame_No': 'integer',
-        'Point': 'array',
-        'Vector': 'array',
-    }
-)
-
-MOVE_HAND_TABLE = table(
-    'Move_Hand',
-    {
-        'Person_ID': 'integer',
-        'Frame_No': 'integer',
-        'Point': 'array',
-        'Move_Hand': 'float',
-    }
-)
-
-FACE_DIRECTION_TABLE = table(
-    'Face_Direction',
-    {
-        'Person_ID': 'integer',
-        'Frame_No': 'integer',
-        'Point': 'array',
-        'Face_Direction': 'float',
-    }
-)
-
-MOVING_DISTANCE_TABLE = table(
-    'Moving_Distance',
-    {
-        'Person_ID': 'integer',
-        'Frame_No': 'integer',
-        'Pre_Point': 'array',
-        'Now_Point': 'array',
-        'Distances': 'float',
+        'Keypoints': 'array',
+        'Face_Vector': 'array',
+        'Body_Vector': 'array',
     }
 )
 
@@ -182,16 +152,10 @@ DENSITY_TABLE = table(
     'Density',
     {
         'Frame_No': 'integer',
-        'Cluster_No': 'integer',
-        'Cluster': 'array',
-        'Num': 'integer',
+        'Density': 'array',
     }
 )
 
-INDICATOR_TABLES = [
-    VECTOR_TABLE,
-    MOVE_HAND_TABLE,
-    FACE_DIRECTION_TABLE,
-    MOVING_DISTANCE_TABLE,
+GROUP_TABLE_LIST = [
     DENSITY_TABLE,
 ]
