@@ -56,8 +56,8 @@ def display(video_path, out_dir, person_db_path, group_db_path, field, homo):
 
 
 def combine_image(frame, field):
-    ratio = 1 - (frame.shape[0] - field.shape[0]) / frame.shape[0]
-    size = (int(frame.shape[1] * ratio), int(frame.shape[0] * ratio))
-    frame = cv2.resize(frame, size)
+    ratio = 1 - (field.shape[0] - frame.shape[0]) / field.shape[0]
+    size = (int(field.shape[1] * ratio), int(field.shape[0] * ratio))
+    field = cv2.resize(field, size)
     frame = np.concatenate([frame, field], axis=1)
     return frame
