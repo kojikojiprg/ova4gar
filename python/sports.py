@@ -8,7 +8,7 @@ import cv2
 
 IS_TRACKING = False
 IS_PERSON = False
-IS_GROUP = False
+IS_GROUP = True
 IS_DISPLAY = True
 
 
