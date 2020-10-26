@@ -8,8 +8,8 @@ import cv2
 
 IS_TRACKING = False
 IS_PERSON = False
-IS_GROUP = True
-IS_DISPLAY = False
+IS_GROUP = False
+IS_DISPLAY = True
 
 
 if __name__ == '__main__':
@@ -38,4 +38,4 @@ if __name__ == '__main__':
         gd.make_database(person_db_path, group_db_path, homo)
 
     if IS_DISPLAY:
-        display(video_path, out_dir, person_db_path, court_raw, homo)
+        display(video_path, out_dir, person_db_path, group_db_path, court_raw, homo)

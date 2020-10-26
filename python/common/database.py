@@ -148,10 +148,14 @@ PERSON_TABLE = table(
     }
 )
 
-GROUP_TABLE = table(
-    'Group',
+DENSITY_TABLE = table(
+    'Density',
     {
         'Frame_No': 'integer',
         'Density': 'array',
     }
 )
+
+GROUP_TABLE_LIST = [
+    DENSITY_TABLE,
+]

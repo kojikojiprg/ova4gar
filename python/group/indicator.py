@@ -1,8 +1,9 @@
+from common import database
 import numpy as np
 from pyclustering.cluster import gmeans
 
 
-def calc_density(person_datas, homo, k_init=3):
+def calc_density(frame_num, person_datas, homo, k_init=3):
     points = []
     for data in person_datas:
         keypoints = data[2]
@@ -15,13 +16,13 @@ def calc_density(person_datas, homo, k_init=3):
     # g-means でクラスタリング
     gm = gmeans.gmeans(points, k_init=k_init)
     gm.process()
-    clusters = []
+    datas = []
     for cluster in gm.get_clusters():
-        clusters.append(points[cluster])
+        datas.append((frame_num, points[cluster]))
 
-    return np.array(clusters)
+    return datas
 
 
 INDICATOR_DICT = {
-    'density': calc_density,
+    database.GROUP_TABLE_LIST[0].name: calc_density,
 }
