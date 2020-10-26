@@ -152,7 +152,8 @@ DENSITY_TABLE = table(
     'Density',
     {
         'Frame_No': 'integer',
-        'Density': 'array',
+        'Cluster': 'array',
+        'Count': 'integer'
     }
 )
 

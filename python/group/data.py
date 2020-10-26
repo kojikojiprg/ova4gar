@@ -50,4 +50,6 @@ def read_database(group_db_path, homo):
         datas = group_db.select(table.name)
         group.append_data(table.name, datas)
 
+    group.make_heatmap()
+
     return group

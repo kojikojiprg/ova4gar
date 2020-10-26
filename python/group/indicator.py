@@ -18,7 +18,7 @@ def calc_density(frame_num, person_datas, homo, k_init=3):
     gm.process()
     datas = []
     for cluster in gm.get_clusters():
-        datas.append((frame_num, points[cluster]))
+        datas.append((frame_num, points[cluster], len(cluster)))
 
     return datas
 
