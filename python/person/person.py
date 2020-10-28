@@ -85,6 +85,8 @@ class Person:
 
             # ホモグラフィ変換
             start = self.homo.transform_point(start)
+
+            # 矢印の先端の座標を計算
             end = (start + (data * arrow_length)).astype(int)
 
             color = self.setting_lst[i][1]
