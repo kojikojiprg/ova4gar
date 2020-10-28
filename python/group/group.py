@@ -32,7 +32,7 @@ class Group:
                 # ヒートマップを作成する場合
                 distribution = []
                 for data in self.indicator_dict[k]:
-                    # ヒータマップの対象となる列を取得
+                    # ヒートマップの対象となる列を取得
                     data_idx = HEATMAP_SETTING_DICT[k][1]
                     distribution.append(data[data_idx])
                 # ヒートマップ作成
