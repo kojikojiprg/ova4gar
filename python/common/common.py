@@ -2,7 +2,7 @@ import os
 import sys
 import numpy as np
 
-if 'python' in os.getcwd():
+if 'python' in os.getcwd() or 'notebooks' in os.getcwd():
     root = '../'
 else:
     root = './'
