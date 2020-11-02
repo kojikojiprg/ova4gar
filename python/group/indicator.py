@@ -6,7 +6,7 @@ from pyclustering.cluster import gmeans
 def calc_density(frame_num, person_datas, homo, k_init=3):
     points = []
     for data in person_datas:
-        keypoints = data[2]
+        keypoints = data[database.PERSON_TABLE.index('Keypoints')]
         if keypoints is not None:
             point = keypoints.get_middle('Ankle')
             point = homo.transform_point(point)
@@ -21,6 +21,17 @@ def calc_density(frame_num, person_datas, homo, k_init=3):
         datas.append((frame_num, points[cluster], len(cluster)))
 
     return datas
+
+
+def calc_attension(frame_num, person_datas, homo):
+    points = []
+    for data in person_datas:
+        keypoints = data[database.PERSON_TABLE.index('Keypoints')]
+        if keypoints is not None:
+            point = keypoints.get_middle('Ankle')
+            point = homo.transform_point(point)
+            points.append(point)
+    points = np.array(points)
 
 
 INDICATOR_DICT = {

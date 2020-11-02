@@ -11,9 +11,9 @@ def make_database(tracking_db_path, person_db_path, homo):
     persons = []
     person_datas = []
     for row in tracking_datas:
-        person_id = row[0]
-        frame_num = row[1]
-        keypoints = row[2]
+        person_id = row[database.TRACKING_TABLE.index('Person_ID')]
+        frame_num = row[database.TRACKING_TABLE.index('Frame_No')]
+        keypoints = row[database.TRACKING_TABLE.index('Keypoints')]
 
         if len(persons) == person_id:
             persons.append(Person(person_id, frame_num, homo))
@@ -40,8 +40,8 @@ def read_database(person_db_path, homo):
     # person data
     persons = []
     for data in person_datas:
-        person_id = data[0]
-        frame_num = data[1]
+        person_id = data[database.PERSON_TABLE.index('Person_ID')]
+        frame_num = data[database.PERSON_TABLE.index('Frame_No')]
 
         if len(persons) == person_id:
             persons.append(Person(person_id, frame_num, homo))

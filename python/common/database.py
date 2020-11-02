@@ -125,6 +125,12 @@ class table:
         self.name = name
         self.cols = cols
 
+    def index(self, key):
+        for i, col in enumerate(self.cols.keys()):
+            if key == col:
+                return i
+        return -1
+
 
 TRACKING_TABLE = table(
     'Tracking',
