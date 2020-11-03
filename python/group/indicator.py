@@ -3,12 +3,10 @@ import numpy as np
 from pyclustering.cluster import gmeans
 
 
-def calc_linear(vector, point):
+def calc_line(vector, point):
     a = vector[0]
     b = vector[1]
-    x = point[0]
-    y = point[1]
-    c = -1 * (a * x + b * y)
+    c = -1 * np.dot(vector, point)
     return a, b, c
 
 
@@ -23,7 +21,7 @@ def calc_cross(l1, l2):
     ab = a1 * b2 - a2 * b1
     bc = b1 * c2 - b2 * c1
     ca = c1 * a2 - c2 * a1
-    if abs(ab) < 1e-4:
+    if abs(ab) < 1e-2:
         # 平行な直線
         return None
     else:
@@ -62,7 +60,7 @@ def calc_attension(frame_num, person_datas, homo, k_init=1):
         if keypoints is not None and face_vector is not None:
             point = keypoints.get_middle('Ankle')
             point = homo.transform_point(point)
-            linear = calc_linear(face_vector, point)
+            linear = calc_line(face_vector, point)
             linears.append(linear)
 
     # 直線の交点を求める
