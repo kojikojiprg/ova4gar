@@ -163,6 +163,16 @@ DENSITY_TABLE = table(
     }
 )
 
+ATTENTION_TABLE = table(
+    'Attention',
+    {
+        'Frame_No': 'integer',
+        'Point': 'array',
+        'Count': 'integer'
+    }
+)
+
 GROUP_TABLE_LIST = [
     DENSITY_TABLE,
+    ATTENTION_TABLE,
 ]
