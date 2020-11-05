@@ -63,9 +63,10 @@ class HalfLine:
     def __init__(self, point, vector):
         self.x0 = point[0]
         self.y0 = point[1]
-        self.a = vector[1] / vector[0]
-        self.b = -1 * self.a * self.x0 + self.y0
+        self.a = vector[1] / vector[0]              # 傾き
+        self.b = -1 * self.a * self.x0 + self.y0    # 切片
 
+        # 象限
         if vector[0] > 0 and vector[1] >= 0:
             self.quadrant = 1
         elif vector[0] <= 0 and vector[1] > 0:
@@ -82,6 +83,7 @@ class HalfLine:
         return y
 
     def limit(self, x, y):
+        # 半直線の先端を判定
         diffx = x - self.x0
         diffy = y - self.y0
         if self.quadrant == 1:
