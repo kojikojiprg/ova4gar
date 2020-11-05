@@ -21,11 +21,13 @@ def calc_face_vector(keypoints, homo):
     lear = keypoints.get('LEar')
     rear = keypoints.get('REar')
 
+    # ポイントを足元に反映
     diff = keypoints.get_middle('Ankle') - keypoints.get_middle('Ear')
     nose[1] += diff[1]
     lear[1] += diff[1]
     rear[1] += diff[1]
 
+    # ホモグラフィ変換
     nose = np.append(homo.transform_point(nose[:2]), nose[2])
     lear = np.append(homo.transform_point(lear[:2]), lear[2])
     rear = np.append(homo.transform_point(rear[:2]), rear[2])
@@ -53,10 +55,12 @@ def calc_body_vector(keypoints, homo):
     lshoulder = keypoints.get('LShoulder')
     rshoulder = keypoints.get('RShoulder')
 
+    # ポイントを足元に反映
     diff = keypoints.get_middle('Ankle') - keypoints.get_middle('Shoulder')
     lshoulder[1] += diff[1]
     rshoulder[1] += diff[1]
 
+    # ホモグラフィ変換
     lshoulder = np.append(homo.transform_point(lshoulder[:2]), lshoulder[2])
     rshoulder = np.append(homo.transform_point(rshoulder[:2]), rshoulder[2])
 
