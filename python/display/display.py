@@ -42,7 +42,12 @@ def display(video_path, out_dir, person_db_path, group_db_path, field, homo):
             field_tmp = person.display_vector(frame_num, field_tmp)
 
         for i, table in enumerate(database.GROUP_TABLE_LIST):
-            group_field = field.copy()
+            # if i == 1:
+            group_field = field_tmp.copy()
+            """
+            else:
+                group_field = field.copy()
+            """
             group_fields[i] = group.display(table.name, frame_num, group_field)
 
         # append tracking result

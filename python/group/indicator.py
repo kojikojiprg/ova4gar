@@ -3,34 +3,6 @@ import numpy as np
 from pyclustering.cluster import gmeans
 
 
-def calc_line(vector, point):
-    a = vector[0]
-    b = vector[1]
-    c = -1 * np.dot(vector, point)
-    return a, b, c
-
-
-def calc_cross(l1, l2):
-    a1 = l1[0]
-    b1 = l1[1]
-    c1 = l1[2]
-    a2 = l2[0]
-    b2 = l2[1]
-    c2 = l2[2]
-
-    ab = a1 * b2 - a2 * b1
-    bc = b1 * c2 - b2 * c1
-    ca = c1 * a2 - c2 * a1
-    if abs(ab) < 1e-2:
-        # 平行な直線
-        return None
-    else:
-        x = bc / ab
-        y = ca / ab
-
-        return x, y
-
-
 def calc_density(frame_num, person_datas, homo, k_init=3):
     points = []
     for data in person_datas:
@@ -53,35 +25,97 @@ def calc_density(frame_num, person_datas, homo, k_init=3):
 
 def calc_attension(frame_num, person_datas, homo, k_init=1):
     # 直線を求める
-    linears = []
+    lines = []
     for data in person_datas:
         keypoints = data[database.PERSON_TABLE.index('Keypoints')]
         face_vector = data[database.PERSON_TABLE.index('Face_Vector')]
         if keypoints is not None and face_vector is not None:
             point = keypoints.get_middle('Ankle')
             point = homo.transform_point(point)
-            linear = calc_line(face_vector, point)
-            linears.append(linear)
+            line = HalfLine(point, face_vector)
+            lines.append(line)
 
-    # 直線の交点を求める
+    # 半直線の交点を求める
     cross_points = []
-    for i in range(len(linears) - 1):
-        for j in range(i + 1, len(linears)):
-            cross_point = calc_cross(linears[i], linears[j])
+    for i in range(len(lines) - 1):
+        for j in range(i + 1, len(lines)):
+            cross_point = calc_cross(lines[i], lines[j])
             if cross_point is not None:
-                cross_points.append(cross_point)
+                if lines[i].is_online(cross_point) and lines[j].is_online(cross_point):
+                    # 交点が半直線上にあれば追加する
+                    cross_points.append(cross_point)
     cross_points = np.array(cross_points)
 
     # g-means でクラスタリング
-    gm = gmeans.gmeans(cross_points, k_init=k_init)
-    gm.process()
     datas = []
-    for cluster in gm.get_clusters():
-        if len(cluster) >= 3:
-            # 3人以上の視線が集まっている箇所のみ抽出
+    if len(cross_points) > 0:
+        gm = gmeans.gmeans(cross_points, k_init=k_init)
+        gm.process()
+        for cluster in gm.get_clusters():
             datas.append((frame_num, cross_points[cluster], len(cluster)))
+    else:
+        datas.append((frame_num, None, 0))
 
     return datas
+
+
+class HalfLine:
+    def __init__(self, point, vector):
+        self.x0 = point[0]
+        self.y0 = point[1]
+        self.a = vector[1] / vector[0]
+        self.b = -1 * self.a * self.x0 + self.y0
+
+        if vector[0] > 0 and vector[1] >= 0:
+            self.quadrant = 1
+        elif vector[0] <= 0 and vector[1] > 0:
+            self.quadrant = 2
+        elif vector[0] < 0 and vector[1] <= 0:
+            self.quadrant = 3
+        elif vector[0] >= 0 and vector[1] < 0:
+            self.quadrant = 4
+        else:
+            self.quadrant = 0
+
+    def func(self, x):
+        y = self.a * x + self.b
+        return y
+
+    def limit(self, x, y):
+        diffx = x - self.x0
+        diffy = y - self.y0
+        if self.quadrant == 1:
+            return diffx > 0 and diffy >= 0
+        elif self.quadrant == 2:
+            return diffx <= 0 and diffy > 0
+        elif self.quadrant == 3:
+            return diffx < 0 and diffy <= 0
+        elif self.quadrant == 4:
+            return diffx >= 0 and diffy < 0
+        else:
+            return False
+
+    def is_online(self, point):
+        x = point[0]
+        y = point[1]
+
+        if int(self.func(x) - y) == 0:
+            return self.limit(x, y)
+        else:
+            return False
+
+
+def calc_cross(l1, l2):
+    a_c = l1.a - l2.a
+    d_b = l2.b - l1.b
+    ad_bc = l1.a * l2.b - l1.b * l2.a
+
+    if abs(a_c) < 1e-5 or abs(d_b) > 1e+5 or abs(ad_bc) > 1e+5:
+        return None
+    else:
+        x = d_b / a_c
+        y = ad_bc / a_c
+        return x, y
 
 
 INDICATOR_DICT = {
