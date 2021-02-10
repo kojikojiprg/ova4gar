@@ -24,8 +24,8 @@ if __name__ == '__main__':
 
     # homography
     court_raw = cv2.imread(court_path)
-    p_video = common.homo['basketball'][0]
-    p_court = common.homo['basketball'][1]
+    p_video = common.homo[name][0]
+    p_court = common.homo[name][1]
     homo = transform.Homography(p_video, p_court, court_raw.shape)
 
     if IS_TRACKING:
