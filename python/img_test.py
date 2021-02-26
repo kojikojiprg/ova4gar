@@ -6,12 +6,13 @@ import cv2
 
 if __name__ == '__main__':
     # file path
-    name = 'or'
-    video_path = common.data_dir + '{0}/sugukesu.png'.format(name)
+    name = 'demo'
+    video_path = common.data_dir + '{0}/gaze1.mp4'.format(name)
     court_path = common.data_dir + '{}/field.png'.format(name)
 
     # open video and image
-    frame = cv2.imread(video_path)
+    video = video.Video(video_path)
+    frame = video.read()
     utils.show_img(frame)
 
     court = cv2.imread(court_path)
