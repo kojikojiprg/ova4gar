@@ -13,7 +13,7 @@ IS_DISPLAY = True
 
 
 if __name__ == '__main__':
-    name = 'demo'
+    name = 'record'
     video_path = common.data_dir + '{0}/{0}_alphapose.mp4'.format(name)
     out_dir = common.out_dir + '{}/'.format(name)
     field_path = common.data_dir + '{}/field.png'.format(name)
