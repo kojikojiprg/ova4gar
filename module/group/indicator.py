@@ -14,11 +14,15 @@ def calc_density(frame_num, person_datas, homo, k_init=3):
     points = np.array(points)
 
     # g-means でクラスタリング
-    gm = gmeans.gmeans(points, k_init=k_init)
-    gm.process()
     datas = []
-    for cluster in gm.get_clusters():
-        datas.append((frame_num, points[cluster], len(cluster)))
+    if len(points) > 2:
+        gm = gmeans.gmeans(points, k_init=k_init)
+        gm.process()
+        for cluster in gm.get_clusters():
+            datas.append((frame_num, points[cluster], len(cluster)))
+    else:
+        for point in points:
+            datas.append((frame_num, np.array([point]), 1))
 
     return datas
 
