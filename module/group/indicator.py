@@ -46,8 +46,10 @@ def calc_attension(frame_num, person_datas, homo, k_init=1):
                     cross_points.append(cross_point)
     cross_points = np.array(cross_points)
 
-    # g-means でクラスタリング
     datas = []
+
+    # g-means でクラスタリング
+    """
     if len(cross_points) > 0:
         gm = gmeans.gmeans(cross_points, k_init=k_init)
         gm.process()
@@ -55,6 +57,7 @@ def calc_attension(frame_num, person_datas, homo, k_init=1):
             datas.append((frame_num, cross_points[cluster], len(cluster)))
     else:
         datas.append((frame_num, None, 0))
+    """
 
     return datas
 
