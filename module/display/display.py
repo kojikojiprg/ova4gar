@@ -56,6 +56,7 @@ def display(video_path, out_dir, person_db_path, group_db_path, field, homo):
         for i in range(len(database.GROUP_TABLE_LIST)):
             frames_lst[i + 2].append(combine_image(frame, group_fields[i]))
 
+    print('writing videos into {} ...'.format(out_dir))
     for frames, out_path in zip(frames_lst, out_paths):
         video.write(frames, out_path, frames[0].shape[1::-1])
 

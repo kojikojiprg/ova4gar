@@ -1,3 +1,4 @@
+import os
 import cv2
 
 
@@ -20,6 +21,10 @@ class Video:
         return frame
 
     def write(self, frames, out_path, size):
+        out_dir = os.path.dirname(out_path)
+        if not os.path.exists(out_dir):
+            os.makedirs(out_dir, exist_ok=True)
+
         # writer object
         fmt = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
         self._writer = cv2.VideoWriter(
