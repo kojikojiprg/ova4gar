@@ -13,12 +13,6 @@ data_dir = root + 'data/'
 out_dir = root + 'out/'
 db_dir = root + 'db/'
 
-limit = {
-    'record': [[0, 0], [np.inf, np.inf]],
-    '05': [[0, 0], [np.inf, np.inf]],
-    '09': [[0, 0], [np.inf, np.inf]],
-}
-
 homo = {
     'record': [
         np.float32([[541, 300], [1141, 473], [1110, 1400], [-250, 800]]),
