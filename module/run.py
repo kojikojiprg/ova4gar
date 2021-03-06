@@ -31,7 +31,7 @@ if __name__ == '__main__':
     homo = transform.Homography(p_video, p_field, field_raw.shape)
 
     if IS_TRACKING:
-        track(keypoints_path, tracking_db_path, NAME)
+        track(keypoints_path, tracking_db_path)
 
     if IS_PERSON:
         pd.make_database(tracking_db_path, person_db_path, homo)
