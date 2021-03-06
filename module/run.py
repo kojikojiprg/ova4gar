@@ -3,6 +3,7 @@ from tracking.tracking import track
 from person import data as pd
 from group import data as gd
 from display.display import display
+import os
 import cv2
 
 
@@ -16,13 +17,13 @@ DATE = '20210304'
 NAME = 'gaze1-1'
 
 if __name__ == '__main__':
-    video_path = common.data_dir + '/{0}/{1}/{2}/AlphaPose_{2}.mp4'.format(ROOM_NUM, DATE, NAME)
-    out_dir = common.out_dir + '/{0}/{1}/{2}'.format(ROOM_NUM, DATE, NAME)
-    field_path = common.data_dir + '/field.png'
-    keypoints_path = common.data_dir + '/{0}/{1}/{2}/alphapose-results.json'.format(ROOM_NUM, DATE, NAME)
-    tracking_db_path = common.db_dir + '/{0}/{1}/{2}/tracking.db'.format(ROOM_NUM, DATE, NAME)
-    person_db_path = common.db_dir + '/{0}/{1}/{2}/person.db'.format(ROOM_NUM, DATE, NAME)
-    group_db_path = common.db_dir + '/{0}/{1}/{2}/group.db'.format(ROOM_NUM, DATE, NAME)
+    video_path = os.path.join(common.data_dir, '{0}/{1}/{2}/AlphaPose_{2}.mp4'.format(ROOM_NUM, DATE, NAME))
+    out_dir = os.path.join(common.out_dir, '{0}/{1}/{2}/'.format(ROOM_NUM, DATE, NAME))
+    field_path = os.path.join(common.data_dir, 'field.png')
+    keypoints_path = os.path.join(common.data_dir, '{0}/{1}/{2}/alphapose-results.json'.format(ROOM_NUM, DATE, NAME))
+    tracking_db_path = os.path.join(common.db_dir, '{0}/{1}/{2}/tracking.db'.format(ROOM_NUM, DATE, NAME))
+    person_db_path = os.path.join(common.db_dir, '{0}/{1}/{2}/person.db'.format(ROOM_NUM, DATE, NAME))
+    group_db_path = os.path.join(common.db_dir, '{0}/{1}/{2}/group.db'.format(ROOM_NUM, DATE, NAME))
 
     # homography
     field_raw = cv2.imread(field_path)
