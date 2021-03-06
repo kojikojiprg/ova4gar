@@ -83,7 +83,7 @@ def read_json(json_path):
         keypoints_lst = KeypointsList()
         pre_no = 0
         for item in dat:
-            frame_no = int(item['image_id'].split('.')[0])
+            frame_no = item['image_id']
 
             if frame_no != pre_no:
                 return_lst.append(keypoints_lst)
