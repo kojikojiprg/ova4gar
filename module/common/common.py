@@ -2,20 +2,21 @@ import os
 import sys
 import numpy as np
 
-if 'python' in os.getcwd() or 'notebooks' in os.getcwd():
+if 'module' in os.getcwd() or 'notebooks' in os.getcwd():
     root = '../'
 else:
     root = './'
 
-sys.path.append(root + 'python/')
+sys.path.append(root + 'module/')
 
 data_dir = root + 'data/'
 out_dir = root + 'out/'
 db_dir = root + 'db/'
 
 limit = {
-    'basketball': [[0, 340], [np.inf, 660]],
-    'tenis': [[0, 0], [np.inf, np.inf]],
+    'record': [[0, 0], [np.inf, np.inf]],
+    '05': [[0, 0], [np.inf, np.inf]],
+    '09': [[0, 0], [np.inf, np.inf]],
 }
 
 homo = {
