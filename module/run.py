@@ -14,7 +14,8 @@ IS_DISPLAY = True
 
 ROOM_NUM = '09'
 DATE = '20210304'
-NAME = 'gaze1-1'
+NAME = 'gaze3-3'
+
 
 if __name__ == '__main__':
     video_path = os.path.join(common.data_dir, '{0}/{1}/{2}/AlphaPose_{2}.mp4'.format(ROOM_NUM, DATE, NAME))
