@@ -10,7 +10,7 @@ class Heatmap(list):
         self.xmax = np.nanmax(distribution)
         self.xmin = np.nanmin(distribution)
         half = (self.xmax - self.xmin) / 2
-        self.inclination = 255 / half
+        self.inclination = 255 / (half + 1e-10)
         self.xmid = half + self.xmin
 
     def colormap(self, x):
