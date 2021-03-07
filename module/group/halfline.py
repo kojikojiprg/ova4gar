@@ -44,3 +44,16 @@ class HalfLine:
             return self.limit(x, y)
         else:
             return False
+
+
+def calc_cross(l1, l2):
+    a_c = l1.a - l2.a
+    d_b = l2.b - l1.b
+    ad_bc = l1.a * l2.b - l1.b * l2.a
+
+    if abs(a_c) < 1e-5 or abs(d_b) > 1e+5 or abs(ad_bc) > 1e+5:
+        return None
+    else:
+        x = d_b / a_c
+        y = ad_bc / a_c
+        return x, y

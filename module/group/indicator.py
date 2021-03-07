@@ -1,5 +1,5 @@
 from common import database
-from halfline import HalfLine
+from halfline import HalfLine, calc_cross
 import numpy as np
 from pyclustering.cluster import gmeans
 
@@ -63,19 +63,6 @@ def calc_attension(frame_num, person_datas, homo, k_init=1):
         datas.append((frame_num, None, 0))
 
     return datas
-
-
-def calc_cross(l1, l2):
-    a_c = l1.a - l2.a
-    d_b = l2.b - l1.b
-    ad_bc = l1.a * l2.b - l1.b * l2.a
-
-    if abs(a_c) < 1e-5 or abs(d_b) > 1e+5 or abs(ad_bc) > 1e+5:
-        return None
-    else:
-        x = d_b / a_c
-        y = ad_bc / a_c
-        return x, y
 
 
 INDICATOR_DICT = {
