@@ -15,7 +15,7 @@ class Person:
         self.setting_lst = [
             # arrow_length, color, tip_length
             [20, (255, 0, 0), 1.0],
-            [30 (0, 0, 255), 1.5]
+            [30, (0, 0, 255), 1.5]
         ]
 
     def append_calc(self, keypoints):
