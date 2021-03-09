@@ -1,5 +1,5 @@
 from common import database
-from halfline import HalfLine, calc_cross
+from group.halfline import HalfLine, calc_cross
 import numpy as np
 from pyclustering.cluster import gmeans
 
