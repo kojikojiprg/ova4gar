@@ -7,14 +7,14 @@ import os
 import cv2
 
 
-IS_TRACKING = True
+IS_TRACKING = False
 IS_PERSON = True
 IS_GROUP = True
 IS_DISPLAY = True
 
 ROOM_NUM = '09'
 DATE = '20210304'
-NAME = 'gaze3-3'
+NAME = 'pass3'
 
 
 if __name__ == '__main__':

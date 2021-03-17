@@ -75,7 +75,35 @@ def calc_body_vector(keypoints, homo):
     return vector
 
 
+def calc_lwrist(keypoints, homo):
+    lwrist = keypoints.get('LWrist')
+
+    # ポイントを足元に反映
+    diff = keypoints.get_middle('Ankle') - lwrist[:2]
+    lwrist[1] += diff[1]
+
+    # ホモグラフィ変換
+    lwrist = np.append(homo.transform_point(lwrist[:2]), lwrist[2])
+
+    return lwrist
+
+
+def calc_rwrist(keypoints, homo):
+    rwrist = keypoints.get('RWrist')
+
+    # ポイントを足元に反映
+    diff = keypoints.get_middle('Ankle') - rwrist[:2]
+    rwrist[1] += diff[1]
+
+    # ホモグラフィ変換
+    rwrist = np.append(homo.transform_point(rwrist[:2]), rwrist[2])
+
+    return rwrist
+
+
 INDICATOR_DICT = {
     'face vector': calc_face_vector,
     'body vector': calc_body_vector,
+    'lwrist': calc_lwrist,
+    'rwrist': calc_rwrist,
 }
