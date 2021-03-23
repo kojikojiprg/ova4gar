@@ -75,35 +75,25 @@ def calc_body_vector(keypoints, homo):
     return vector
 
 
-def calc_lwrist(keypoints, homo):
-    lwrist = keypoints.get('LWrist')
+def calc_wrist(keypoints, homo):
+    def calc(keypoints, lr):
+        wrist = keypoints.get(lr + 'Wrist')
 
-    # ポイントを足元に反映
-    diff = keypoints.get_middle('Ankle') - lwrist[:2]
-    lwrist[1] += diff[1]
+        # ポイントを足元に反映
+        diff = keypoints.get_middle('Ankle') - wrist[:2]
+        wrist[1] += diff[1]
 
-    # ホモグラフィ変換
-    lwrist = np.append(homo.transform_point(lwrist[:2]), lwrist[2])
+        # ホモグラフィ変換
+        wrist = np.append(homo.transform_point(wrist[:2]), wrist[2])
 
-    return lwrist
+        return wrist
 
-
-def calc_rwrist(keypoints, homo):
-    rwrist = keypoints.get('RWrist')
-
-    # ポイントを足元に反映
-    diff = keypoints.get_middle('Ankle') - rwrist[:2]
-    rwrist[1] += diff[1]
-
-    # ホモグラフィ変換
-    rwrist = np.append(homo.transform_point(rwrist[:2]), rwrist[2])
-
-    return rwrist
+    ret = np.append(calc(keypoints, 'L'), calc(keypoints, 'R'))
+    return ret
 
 
 INDICATOR_DICT = {
     'face vector': calc_face_vector,
     'body vector': calc_body_vector,
-    'lwrist': calc_lwrist,
-    'rwrist': calc_rwrist,
+    'wrist': calc_wrist,
 }

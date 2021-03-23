@@ -12,10 +12,10 @@ class Person:
         self.indicator_dict = {k: [] for k in INDICATOR_DICT.keys()}
 
         self.homo = homo
-        self.setting_lst = [
+        self.vector_setting_lst = [
             # arrow_length, color, tip_length
             [20, (255, 0, 0), 1.0],
-            [30, (0, 0, 255), 1.5]
+            [30, (0, 0, 255), 1.5],
         ]
 
     def append_calc(self, keypoints):
@@ -65,7 +65,7 @@ class Person:
 
         return frame
 
-    def display_vector(self, frame_num, field):
+    def display_indicator(self, frame_num, field):
         idx = frame_num - self.start_frame_num
         if idx < 0:
             return field
@@ -74,12 +74,13 @@ class Person:
         if keypoints is None:
             return field
 
-        for i, v in enumerate(self.indicator_dict.values()):
+        # face vector, body vector
+        for i, v in enumerate(list(self.indicator_dict.values())[:2]):
             data = v[idx]
             if data is None:
                 continue
 
-            arrow_length = self.setting_lst[i][0]
+            arrow_length = self.vector_setting_lst[i][0]
 
             start = keypoints.get_middle('Ankle')
 
@@ -89,8 +90,20 @@ class Person:
             # 矢印の先端の座標を計算
             end = (start + (data * arrow_length)).astype(int)
 
-            color = self.setting_lst[i][1]
-            tip_length = self.setting_lst[i][2]
+            color = self.vector_setting_lst[i][1]
+            tip_length = self.vector_setting_lst[i][2]
             cv2.arrowedLine(field, tuple(start), tuple(end), color, tipLength=tip_length)
+
+        # wrist
+        v = list(self.indicator_dict.values())[2]
+        data = v[idx]
+        if data is not None:
+            lwrist = data[:3]
+            rwrist = data[3:]
+
+            radius = 3
+            color = (0, 255, 0)
+            cv2.circle(field, tuple(lwrist[:2].astype(int)), radius, color, thickness=-1)
+            cv2.circle(field, tuple(rwrist[:2].astype(int)), radius, color, thickness=-1)
 
         return field

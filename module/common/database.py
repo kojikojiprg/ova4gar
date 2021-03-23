@@ -151,6 +151,7 @@ PERSON_TABLE = table(
         'Keypoints': 'array',
         'Face_Vector': 'array',
         'Body_Vector': 'array',
+        'Wrist': 'array',
     }
 )
 

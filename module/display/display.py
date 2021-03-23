@@ -39,7 +39,7 @@ def display(video_path, out_dir, person_db_path, group_db_path, field, homo):
             # トラッキングを表示
             frame = person.display_tracking(frame_num, frame)
             # 向きを表示
-            field_tmp = person.display_vector(frame_num, field_tmp)
+            field_tmp = person.display_indicator(frame_num, field_tmp)
 
         for i, table in enumerate(database.GROUP_TABLE_LIST):
             # if i == 1:
