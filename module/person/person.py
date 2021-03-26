@@ -9,7 +9,10 @@ class Person:
         self.id = person_id
         self.start_frame_num = start_frame_num
         self.keypoints_lst = kp.KeypointsList()
+        self.vector_lst = []
+        self.average_lst = []
         self.indicator_dict = {k: [] for k in INDICATOR_DICT.keys()}
+        self.position_que = []
 
         self.homo = homo
         self.vector_setting_lst = [
@@ -18,15 +21,26 @@ class Person:
             [30, (0, 0, 255), 1.5],
         ]
 
-    def append_calc(self, keypoints):
+    def append_calc(self, keypoints, vector, average):
         if keypoints is None:
             return
 
         self.keypoints_lst.append(keypoints)
+        self.vector_lst.append(vector)
+        self.average_lst.append(average)
+
         for k in self.indicator_dict.keys():
             if keypoints.shape == (17, 3):
                 keypoints_tmp = kp.Keypoints(keypoints)
-                self.indicator_dict[k].append(INDICATOR_DICT[k](keypoints_tmp, self.homo))
+                if k == 'position':
+                    # position
+                    indicator = INDICATOR_DICT[k](
+                        keypoints_tmp, self.average_lst[-1], self.position_que, self.homo)
+                else:
+                    # face vector ~
+                    indicator = INDICATOR_DICT[k](keypoints_tmp, self.homo)
+
+                self.indicator_dict[k].append(indicator)
             else:
                 self.indicator_dict[k].append(np.nan)
 
@@ -74,6 +88,8 @@ class Person:
         if keypoints is None:
             return field
 
+        position = list(self.indicator_dict.values())[0][idx]
+
         # face vector, body vector
         for i, v in enumerate(list(self.indicator_dict.values())[:2]):
             data = v[idx]
@@ -82,17 +98,12 @@ class Person:
 
             arrow_length = self.vector_setting_lst[i][0]
 
-            start = keypoints.get_middle('Ankle')
-
-            # ホモグラフィ変換
-            start = self.homo.transform_point(start)
-
             # 矢印の先端の座標を計算
-            end = (start + (data * arrow_length)).astype(int)
+            end = (position + (data * arrow_length)).astype(int)
 
             color = self.vector_setting_lst[i][1]
             tip_length = self.vector_setting_lst[i][2]
-            cv2.arrowedLine(field, tuple(start), tuple(end), color, tipLength=tip_length)
+            cv2.arrowedLine(field, tuple(position), tuple(end), color, tipLength=tip_length)
 
         # wrist
         v = list(self.indicator_dict.values())[2]

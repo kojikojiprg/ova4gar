@@ -14,11 +14,13 @@ def make_database(tracking_db_path, person_db_path, homo):
         person_id = row[database.TRACKING_TABLE.index('Person_ID')]
         frame_num = row[database.TRACKING_TABLE.index('Frame_No')]
         keypoints = row[database.TRACKING_TABLE.index('Keypoints')]
+        vector = row[database.TRACKING_TABLE.index('Vector')]
+        average = row[database.TRACKING_TABLE.index('Average')]
 
         if len(persons) == person_id:
             persons.append(Person(person_id, frame_num, homo))
 
-        persons[person_id].append_calc(keypoints)
+        persons[person_id].append_calc(keypoints, vector, average)
 
         data = persons[person_id].get_data(frame_num)
         if data is not None:

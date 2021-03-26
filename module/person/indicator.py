@@ -16,16 +16,29 @@ def rotation(vec, rad):
     return np.dot(R, vec)
 
 
+def calc_position(keypoints, average, position_que, homo, size=5):
+    new_pos = keypoints.get_middle('Ankle')
+    if new_pos is None:
+        shoulder = keypoints.get_middle('Shoulder')
+        diff = average - shoulder
+        new_pos = (average + diff * 1.5).astype(int)
+
+    new_pos = homo.transform_point(new_pos)
+    position_que.append(new_pos)
+
+    if len(position_que) <= size:
+        pos = np.average(position_que[:len(position_que)])
+    else:
+        position_que = position_que[-size:]
+        pos = np.average(position_que)
+
+    return pos.astype(int)
+
+
 def calc_face_vector(keypoints, homo):
     nose = keypoints.get('Nose')
     lear = keypoints.get('LEar')
     rear = keypoints.get('REar')
-
-    # ポイントを足元に反映
-    diff = keypoints.get_middle('Ankle') - keypoints.get_middle('Ear')
-    nose[1] += diff[1]
-    lear[1] += diff[1]
-    rear[1] += diff[1]
 
     # ホモグラフィ変換
     nose = np.append(homo.transform_point(nose[:2]), nose[2])
@@ -54,11 +67,6 @@ def calc_face_vector(keypoints, homo):
 def calc_body_vector(keypoints, homo):
     lshoulder = keypoints.get('LShoulder')
     rshoulder = keypoints.get('RShoulder')
-
-    # ポイントを足元に反映
-    diff = keypoints.get_middle('Ankle') - keypoints.get_middle('Shoulder')
-    lshoulder[1] += diff[1]
-    rshoulder[1] += diff[1]
 
     # ホモグラフィ変換
     lshoulder = np.append(homo.transform_point(lshoulder[:2]), lshoulder[2])
@@ -93,6 +101,7 @@ def calc_wrist(keypoints, homo):
 
 
 INDICATOR_DICT = {
+    'position': calc_position,
     'face vector': calc_face_vector,
     'body vector': calc_body_vector,
     'wrist': calc_wrist,

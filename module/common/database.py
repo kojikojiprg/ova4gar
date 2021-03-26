@@ -149,6 +149,7 @@ PERSON_TABLE = table(
         'Person_ID': 'integer',
         'Frame_No': 'integer',
         'Keypoints': 'array',
+        'Position': 'array',
         'Face_Vector': 'array',
         'Body_Vector': 'array',
         'Wrist': 'array',
