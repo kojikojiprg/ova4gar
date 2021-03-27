@@ -120,7 +120,7 @@ class DataBase:
         return data
 
 
-class table:
+class Format:
     def __init__(self, name, cols):
         self.name = name
         self.cols = cols
@@ -132,49 +132,53 @@ class table:
         return -1
 
 
-TRACKING_TABLE = table(
+TRACKING_FORMAT = Format(
     'Tracking',
-    {
-        'Person_ID': 'integer',
-        'Frame_No': 'integer',
-        'Keypoints': 'array',
-        'Vector': 'array',
-        'Average': 'array',
-    }
+    [
+        'Person_ID',
+        'Frame_No',
+        'Keypoints',
+        'Vector',
+        'Average',
+    ]
 )
 
-PERSON_TABLE = table(
+PERSON_FORMAT = Format(
     'Person',
-    {
-        'Person_ID': 'integer',
-        'Frame_No': 'integer',
-        'Keypoints': 'array',
-        'Position': 'array',
-        'Face_Vector': 'array',
-        'Body_Vector': 'array',
-        'Wrist': 'array',
-    }
+    [
+        'Person_ID',
+        'Frame_No',
+        'Keypoints',
+        'Position',
+        'Face_Vector',
+        'Body_Vector',
+        'Wrist',
+    ]
 )
 
-DENSITY_TABLE = table(
+
+DENSITY_FORMAT = Format(
     'Density',
-    {
-        'Frame_No': 'integer',
-        'Cluster': 'array',
-        'Count': 'integer'
-    }
+    [
+        'Frame_No',
+        'Cluster',
+        'Count',
+    ]
 )
 
-ATTENTION_TABLE = table(
+ATTENTION_FORMAT = Format(
     'Attention',
-    {
-        'Frame_No': 'integer',
-        'Point': 'array',
-        'Count': 'integer'
-    }
+    [
+        'Frame_No',
+        'Point',
+        'Count',
+    ]
 )
 
-GROUP_TABLE_LIST = [
-    DENSITY_TABLE,
-    ATTENTION_TABLE,
-]
+GROUP_FORMAT = Format(
+    'Group',
+    [
+        DENSITY_FORMAT,
+        ATTENTION_FORMAT,
+    ]
+)
