@@ -1,11 +1,18 @@
-from common import database
 from person.person import Person
 
 
-def make_database(tracking_db_path, person_db_path, homo):
-    tracking_db = database.DataBase(tracking_db_path)
-    person_db = database.DataBase(person_db_path)
+PERSON_FORMAT = [
+    'person_id',
+    'image_id',
+    'keypoints',
+    'position',
+    'face_vector',
+    'body_vector',
+    'wrist',
+]
 
+
+def load_json_and_calc(tracking_json_path, person_json_path, homo):
     tracking_datas = tracking_db.select(database.TRACKING_TABLE.name)
 
     persons = []
@@ -35,7 +42,7 @@ def make_database(tracking_db_path, person_db_path, homo):
         person_datas)
 
 
-def read_database(person_db_path, homo):
+def load_tracking_json(person_db_path, homo):
     person_db = database.DataBase(person_db_path)
     person_datas = person_db.select(database.PERSON_TABLE.name)
 
