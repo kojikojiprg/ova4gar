@@ -1,27 +1,15 @@
-from common import database
-from common.keypoint import Keypoints, KeypointsList
 from tracking.person import Person
-import numpy as np
-import json
+from common.json import TRACKING_FORMAT
 
 
-def track(keypoints_path, result_db_path):
-    # keypoints.json を開く
-    keypoints_all_frame = read_json(keypoints_path)
-
-    # データベースとテーブルを作成
-    table = database.TRACKING_TABLE
-    db = database.DataBase(result_db_path)
-    db.drop_table(table.name)
-    db.create_table(table.name, table.cols)
-
+def track(keypoints_all_frame):
     # person クラスを初期化
     persons = []
     for i, keypoints in enumerate(keypoints_all_frame[0]):
         persons.append(Person(i, keypoints))
 
     # トラッキング
-    datas = []
+    tracking_results = []
     for i, keypoints_lst in enumerate(keypoints_all_frame):
         # 状態をリセット
         for person in persons:
@@ -61,38 +49,12 @@ def track(keypoints_path, result_db_path):
                 person.update_deleted()
 
         for person in persons:
-            datas.append((
-                person.id,
-                i,
-                np.array(person.keypoints_lst[-1]),
-                person.average_lst[-1],
-                person.vector))
+            tracking_results.append({
+                TRACKING_FORMAT[0]: person.id,
+                TRACKING_FORMAT[1]: i,
+                TRACKING_FORMAT[2]: person.keypoints_lst[-1],
+                TRACKING_FORMAT[3]: person.average_lst[-1],
+                TRACKING_FORMAT[4]: person.vector,
+            })
 
-    # データベースに書き込み
-    db.insert_datas(
-        table.name,
-        list(table.cols.keys()),
-        datas)
-
-
-def read_json(json_path):
-    return_lst = []
-    with open(json_path) as f:
-        dat = json.load(f)
-
-        keypoints_lst = KeypointsList()
-        pre_no = 0
-        for item in dat:
-            frame_no = item['image_id']
-
-            if frame_no != pre_no:
-                return_lst.append(keypoints_lst)
-                keypoints_lst = KeypointsList()
-
-            keypoints = Keypoints(np.array(item['keypoints']).reshape(17, 3))
-            keypoints_lst.append(keypoints)
-            pre_no = frame_no
-        else:
-            return_lst.append(keypoints_lst)
-
-    return return_lst
+    return tracking_results
