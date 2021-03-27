@@ -1,6 +1,6 @@
 from common import json
 from common.keypoint import Keypoints, KeypointsList
-from tracking.tracking import tracking
+from tracking.tracker import track
 import numpy as np
 
 
@@ -8,7 +8,7 @@ def main(keypoints_path, result_path):
     # keypoints.json を開く
     keypoints_all_frame = load_pose_json(keypoints_path)
 
-    results = tracking.track(keypoints_all_frame)
+    results = track(keypoints_all_frame)
 
     # jsonに書き込み
     json.dump(results, result_path)
