@@ -29,7 +29,8 @@ if __name__ == '__main__':
     # file path
     room_num = '09'
     date = '20210304'
-    video_path = common.data_dir + '{0}/{1}/gaze3-1.mp4'.format(room_num, date)
+    name = 'gaze2-1'
+    video_path = common.data_dir + '{0}/{1}/{2}/{2}.mp4'.format(room_num, date, name)
     field_path = common.data_dir + 'field.png'
     print(video_path)
 
