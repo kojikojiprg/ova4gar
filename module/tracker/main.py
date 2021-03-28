@@ -1,6 +1,6 @@
 from common import json
 from common.keypoint import Keypoints, KeypointsList
-from tracking.tracker import track
+from tracker.tracker import track
 import numpy as np
 
 
