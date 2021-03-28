@@ -1,19 +1,9 @@
+from common import json
 from person.person import Person
 
 
-PERSON_FORMAT = [
-    'person_id',
-    'image_id',
-    'keypoints',
-    'position',
-    'face_vector',
-    'body_vector',
-    'wrist',
-]
-
-
-def load_json_and_calc(tracking_json_path, person_json_path, homo):
-    tracking_datas = tracking_db.select(database.TRACKING_TABLE.name)
+def main(tracking_json_path, person_json_path, homo):
+    tracking_datas = json.load(tracking_json_path)
 
     persons = []
     person_datas = []
@@ -27,7 +17,7 @@ def load_json_and_calc(tracking_json_path, person_json_path, homo):
         if len(persons) == person_id:
             persons.append(Person(person_id, frame_num, homo))
 
-        persons[person_id].append_calc(keypoints, vector, average)
+        persons[person_id].calc_indicator(keypoints, vector, average)
 
         data = persons[person_id].get_data(frame_num)
         if data is not None:
@@ -42,13 +32,12 @@ def load_json_and_calc(tracking_json_path, person_json_path, homo):
         person_datas)
 
 
-def load_tracking_json(person_db_path, homo):
-    person_db = database.DataBase(person_db_path)
-    person_datas = person_db.select(database.PERSON_TABLE.name)
+def load_person_json(person_json_path, homo):
+    person_data = json.load(person_json_path)
 
     # person data
     persons = []
-    for data in person_datas:
+    for data in person_data:
         person_id = data[database.PERSON_TABLE.index('Person_ID')]
         frame_num = data[database.PERSON_TABLE.index('Frame_No')]
 
