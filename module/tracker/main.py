@@ -20,7 +20,7 @@ def load_pose_json(json_path):
 
     keypoints_lst = KeypointsList()
     pre_no = 0
-    for item in json_data:
+    for item in json_data.items():
         frame_no = item['image_id']
 
         if frame_no != pre_no:
