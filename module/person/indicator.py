@@ -101,9 +101,10 @@ def calc_wrist(keypoints, homo):
     return ret
 
 
+start_idx = 3
 INDICATOR_DICT = {
-    PERSON_FORMAT[0]: calc_position,
-    PERSON_FORMAT[1]: calc_face_vector,
-    PERSON_FORMAT[2]: calc_body_vector,
-    PERSON_FORMAT[3]: calc_wrist,
+    PERSON_FORMAT[start_idx + 0]: calc_position,
+    PERSON_FORMAT[start_idx + 1]: calc_face_vector,
+    PERSON_FORMAT[start_idx + 2]: calc_body_vector,
+    PERSON_FORMAT[start_idx + 3]: calc_wrist,
 }
