@@ -1,3 +1,4 @@
+from common.json import PERSON_FORMAT
 from common import keypoint as kp
 import numpy as np
 
@@ -101,8 +102,8 @@ def calc_wrist(keypoints, homo):
 
 
 INDICATOR_DICT = {
-    'position': calc_position,
-    'face vector': calc_face_vector,
-    'body vector': calc_body_vector,
-    'wrist': calc_wrist,
+    PERSON_FORMAT[0]: calc_position,
+    PERSON_FORMAT[1]: calc_face_vector,
+    PERSON_FORMAT[2]: calc_body_vector,
+    PERSON_FORMAT[3]: calc_wrist,
 }

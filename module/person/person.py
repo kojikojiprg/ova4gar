@@ -1,4 +1,4 @@
-from common import keypoint as kp
+from common.keypoint import Keypoints, KeypointsList
 from person.indicator import INDICATOR_DICT
 import numpy as np
 import cv2
@@ -8,7 +8,7 @@ class Person:
     def __init__(self, person_id, start_frame_num, homo):
         self.id = person_id
         self.start_frame_num = start_frame_num
-        self.keypoints_lst = kp.KeypointsList()
+        self.keypoints_lst = KeypointsList()
         self.vector_lst = []
         self.average_lst = []
         self.indicator_dict = {k: [] for k in INDICATOR_DICT.keys()}
@@ -21,7 +21,7 @@ class Person:
             [30, (0, 0, 255), 1.5],
         ]
 
-    def append_calc(self, keypoints, vector, average):
+    def calc_indicator(self, keypoints, vector, average):
         if keypoints is None:
             return
 
@@ -31,7 +31,7 @@ class Person:
 
         for k in self.indicator_dict.keys():
             if keypoints.shape == (17, 3):
-                keypoints_tmp = kp.Keypoints(keypoints)
+                keypoints_tmp = Keypoints(keypoints)
                 if k == 'position':
                     # position
                     indicator = INDICATOR_DICT[k](
@@ -44,22 +44,18 @@ class Person:
             else:
                 self.indicator_dict[k].append(np.nan)
 
-    def append_data(self, data):
-        self.keypoints_lst.append(data[2])
-        for i, k in enumerate(INDICATOR_DICT.keys()):
-            self.indicator_dict[k].append(data[3 + i])
-
-    def get_data(self, frame_num, is_keypoints_numpy=True):
+    def to_json(self, frame_num):
         idx = frame_num - self.start_frame_num
         if idx < 0 or len(self.keypoints_lst) <= idx:
             return None
 
-        if is_keypoints_numpy:
-            data = [self.id, frame_num, np.array(self.keypoints_lst[idx])]
-        else:
-            data = [self.id, frame_num, self.keypoints_lst[idx]]
-        for k in self.indicator_dict.keys():
-            data.append(self.indicator_dict[k][idx])
+        keys = list(self.indicator_dict.keys())
+        data = {}
+        data[keys[0]] = self.id
+        data[keys[1]] = self.frame_num
+        data[keys[2]] = np.array(self.keypoints_lst[idx])
+        for i, k in enumerate(keys[3:]):
+            data[keys[i + 3]] = self.indicator_dict[k][idx]
 
         return data
 
