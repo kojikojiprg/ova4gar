@@ -12,6 +12,7 @@ TRACKING_FORMAT = [
     'average',
 ]
 
+# person/person.py
 # person/indicator.py
 # group/indicator.py
 PERSON_FORMAT = [
