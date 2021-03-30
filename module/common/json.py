@@ -1,3 +1,4 @@
+import os
 import json
 
 
@@ -50,5 +51,9 @@ def load(json_path):
 
 
 def dump(data, json_path):
+    os.makedirs(os.path.dirname(json_path), exist_ok=True)
+
+    print(data[0])
+
     with open(json_path, 'w') as f:
         json.dump(data, f)
