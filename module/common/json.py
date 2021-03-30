@@ -1,184 +1,54 @@
-import numpy as np
-import sqlite3 as sql
-import os
-import io
+import json
 
 
-class DataBase:
-    def __init__(self, path):
-        if not os.path.exists(path):
-            os.makedirs(os.path.dirname(path), exist_ok=True)
-            with open(path, 'w') as f:
-                f.write('')
+# tracking/tracking.py
+# person/main.py
+TRACKING_FORMAT = [
+    'person_id',
+    'image_id',
+    'keypoints',
+    'vector',
+    'average',
+]
 
-        # Converts np.array to TEXT when inserting
-        sql.register_adapter(np.ndarray, self._adapt_array)
+# person/indicator.py
+# group/indicator.py
+PERSON_FORMAT = [
+    'person_id',
+    'image_id',
+    'keypoints',
+    'position',
+    'face_vector',
+    'body_vector',
+    'wrist',
+]
 
-        # Converts TEXT to np.array when selecting
-        sql.register_converter('array', self._convert_array)
+DENSITY_FORMAT = [
+    'image_id',
+    'cluster',
+    'count',
+]
 
-        self.conn = sql.connect(path, detect_types=sql.PARSE_DECLTYPES)
+ATTENTION_FORMAT = [
+    'image_id',
+    'point',
+    'count',
+]
 
-    def __del__(self):
-        self.conn.commit()
-        self.conn.close()
-
-    def _adapt_array(self, arr):
-        out = io.BytesIO()
-        np.save(out, arr)
-        out.seek(0)
-        return sql.Binary(out.read())
-
-    def _convert_array(self, text):
-        out = io.BytesIO(text)
-        out.seek(0)
-        return np.load(out, allow_pickle=True).astype(float)
-
-    def create_table(self, name, cols):
-        c = self.conn.cursor()
-
-        col_syntax = ''
-        for col, typ in cols.items():
-            col_syntax += '{} {}, '.format(col, typ)
-        col_syntax = col_syntax[:-2]
-
-        syntax = 'create table if not exists "{}"({})'.format(name, col_syntax)
-        print(syntax)
-        c.execute(syntax)
-
-        self.conn.commit()
-
-    def drop_table(self, name):
-        c = self.conn.cursor()
-
-        syntax = 'drop table if exists "{}"'.format(name)
-        print(syntax)
-        c.execute(syntax)
-
-        self.conn.commit()
-
-    def insert_data(self, name, cols, data):
-        c = self.conn.cursor()
-
-        col_syntax = ''
-        data_syntax = ''
-        for col in cols:
-            col_syntax += '{}, '.format(col)
-            data_syntax += '?,'
-        col_syntax = col_syntax[:-2]
-        name_syntax = '"{}" ({})'.format(name, col_syntax)
-
-        data_syntax = data_syntax[:-1]
-        data_syntax = '({})'.format(data_syntax)
-
-        syntax = 'insert into {} values {}'.format(name_syntax, data_syntax)
-        print(syntax)
-        c.execute(syntax, data)
-
-        self.conn.commit()
-
-    def insert_datas(self, name, cols, datas):
-        c = self.conn.cursor()
-
-        col_syntax = ''
-        data_syntax = ''
-        for col in cols:
-            col_syntax += '{}, '.format(col)
-            data_syntax += '?,'
-        col_syntax = col_syntax[:-2]
-        name_syntax = '"{}" ({})'.format(name, col_syntax)
-
-        data_syntax = data_syntax[:-1]
-        data_syntax = '({})'.format(data_syntax)
-
-        syntax = 'insert into {} values {}'.format(name_syntax, data_syntax)
-        print(syntax)
-        c.executemany(syntax, datas)
-
-        self.conn.commit()
-
-    def select(self, name, cols=None, where=None, array_size=1000):
-        c = self.conn.cursor()
-
-        col_syntax = '*'
-        if cols is not None:
-            col_syntax = ''
-            for col in cols:
-                col_syntax += '{}, '.format(col)
-            col_syntax = col_syntax[:-2]
-
-        where_syntax = ''
-        if where is not None:
-            where_syntax = 'where {}'.format(where)
-
-        syntax = 'select {} from "{}" {}'.format(col_syntax, name, where_syntax)
-        print(syntax)
-        c.execute(syntax)
-
-        data = c.fetchall()
-
-        return data
+# group/indicator.py
+GROUP_FORMAT = {
+    'density': DENSITY_FORMAT,
+    'atention': ATTENTION_FORMAT,
+}
 
 
-class Format:
-    def __init__(self, name, cols):
-        self.name = name
-        self.cols = cols
-
-    def index(self, key):
-        for i, col in enumerate(self.cols.keys()):
-            if key == col:
-                return i
-        return -1
+def load(json_path):
+    data = {}
+    with open(json_path, 'r') as f:
+        data = json.load(f)
+    return data
 
 
-TRACKING_FORMAT = Format(
-    'Tracking',
-    [
-        'Person_ID',
-        'Frame_No',
-        'Keypoints',
-        'Vector',
-        'Average',
-    ]
-)
-
-PERSON_FORMAT = Format(
-    'Person',
-    [
-        'Person_ID',
-        'Frame_No',
-        'Keypoints',
-        'Position',
-        'Face_Vector',
-        'Body_Vector',
-        'Wrist',
-    ]
-)
-
-
-DENSITY_FORMAT = Format(
-    'Density',
-    [
-        'Frame_No',
-        'Cluster',
-        'Count',
-    ]
-)
-
-ATTENTION_FORMAT = Format(
-    'Attention',
-    [
-        'Frame_No',
-        'Point',
-        'Count',
-    ]
-)
-
-GROUP_FORMAT = Format(
-    'Group',
-    [
-        DENSITY_FORMAT,
-        ATTENTION_FORMAT,
-    ]
-)
+def dump(data, json_path):
+    with open(json_path, 'w') as f:
+        json.dump(data, f)
