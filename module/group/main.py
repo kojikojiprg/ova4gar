@@ -1,5 +1,4 @@
 from common import json
-from commom.json import GROUP_FORMAT
 from group.group import Group
 
 
@@ -16,3 +15,7 @@ def main(person_json_path, group_json_path, homo):
 
         # 指標の計算
         group.calc_indicator(frame_num, frame_person_datas)
+
+    # jsonフォーマットを生成して書き込み
+    group_datas = group.to_json()
+    json.dump(group_datas, group_json_path)

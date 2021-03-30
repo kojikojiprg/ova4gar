@@ -12,16 +12,11 @@ class Group:
 
     def calc_indicator(self, frame_num, person_datas):
         for key, func in INDICATOR_DICT.items():
-            self.indicator_dict[key].append(
-                func(frame_num, person_datas, self.homo))
+            self.indicator_dict[key] += func(
+                frame_num, person_datas, self.homo)
 
-    def to_json(self, k, frame_num):
-        data = {}
-        for row in self.indicator_dict[k]:
-            if int(row[0]) == frame_num:
-                data.append(row)
-
-        return data
+    def to_json(self):
+        return self.indicator_dict
 
     def make_heatmap(self):
         for k in self.indicator_dict.keys():
