@@ -29,5 +29,4 @@ def main(tracking_json_path, person_json_path, homo):
             person_datas.append(data)
 
     # jsonに書き込み
-    print(person_datas[0])
     json.dump(person_datas, person_json_path)
