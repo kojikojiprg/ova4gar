@@ -60,7 +60,7 @@ def calc_face_vector(keypoints, homo):
         vector = normalize(vector)
         vector = rotation(vector, np.pi / 2)
     else:
-        vector = np.nan
+        vector = None
 
     return vector
 
@@ -79,7 +79,7 @@ def calc_body_vector(keypoints, homo):
         vector = normalize(vector)
         vector = rotation(vector, np.pi / 2)
     else:
-        vector = np.nan
+        vector = None
 
     return vector
 
