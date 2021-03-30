@@ -1,7 +1,6 @@
 from common import json
 from common.keypoint import Keypoints, KeypointsList
 from tracker.tracker import track
-import numpy as np
 
 
 def main(keypoints_path, result_path):
@@ -27,7 +26,7 @@ def load_pose_json(json_path):
             datas.append(keypoints_lst)
             keypoints_lst = KeypointsList()
 
-        keypoints = Keypoints(np.array(item['keypoints']).reshape(17, 3))
+        keypoints = Keypoints(item['keypoints'])
         keypoints_lst.append(keypoints)
         pre_no = frame_no
     else:
