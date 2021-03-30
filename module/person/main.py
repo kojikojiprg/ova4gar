@@ -8,7 +8,7 @@ def main(tracking_json_path, person_json_path, homo):
 
     persons = []
     person_datas = []
-    for item in tracking_datas.items():
+    for item in tracking_datas:
         # trackingのデータを取得
         person_id = item[TRACKING_FORMAT[0]]
         frame_num = item[TRACKING_FORMAT[1]]
@@ -29,4 +29,5 @@ def main(tracking_json_path, person_json_path, homo):
             person_datas.append(data)
 
     # jsonに書き込み
+    print(person_datas[0])
     json.dump(person_datas, person_json_path)
