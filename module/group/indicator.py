@@ -1,17 +1,17 @@
-from common import database
+from common.json import PERSON_FORMAT, GROUP_FORMAT
 from group.halfline import HalfLine, calc_cross
 import numpy as np
 from pyclustering.cluster import gmeans
 
 
 def calc_density(frame_num, person_datas, homo, k_init=3):
+    json_format = GROUP_FORMAT['density']
+
     points = []
     for data in person_datas:
-        keypoints = data[database.PERSON_TABLE.index('Keypoints')]
-        if keypoints is not None:
-            point = keypoints.get_middle('Ankle')
-            point = homo.transform_point(point)
-            points.append(point)
+        position = data[PERSON_FORMAT[3]]
+        if position is not None:
+            points.append(position)
     points = np.array(points)
 
     # g-means でクラスタリング
@@ -20,20 +20,28 @@ def calc_density(frame_num, person_datas, homo, k_init=3):
         gm = gmeans.gmeans(points, k_init=k_init)
         gm.process()
         for cluster in gm.get_clusters():
-            datas.append((frame_num, points[cluster], len(cluster)))
+            datas.append({
+                json_format[0]: frame_num,
+                json_format[1]: points[cluster],
+                json_format[2]: len(cluster)})
     else:
         for point in points:
-            datas.append((frame_num, np.array([point]), 1))
+            datas.append({
+                json_format[0]: frame_num,
+                json_format[1]: [point],
+                json_format[2]: 1})
 
     return datas
 
 
 def calc_attension(frame_num, person_datas, homo, k_init=1):
+    json_format = GROUP_FORMAT['attention']
+
     # 直線を求める
     lines = []
     for data in person_datas:
-        keypoints = data[database.PERSON_TABLE.index('Keypoints')]
-        face_vector = data[database.PERSON_TABLE.index('Face_Vector')]
+        keypoints = data[PERSON_FORMAT.index('keypoints')]
+        face_vector = data[PERSON_FORMAT.index('face_vector')]
         if keypoints is not None and face_vector is not None:
             point = keypoints.get_middle('Ankle')
             point = homo.transform_point(point)
@@ -58,14 +66,25 @@ def calc_attension(frame_num, person_datas, homo, k_init=1):
         gm = gmeans.gmeans(cross_points, k_init=k_init)
         gm.process()
         for cluster in gm.get_clusters():
-            datas.append((frame_num, cross_points[cluster], len(cluster)))
+            datas.append({
+                json_format[0]: frame_num,
+                json_format[1]: cross_points[cluster],
+                json_format[2]: len(cluster)})
     else:
-        datas.append((frame_num, None, 0))
+        datas.append({
+            json_format[0]: frame_num,
+            json_format[1]: None,
+            json_format[2]: 0})
 
     return datas
 
 
+def calc_passing(frame_num, person_datas, homo, k_init=1):
+    pass
+
+
+keys = list(GROUP_FORMAT.keys())
 INDICATOR_DICT = {
-    database.GROUP_TABLE_LIST[0].name: calc_density,
-    database.GROUP_TABLE_LIST[1].name: calc_attension,
+    keys[0]: calc_density,
+    keys[1]: calc_attension,
 }

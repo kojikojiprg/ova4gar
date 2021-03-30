@@ -10,16 +10,13 @@ class Group:
 
         self.homo = homo
 
-    def append_calc(self, k, frame_num, person_datas):
-        self.indicator_dict[k] += INDICATOR_DICT[k](
-            frame_num, person_datas, self.homo)
+    def calc_indicator(self, frame_num, person_datas):
+        for key, func in INDICATOR_DICT.items():
+            self.indicator_dict[key].append(
+                func(frame_num, person_datas, self.homo))
 
-    def append_data(self, k, datas):
-        for data in datas:
-            self.indicator_dict[k].append(data)
-
-    def get_data(self, k, frame_num):
-        data = []
+    def to_json(self, k, frame_num):
+        data = {}
         for row in self.indicator_dict[k]:
             if int(row[0]) == frame_num:
                 data.append(row)
