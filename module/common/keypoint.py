@@ -46,6 +46,12 @@ class Keypoints(list):
             point = (R + L) / 2
         return point[:2].astype(int)
 
+    def to_json(self):
+        ret = []
+        for keypoint in self:
+            ret += keypoint.tolist()
+        return ret
+
 
 class KeypointsList(list):
     def __init__(self):

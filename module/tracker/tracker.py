@@ -49,12 +49,13 @@ def track(keypoints_all_frame):
                 person.update_deleted()
 
         for person in persons:
-            tracking_results.append({
-                TRACKING_FORMAT[0]: person.id,
-                TRACKING_FORMAT[1]: i,
-                TRACKING_FORMAT[2]: person.keypoints_lst[-1],
-                TRACKING_FORMAT[3]: person.average_lst[-1],
-                TRACKING_FORMAT[4]: person.vector,
-            })
+            if person.keypoints_lst[-1] is not None:
+                tracking_results.append({
+                    TRACKING_FORMAT[0]: person.id,
+                    TRACKING_FORMAT[1]: i,
+                    TRACKING_FORMAT[2]: person.keypoints_lst[-1].to_json(),
+                    TRACKING_FORMAT[3]: person.average_lst[-1].tolist(),
+                    TRACKING_FORMAT[4]: person.vector.tolist(),
+                })
 
     return tracking_results
