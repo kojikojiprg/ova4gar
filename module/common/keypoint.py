@@ -1,3 +1,6 @@
+import numpy as np
+
+
 body = {
     "Nose": 0,
     "LEye": 1,
@@ -24,6 +27,10 @@ confidence_th = 0.2
 class Keypoints(list):
     def __init__(self, keypoints):
         super().__init__([])
+        keypoints = np.array(keypoints)
+        if keypoints.shape != (17, 3):
+            keypoints = keypoints.reshape(17, 3)
+
         for keypoint in keypoints:
             super().append(keypoint)
 
