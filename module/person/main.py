@@ -1,4 +1,5 @@
-from common import json, TRACKING_FORMAT
+from common import json
+from common.json import TRACKING_FORMAT
 from person.person import Person
 
 

@@ -11,7 +11,7 @@ sys.path.append(root + 'module/')
 
 data_dir = root + 'data/'
 out_dir = root + 'out/'
-db_dir = root + 'db/'
+json_dir = root + 'json/'
 
 homo = {
     'record': [

@@ -1,4 +1,4 @@
-from common import database
+from common.json import GROUP_FORMAT
 import numpy as np
 import cv2
 
@@ -27,13 +27,14 @@ def display_attention(datas, field, heatmap, min_r=8):
     return field
 
 
+keys = list(GROUP_FORMAT.keys())
 DISPLAY_DICT = {
-    database.GROUP_TABLE_LIST[0].name: display_density,
-    database.GROUP_TABLE_LIST[1].name: display_attention,
+    keys[0]: display_density,
+    keys[1]: display_attention,
 }
 
 HEATMAP_SETTING_DICT = {
     # key: [is_heatmap, heatmap_data]
-    database.GROUP_TABLE_LIST[0].name: [True, -1],
-    database.GROUP_TABLE_LIST[1].name: [True, -1],
+    keys[0]: [True, -1],
+    keys[1]: [True, -1],
 }

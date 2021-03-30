@@ -1,4 +1,4 @@
-from tracking.person import Person
+from tracker.person import Person
 from common.json import TRACKING_FORMAT
 
 
