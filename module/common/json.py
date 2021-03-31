@@ -40,7 +40,7 @@ ATTENTION_FORMAT = [
 # group/indicator.py
 GROUP_FORMAT = {
     'density': DENSITY_FORMAT,
-    'atention': ATTENTION_FORMAT,
+    'attention': ATTENTION_FORMAT,
 }
 
 
