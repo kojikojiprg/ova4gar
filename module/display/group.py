@@ -1,63 +1,74 @@
 from common.json import GROUP_FORMAT
+from display.heatmap import Heatmap
 import numpy as np
 import cv2
 
-    def make_heatmap(self):
-        for k in self.indicator_dict.keys():
-            if HEATMAP_SETTING_DICT[k][0]:
+
+keys = list(GROUP_FORMAT.keys())
+HEATMAP_SETTING_DICT = {
+    # key: [is_heatmap, heatmap_data_index]
+    keys[0]: [True, -1],
+    keys[1]: [True, -1],
+}
+
+
+class DisplayGroup:
+    def __init__(self, group_datas):
+        self.heatmap_dict = {}
+
+    def make_heatmap(self, group_datas):
+        for key, datas in group_datas.items():
+            if HEATMAP_SETTING_DICT[key][0]:
                 # ヒートマップを作成する場合
                 distribution = []
-                for data in self.indicator_dict[k]:
-                    # ヒートマップの対象となる列を取得
-                    data_idx = HEATMAP_SETTING_DICT[k][1]
-                    distribution.append(data[data_idx])
-                # ヒートマップ作成
-                self.heatmap_dict[k] = Heatmap(distribution)
+                data_keys = list(GROUP_FORMAT[key].keys())
+                for data in datas:
+                    distribution.append(
+                        data[data_keys[HEATMAP_SETTING_DICT[key][1]]])
+                self.heatmap_dict[key] = Heatmap(distribution)
             else:
-                self.heatmap_dict[k] = None
+                self.heatmap_dict[key] = None
 
-    def display(self, k, frame_num, field):
-        if HEATMAP_SETTING_DICT[k][0]:
-            field = DISPLAY_DICT[k](
-                self.get_data(k, frame_num), field, self.heatmap_dict[k])
-        else:
-            field = DISPLAY_DICT[k](
-                self.get_data(k, frame_num), field)
+    def disp(self, key, frame_num, group_datas, field):
+        indicator_datas = group_datas[key]
+
+        # フレームごとにデータを取得する
+        frame_indicator_datas = [
+            data for data in indicator_datas if data['image_id'] == frame_num]
+
+        # 指標を書き込む
+        field = eval('self.disp_{}'.format(key))(
+            frame_indicator_datas, field)
 
         return field
 
-def display_density(datas, field, heatmap, min_r=8):
-    for data in datas:
-        point = np.average(data[1], axis=0).astype(int)
-        r = min_r + len(data[1])
-        color = heatmap.colormap(len(data[1]))
-        cv2.circle(field, tuple(point), r, color, thickness=-1)
-    return field
+    def disp_density(self, datas, field, min_r=8):
+        key = self.disp_density.__name__.replace('disp_', '')
+        json_format = GROUP_FORMAT[key]
 
+        for data in datas:
+            points = data[json_format[1]]
+            point = np.average(points, axis=0).astype(int)
+            r = min_r + len(points)
+            color = self.heatmap_dict[key].colormap(len(points))
+            cv2.circle(field, tuple(point), r, color, thickness=-1)
 
-def display_attention(datas, field, heatmap, min_r=8):
-    for data in datas:
-        if data[1] is not None:
-            for point in data[1]:
+        return field
+
+    def disp_attention(self, datas, field, min_r=8):
+        key = self.disp_density.__name__.replace('disp_', '')
+        json_format = GROUP_FORMAT[key]
+
+        for data in datas:
+            points = data[json_format[1]]
+            for point in points:
                 # 視線が重なったところを黒色で表示
                 cv2.circle(field, tuple(point.astype(int)), 5, (0, 0, 0), thickness=-1)
 
             # クラスターを表示
-            point = np.average(data[1], axis=0).astype(int)
-            r = min_r + len(data[1])
-            color = heatmap.colormap(len(data[1]))
+            point = np.average(points, axis=0).astype(int)
+            r = min_r + len(points)
+            color = self.heatmap_dict[key].colormap(len(points))
             cv2.circle(field, tuple(point), r, color, thickness=-1)
-    return field
 
-
-keys = list(GROUP_FORMAT.keys())
-DISPLAY_DICT = {
-    keys[0]: display_density,
-    keys[1]: display_attention,
-}
-
-HEATMAP_SETTING_DICT = {
-    # key: [is_heatmap, heatmap_data]
-    keys[0]: [True, -1],
-    keys[1]: [True, -1],
-}
+        return field
