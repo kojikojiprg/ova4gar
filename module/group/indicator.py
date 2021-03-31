@@ -1,4 +1,5 @@
 from common.json import PERSON_FORMAT, GROUP_FORMAT
+from common.keypoint import Keypoints
 from group.halfline import HalfLine, calc_cross
 import numpy as np
 from pyclustering.cluster import gmeans
@@ -22,13 +23,13 @@ def calc_density(frame_num, person_datas, homo, k_init=3):
         for cluster in gm.get_clusters():
             datas.append({
                 json_format[0]: frame_num,
-                json_format[1]: points[cluster],
+                json_format[1]: points[cluster].tolist(),
                 json_format[2]: len(cluster)})
     else:
         for point in points:
             datas.append({
                 json_format[0]: frame_num,
-                json_format[1]: [point],
+                json_format[1]: [point.tolist()],
                 json_format[2]: 1})
 
     return datas
@@ -40,8 +41,8 @@ def calc_attension(frame_num, person_datas, homo, k_init=1):
     # 直線を求める
     lines = []
     for data in person_datas:
-        keypoints = data[PERSON_FORMAT.index('keypoints')]
-        face_vector = data[PERSON_FORMAT.index('face_vector')]
+        keypoints = Keypoints(data[PERSON_FORMAT[2]])
+        face_vector = data[PERSON_FORMAT[4]]
         if keypoints is not None and face_vector is not None:
             point = keypoints.get_middle('Ankle')
             point = homo.transform_point(point)
@@ -60,7 +61,6 @@ def calc_attension(frame_num, person_datas, homo, k_init=1):
     cross_points = np.array(cross_points)
 
     datas = []
-
     # g-means でクラスタリング
     if len(cross_points) > 0:
         gm = gmeans.gmeans(cross_points, k_init=k_init)
@@ -68,7 +68,7 @@ def calc_attension(frame_num, person_datas, homo, k_init=1):
         for cluster in gm.get_clusters():
             datas.append({
                 json_format[0]: frame_num,
-                json_format[1]: cross_points[cluster],
+                json_format[1]: cross_points[cluster].tolist(),
                 json_format[2]: len(cluster)})
     else:
         datas.append({
