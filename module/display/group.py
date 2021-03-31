@@ -15,13 +15,14 @@ HEATMAP_SETTING_DICT = {
 class DisplayGroup:
     def __init__(self, group_datas):
         self.heatmap_dict = {}
+        self.make_heatmap(group_datas)
 
     def make_heatmap(self, group_datas):
         for key, datas in group_datas.items():
             if HEATMAP_SETTING_DICT[key][0]:
                 # ヒートマップを作成する場合
                 distribution = []
-                data_keys = list(GROUP_FORMAT[key].keys())
+                data_keys = GROUP_FORMAT[key]
                 for data in datas:
                     distribution.append(
                         data[data_keys[HEATMAP_SETTING_DICT[key][1]]])
@@ -56,11 +57,11 @@ class DisplayGroup:
         return field
 
     def disp_attention(self, datas, field, min_r=8):
-        key = self.disp_density.__name__.replace('disp_', '')
+        key = self.disp_attention.__name__.replace('disp_', '')
         json_format = GROUP_FORMAT[key]
 
         for data in datas:
-            points = data[json_format[1]]
+            points = np.array(data[json_format[1]])
             for point in points:
                 # 視線が重なったところを黒色で表示
                 cv2.circle(field, tuple(point.astype(int)), 5, (0, 0, 0), thickness=-1)

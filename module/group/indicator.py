@@ -70,11 +70,6 @@ def calc_attension(frame_num, person_datas, homo, k_init=1):
                 json_format[0]: frame_num,
                 json_format[1]: cross_points[cluster].tolist(),
                 json_format[2]: len(cluster)})
-    else:
-        datas.append({
-            json_format[0]: frame_num,
-            json_format[1]: None,
-            json_format[2]: 0})
 
     return datas
 

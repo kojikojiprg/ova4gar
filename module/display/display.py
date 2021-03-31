@@ -47,7 +47,7 @@ def display(video_path, out_dir, person_json_path, group_json_path, field):
         # トラッキングの結果を表示
         frame = disp_tracking(frame_person_datas, frame)
         # 向きを表示
-        field_tmp = disp_person(frame_num, field_tmp)
+        field_tmp = disp_person(frame_person_datas, field_tmp)
 
         for i, key in enumerate(GROUP_FORMAT):
             group_field = field_tmp.copy()
