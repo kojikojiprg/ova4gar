@@ -28,10 +28,10 @@ def calc_position(keypoints, average, position_que, homo, size=5):
     position_que.append(new_pos)
 
     if len(position_que) <= size:
-        pos = np.average(position_que[:len(position_que)])
+        pos = np.average(position_que[:len(position_que)], axis=0)
     else:
         position_que = position_que[-size:]
-        pos = np.average(position_que)
+        pos = np.average(position_que, axis=0)
 
     return pos.astype(int)
 
