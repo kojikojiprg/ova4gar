@@ -15,6 +15,8 @@ TRACKING_FORMAT = [
 # person/person.py
 # person/indicator.py
 # group/indicator.py
+# display/tracking.py
+# display/person.py
 PERSON_FORMAT = [
     'person_id',
     'image_id',
@@ -38,6 +40,8 @@ ATTENTION_FORMAT = [
 ]
 
 # group/indicator.py
+# display/display.py
+# display/group.py
 GROUP_FORMAT = {
     'density': DENSITY_FORMAT,
     'attention': ATTENTION_FORMAT,
