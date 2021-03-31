@@ -2,6 +2,29 @@ from common.json import GROUP_FORMAT
 import numpy as np
 import cv2
 
+    def make_heatmap(self):
+        for k in self.indicator_dict.keys():
+            if HEATMAP_SETTING_DICT[k][0]:
+                # ヒートマップを作成する場合
+                distribution = []
+                for data in self.indicator_dict[k]:
+                    # ヒートマップの対象となる列を取得
+                    data_idx = HEATMAP_SETTING_DICT[k][1]
+                    distribution.append(data[data_idx])
+                # ヒートマップ作成
+                self.heatmap_dict[k] = Heatmap(distribution)
+            else:
+                self.heatmap_dict[k] = None
+
+    def display(self, k, frame_num, field):
+        if HEATMAP_SETTING_DICT[k][0]:
+            field = DISPLAY_DICT[k](
+                self.get_data(k, frame_num), field, self.heatmap_dict[k])
+        else:
+            field = DISPLAY_DICT[k](
+                self.get_data(k, frame_num), field)
+
+        return field
 
 def display_density(datas, field, heatmap, min_r=8):
     for data in datas:

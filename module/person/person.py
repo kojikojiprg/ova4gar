@@ -1,7 +1,6 @@
 from common.keypoint import Keypoints, KeypointsList
 from common.json import PERSON_FORMAT
 from person.indicator import INDICATOR_DICT
-import cv2
 
 
 class Person:
@@ -13,13 +12,7 @@ class Person:
         self.average_lst = []
         self.indicator_dict = {k: [] for k in INDICATOR_DICT.keys()}
         self.position_que = []
-
         self.homo = homo
-        self.vector_setting_lst = [
-            # arrow_length, color, tip_length
-            [20, (255, 0, 0), 1.0],
-            [30, (0, 0, 255), 1.5],
-        ]
 
     def calc_indicator(self, keypoints, vector, average):
         if keypoints is None:
