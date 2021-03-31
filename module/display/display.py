@@ -1,59 +1,63 @@
-from common import database
-import person.data as pd
-import group.data as gd
+from common import json
+from common.json import GROUP_FORMAT
 from display.video import Video
+from display.tracking import disp_tracking
+from display.person import disp_person
+from display.group import DisplayGroup
 import numpy as np
 import cv2
 
 
-def display(video_path, out_dir, person_db_path, group_db_path, field, homo):
+def display(video_path, out_dir, person_json_path, group_json_path, field):
     # out video file paths
     out_paths = [
-        out_dir + '{}.mp4'.format(database.TRACKING_TABLE.name),
-        out_dir + '{}.mp4'.format(database.PERSON_TABLE.name)
+        out_dir + '{}.mp4'.format('tracking'),
+        out_dir + '{}.mp4'.format('person')
     ]
-    for table in database.GROUP_TABLE_LIST:
+    for key in GROUP_FORMAT.keys():
         out_paths.append(
-            out_dir + '{}.mp4'.format(table.name)
+            out_dir + '{}.mp4'.format(key)
         )
 
-    # connect database and read datas
-    persons = pd.read_database(person_db_path, homo)
-    group = gd.read_database(group_db_path, homo)
+    # load datas
+    person_datas = json.load(person_json_path)
+    group_datas = json.load(group_json_path)
+
+    display_group = DisplayGroup(group_datas)
 
     # load video
     video = Video(video_path)
 
     frames_lst = [[] for _ in range(len(out_paths))]
-    group_fields = [field.copy() for _ in range(len(database.GROUP_TABLE_LIST))]
+    group_fields = [field.copy() for _ in range(len(GROUP_FORMAT))]
     for frame_num in range(video.frame_num):
         # read frame
         frame = video.read()
+
+        # フレームごとにデータを取得する
+        frame_person_datas = [
+            data for data in person_datas if data['image_id'] == frame_num]
 
         # フレーム番号を表示
         cv2.putText(frame, 'Frame:{}'.format(frame_num + 1), (10, 50),
                     cv2.FONT_HERSHEY_PLAIN, 2, (255, 255, 255))
 
         field_tmp = field.copy()
-        for person in persons:
-            # トラッキングを表示
-            frame = person.display_tracking(frame_num, frame)
-            # 向きを表示
-            field_tmp = person.display_indicator(frame_num, field_tmp)
 
-        for i, table in enumerate(database.GROUP_TABLE_LIST):
-            # if i == 1:
+        # トラッキングの結果を表示
+        frame = disp_tracking(frame_person_datas, frame)
+        # 向きを表示
+        field_tmp = disp_person(frame_num, field_tmp)
+
+        for i, key in enumerate(GROUP_FORMAT):
             group_field = field_tmp.copy()
-            """
-            else:
-                group_field = field.copy()
-            """
-            group_fields[i] = group.display(table.name, frame_num, group_field)
+            group_fields[i] = display_group.disp(
+                key, frame_num, group_datas, group_field)
 
         # append tracking result
         frames_lst[0].append(frame)
         frames_lst[1].append(combine_image(frame, field_tmp))
-        for i in range(len(database.GROUP_TABLE_LIST)):
+        for i in range(len(GROUP_FORMAT)):
             frames_lst[i + 2].append(combine_image(frame, group_fields[i]))
 
     print('writing videos into {} ...'.format(out_dir))
