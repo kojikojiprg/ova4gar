@@ -8,7 +8,7 @@ def main(person_json_path, group_json_path, homo):
     group = Group(homo)
 
     last_frame_num = person_datas[-1]['image_id']
-    for frame_num in last_frame_num + 1:
+    for frame_num in range(last_frame_num + 1):
         # フレームごとにデータを取得する
         frame_person_datas = [
             data for data in person_datas if data['image_id'] == frame_num]
