@@ -1,5 +1,4 @@
 from common.json import PERSON_FORMAT, GROUP_FORMAT
-from common.keypoint import Keypoints
 from group.halfline import HalfLine, calc_cross
 import numpy as np
 from pyclustering.cluster import gmeans
@@ -41,12 +40,10 @@ def calc_attension(frame_num, person_datas, homo, k_init=1):
     # 直線を求める
     lines = []
     for data in person_datas:
-        keypoints = Keypoints(data[PERSON_FORMAT[2]])
+        position = data[PERSON_FORMAT[3]]
         face_vector = data[PERSON_FORMAT[4]]
-        if keypoints is not None and face_vector is not None:
-            point = keypoints.get_middle('Ankle')
-            point = homo.transform_point(point)
-            line = HalfLine(point, face_vector)
+        if position is not None and face_vector is not None:
+            line = HalfLine(position, face_vector)
             lines.append(line)
 
     # 半直線の交点を求める

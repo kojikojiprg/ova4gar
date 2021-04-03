@@ -17,7 +17,7 @@ def rotation(vec, rad):
     return np.dot(R, vec)
 
 
-def calc_position(keypoints, average, position_que, homo, size=5):
+def calc_position(keypoints, average, position_que, homo, size=10):
     new_pos = keypoints.get_middle('Ankle')
     if new_pos is None:
         shoulder = keypoints.get_middle('Shoulder')

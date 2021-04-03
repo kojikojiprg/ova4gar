@@ -25,8 +25,7 @@ def main(tracking_json_path, person_json_path, homo):
 
         # jsonフォーマットを作成して追加
         data = persons[person_id].to_json(frame_num)
-        if data is not None:
-            person_datas.append(data)
+        person_datas.append(data)
 
     # jsonに書き込み
     json.dump(person_datas, person_json_path)

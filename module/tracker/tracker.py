@@ -57,5 +57,13 @@ def track(keypoints_all_frame):
                     TRACKING_FORMAT[3]: person.average_lst[-1].tolist(),
                     TRACKING_FORMAT[4]: person.vector.tolist(),
                 })
+            else:
+                tracking_results.append({
+                    TRACKING_FORMAT[0]: person.id,
+                    TRACKING_FORMAT[1]: i,
+                    TRACKING_FORMAT[2]: None,
+                    TRACKING_FORMAT[3]: None,
+                    TRACKING_FORMAT[4]: None,
+                })
 
     return tracking_results

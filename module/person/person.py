@@ -16,6 +16,11 @@ class Person:
 
     def calc_indicator(self, keypoints, vector, average):
         if keypoints is None:
+            self.keypoints_lst.append(None)
+            self.vector_lst.append(None)
+            self.average_lst.append(None)
+            for v in self.indicator_dict.values():
+                v.append(None)
             return
 
         self.keypoints_lst.append(Keypoints(keypoints))
@@ -41,7 +46,11 @@ class Person:
         data = {}
         data[PERSON_FORMAT[0]] = self.id
         data[PERSON_FORMAT[1]] = frame_num
-        data[PERSON_FORMAT[2]] = self.keypoints_lst[idx].to_json()
+        if self.keypoints_lst[idx] is not None:
+            data[PERSON_FORMAT[2]] = self.keypoints_lst[idx].to_json()
+        else:
+            data[PERSON_FORMAT[2]] = None
+
         for k in PERSON_FORMAT[3:]:
             indicator = self.indicator_dict[k][idx]
             if indicator is not None:
