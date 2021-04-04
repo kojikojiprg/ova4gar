@@ -4,7 +4,7 @@ from common.functions import normalize_vector, rotation
 import numpy as np
 
 
-def calc_position(keypoints, average, position_que, homo, size=10):
+def calc_position(keypoints, average, position_que, homo, size=20):
     new_pos = keypoints.get_middle('Ankle')
     if new_pos is None:
         if len(position_que) == 0:
