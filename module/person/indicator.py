@@ -1,28 +1,18 @@
 from common.json import PERSON_FORMAT
 from common import keypoint as kp
+from common.functions import normalize_vector, rotation
 import numpy as np
-
-
-def normalize(vec):
-    vec += 1e-10
-    vec /= np.linalg.norm(vec)
-    return vec
-
-
-def rotation(vec, rad):
-    R = np.array([
-        [np.cos(rad), -np.sin(rad)],
-        [np.sin(rad), np.cos(rad)]])
-
-    return np.dot(R, vec)
 
 
 def calc_position(keypoints, average, position_que, homo, size=10):
     new_pos = keypoints.get_middle('Ankle')
     if new_pos is None:
-        shoulder = keypoints.get_middle('Shoulder')
-        diff = average - shoulder
-        new_pos = (average + diff * 1.5).astype(int)
+        if len(position_que) == 0:
+            # 初期状態では何も追加しない
+            return
+        else:
+            # 一つ前の値を追加する
+            new_pos = position_que[-1]
 
     new_pos = homo.transform_point(new_pos)
     position_que.append(new_pos)
@@ -49,15 +39,15 @@ def calc_face_vector(keypoints, homo):
     if lear[2] < kp.confidence_th and nose[2] >= kp.confidence_th:
         vector = nose - rear
         vector = vector[:2]
-        vector = normalize(vector)
+        vector = normalize_vector(vector)
     elif rear[2] < kp.confidence_th and nose[2] >= kp.confidence_th:
         vector = nose - lear
         vector = vector[:2]
-        vector = normalize(vector)
+        vector = normalize_vector(vector)
     elif rear[2] >= kp.confidence_th and lear[2] >= kp.confidence_th:
         vector = lear - rear
         vector = vector[:2]
-        vector = normalize(vector)
+        vector = normalize_vector(vector)
         vector = rotation(vector, np.pi / 2)
     else:
         vector = None
@@ -76,7 +66,7 @@ def calc_body_vector(keypoints, homo):
     if lshoulder[2] >= kp.confidence_th and rshoulder[2] >= kp.confidence_th:
         vector = lshoulder - rshoulder
         vector = vector[:2]
-        vector = normalize(vector)
+        vector = normalize_vector(vector)
         vector = rotation(vector, np.pi / 2)
     else:
         vector = None

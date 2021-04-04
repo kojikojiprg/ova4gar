@@ -33,3 +33,17 @@ def softmax(x):
     sum_exp_a = np.sum(exp_a)
     y = exp_a / sum_exp_a
     return y
+
+
+def normalize_vector(vec):
+    vec += 1e-10
+    vec /= np.linalg.norm(vec)
+    return vec
+
+
+def rotation(vec, rad):
+    R = np.array([
+        [np.cos(rad), -np.sin(rad)],
+        [np.sin(rad), np.cos(rad)]])
+
+    return np.dot(R, vec)
