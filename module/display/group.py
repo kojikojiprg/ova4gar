@@ -9,7 +9,6 @@ HEATMAP_SETTING_DICT = {
     # key: [is_heatmap, heatmap_data_index]
     keys[0]: [True, -1],
     keys[1]: [True, -1],
-    keys[2]: [True, -1],
 }
 
 

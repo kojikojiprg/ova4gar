@@ -27,12 +27,6 @@ PERSON_FORMAT = [
     'arm',
 ]
 
-DENSITY_FORMAT = [
-    'image_id',
-    'cluster',
-    'count',
-]
-
 ATTENTION_FORMAT = [
     'image_id',
     'point',
@@ -45,11 +39,17 @@ PASSING_FORMAT = [
     'probability',
 ]
 
+# not use
+# DENSITY_FORMAT = [
+#     'image_id',
+#     'cluster',
+#     'count',
+# ]
+
 # group/indicator.py
 # display/display.py
 # display/group.py
 GROUP_FORMAT = {
-    'density': DENSITY_FORMAT,
     'attention': ATTENTION_FORMAT,
     'passing': PASSING_FORMAT,
 }

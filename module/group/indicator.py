@@ -77,7 +77,6 @@ def calc_passing(frame_num, person_datas, homo, k_init=1):
 
 keys = list(GROUP_FORMAT.keys())
 INDICATOR_DICT = {
-    keys[0]: calc_density,
-    keys[1]: calc_attension,
-    keys[2]: calc_passing,
+    keys[0]: calc_attension,
+    keys[1]: calc_passing,
 }
