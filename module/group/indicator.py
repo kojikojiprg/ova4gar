@@ -1,11 +1,14 @@
 from common.json import PERSON_FORMAT, GROUP_FORMAT
+from common.functions import cos_similarity
 from group.halfline import HalfLine, calc_cross
+import inspect
 import numpy as np
 from pyclustering.cluster import gmeans
 
 
 def calc_density(frame_num, person_datas, homo, k_init=3):
-    json_format = GROUP_FORMAT['density']
+    key = inspect.currentframe().f_code.co_name.replace('calc_', '')
+    json_format = GROUP_FORMAT[key]
 
     points = []
     for data in person_datas:
@@ -34,8 +37,9 @@ def calc_density(frame_num, person_datas, homo, k_init=3):
     return datas
 
 
-def calc_attension(frame_num, person_datas, homo, k_init=1):
-    json_format = GROUP_FORMAT['attention']
+def calc_attention(frame_num, person_datas, homo, k_init=1):
+    key = inspect.currentframe().f_code.co_name.replace('calc_', '')
+    json_format = GROUP_FORMAT[key]
 
     # 直線を求める
     lines = []
@@ -71,12 +75,30 @@ def calc_attension(frame_num, person_datas, homo, k_init=1):
     return datas
 
 
-def calc_passing(frame_num, person_datas, homo, k_init=1):
-    pass
+def calc_passing(frame_num, person_datas, homo, thresh=100):
+    key = inspect.currentframe().f_code.co_name.replace('calc_', '')
+    json_format = GROUP_FORMAT[key]
+
+    datas = []
+    for i in range(len(person_datas) - 1):
+        for j in range(i + 1, len(person_datas)):
+            p1 = person_datas[i]
+            p2 = person_datas[j]
+
+            p1_pos = p1[PERSON_FORMAT[3]]
+            p2_pos = p1[PERSON_FORMAT[3]]
+            if np.linalg.norm(p1_pos, p2_pos) < thresh:
+                # cosine similarity of body vectors
+                cos = cos_similarity(p1[PERSON_FORMAT[5]], p2[PERSON_FORMAT[5]])
+            else:
+                datas.append({
+                    json_format[0]: frame_num,
+                    json_format[1]: None,
+                    json_format[2]: None})
 
 
 keys = list(GROUP_FORMAT.keys())
 INDICATOR_DICT = {
-    keys[0]: calc_attension,
+    keys[0]: calc_attention,
     keys[1]: calc_passing,
 }

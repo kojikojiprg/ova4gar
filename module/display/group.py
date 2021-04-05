@@ -1,5 +1,6 @@
 from common.json import GROUP_FORMAT
 from display.heatmap import Heatmap
+import inspect
 import numpy as np
 import cv2
 
@@ -44,7 +45,7 @@ class DisplayGroup:
         return field
 
     def disp_density(self, datas, field, min_r=8):
-        key = self.disp_density.__name__.replace('disp_', '')
+        key = inspect.currentframe().f_code.co_name.replace('disp_', '')
         json_format = GROUP_FORMAT[key]
 
         for data in datas:
@@ -57,7 +58,7 @@ class DisplayGroup:
         return field
 
     def disp_attention(self, datas, field, min_r=8):
-        key = self.disp_attention.__name__.replace('disp_', '')
+        key = inspect.currentframe().f_code.co_name.replace('disp_', '')
         json_format = GROUP_FORMAT[key]
 
         for data in datas:
