@@ -82,10 +82,10 @@ def calc_arm_extention(keypoints, homo):
         forearm = keypoints.get(lr + 'Wrist', ignore_confidence=True) \
             - keypoints.get(lr + 'Elbow', ignore_confidence=True)
 
-        cos_body2upper = np.abs(cos_similarity(body_line, upper_arm))
+        cos_body2upper = 1.0 - np.abs(cos_similarity(body_line, upper_arm))  # cos to sin
         cos_upper2fore = np.abs(cos_similarity(upper_arm, forearm))
 
-        return cos_body2upper / (cos_upper2fore + 1e-10)
+        return cos_body2upper * cos_upper2fore
 
     return np.max((calc(keypoints, 'L'), calc(keypoints, 'R')))
 
