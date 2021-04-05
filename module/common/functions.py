@@ -41,6 +41,12 @@ def normalize_vector(vec):
     return vec
 
 
+def cos_similarity(vec1, vec2):
+    dot = np.dot(vec1, vec2)
+    norm = np.linalg.norm(vec1) * np.linalg.norm(vec2)
+    return dot / (norm + 1e-10)
+
+
 def rotation(vec, rad):
     R = np.array([
         [np.cos(rad), -np.sin(rad)],
