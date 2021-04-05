@@ -24,7 +24,7 @@ PERSON_FORMAT = [
     'position',
     'face_vector',
     'body_vector',
-    'wrist',
+    'arm',
 ]
 
 DENSITY_FORMAT = [
