@@ -79,4 +79,5 @@ keys = list(GROUP_FORMAT.keys())
 INDICATOR_DICT = {
     keys[0]: calc_density,
     keys[1]: calc_attension,
+    keys[2]: calc_passing,
 }

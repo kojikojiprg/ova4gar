@@ -39,12 +39,19 @@ ATTENTION_FORMAT = [
     'count',
 ]
 
+PASSING_FORMAT = [
+    'image_id',
+    'point',
+    'probability',
+]
+
 # group/indicator.py
 # display/display.py
 # display/group.py
 GROUP_FORMAT = {
     'density': DENSITY_FORMAT,
     'attention': ATTENTION_FORMAT,
+    'passing': PASSING_FORMAT,
 }
 
 
