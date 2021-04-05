@@ -1,6 +1,6 @@
 from common.json import PERSON_FORMAT
 from common import keypoint as kp
-from common.functions import normalize_vector, rotation
+from common.functions import normalize_vector, cos_similarity, rotation
 import numpy as np
 
 
@@ -74,21 +74,20 @@ def calc_body_vector(keypoints, homo):
     return vector
 
 
-def calc_wrist(keypoints, homo):
+def calc_arm_extention(keypoints, homo):
     def calc(keypoints, lr):
-        wrist = keypoints.get(lr + 'Wrist')
+        body_line = keypoints.get_middle('Hip') - keypoints.get_middle('Shoulder')
+        upper_arm = keypoints.get(lr + 'Elbow', ignore_confidence=True) \
+            - keypoints.get(lr + 'Shoulder', ignore_confidence=True)
+        forearm = keypoints.get(lr + 'Wrist', ignore_confidence=True) \
+            - keypoints.get(lr + 'Elbow', ignore_confidence=True)
 
-        # ポイントを足元に反映
-        diff = keypoints.get_middle('Ankle') - wrist[:2]
-        wrist[1] += diff[1]
+        cos_body2upper = np.abs(cos_similarity(body_line, upper_arm))
+        cos_upper2fore = np.abs(cos_similarity(upper_arm, forearm))
 
-        # ホモグラフィ変換
-        wrist = np.append(homo.transform_point(wrist[:2]), wrist[2])
+        return cos_body2upper / (cos_upper2fore + 1e-10)
 
-        return wrist
-
-    ret = np.append(calc(keypoints, 'L'), calc(keypoints, 'R'))
-    return ret
+    return np.max((calc(keypoints, 'L'), calc(keypoints, 'R')))
 
 
 start_idx = 3
@@ -96,5 +95,5 @@ INDICATOR_DICT = {
     PERSON_FORMAT[start_idx + 0]: calc_position,
     PERSON_FORMAT[start_idx + 1]: calc_face_vector,
     PERSON_FORMAT[start_idx + 2]: calc_body_vector,
-    PERSON_FORMAT[start_idx + 3]: calc_wrist,
+    PERSON_FORMAT[start_idx + 3]: calc_arm_extention,
 }
