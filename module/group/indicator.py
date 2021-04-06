@@ -75,7 +75,7 @@ def calc_attention(frame_num, person_datas, homo, k_init=1):
     return datas
 
 
-def calc_passing(frame_num, person_datas, homo, th_norm=300, th_shita=90):
+def calc_passing(frame_num, person_datas, homo, th_norm=300, th_shita=np.pi / 6):
     key = inspect.currentframe().f_code.co_name.replace('calc_', '')
     json_format = GROUP_FORMAT[key]
 
@@ -108,9 +108,9 @@ def calc_passing(frame_num, person_datas, homo, th_norm=300, th_shita=90):
             p2p1 = p1_pos - p2_pos
 
             # calc angle between p1 body and p1p2 vector
-            shita1 = np.rad2deg(np.arccos(cos_similarity(p1_body, p1p2)))
+            shita1 = np.arccos(cos_similarity(p1_body, p1p2))
             # calc angle between p2 body and p2p1 vector
-            shita2 = np.rad2deg(np.arccos(cos_similarity(p2_body, p2p1)))
+            shita2 = np.arccos(cos_similarity(p2_body, p2p1))
 
             norm = euclidean(p1_pos, p2_pos)
             if norm < th_norm and (

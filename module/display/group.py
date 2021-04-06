@@ -82,9 +82,10 @@ class DisplayGroup:
 
         for data in datas:
             point = data[json_format[1]]
-            likelifood = data[json_format[0]]
+            likelifood = data[json_format[2]]
             if point is not None:
-                cv2.circle(field, tuple(point), 5, (0, 0, 0), thickness=-1)
+                color = self.heatmap_dict[key].colormap(likelifood)
+                cv2.circle(field, tuple(point), 5, color, thickness=-1)
                 cv2.putText(
                     field, str(likelifood), tuple(point), cv2.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), 2)
 
