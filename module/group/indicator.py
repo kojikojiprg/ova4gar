@@ -124,10 +124,10 @@ def calc_passing(frame_num, person_datas, homo, th_norm=300, th_shita=np.pi / 6)
                 arm = np.average([p1[PERSON_FORMAT[6]], p2[PERSON_FORMAT[6]]])
 
                 # 受け渡しをしている尤度
-                likelifood = opposite * arm
+                likelifood = np.average([opposite, arm])
 
                 # 中心点
-                center = np.average([p1_pos, p2_pos], axis=1)
+                center = np.average([p1_pos, p2_pos], axis=0)
 
                 datas.append({
                     json_format[0]: frame_num,
