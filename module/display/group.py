@@ -74,3 +74,15 @@ class DisplayGroup:
             cv2.circle(field, tuple(point), r, color, thickness=-1)
 
         return field
+
+    def disp_passing(self, datas, field):
+        key = inspect.currentframe().f_code.co_name.replace('disp_', '')
+        json_format = GROUP_FORMAT[key]
+
+        for data in datas:
+            point = data[json_format[1]]
+            likelifood = data[json_format[0]]
+            if point is not None:
+                cv2.circle(field, tuple(point), 5, (0, 0, 0), thickness=-1)
+                cv2.putText(
+                    field, str(likelifood), tuple(point), cv2.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), 2)
