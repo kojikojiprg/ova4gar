@@ -25,8 +25,9 @@ class DisplayGroup:
                 distribution = []
                 data_keys = GROUP_FORMAT[key]
                 for data in datas:
-                    distribution.append(
-                        data[data_keys[HEATMAP_SETTING_DICT[key][1]]])
+                    append_data = data[data_keys[HEATMAP_SETTING_DICT[key][1]]]
+                    if append_data is not None:
+                        distribution.append(append_data)
                 self.heatmap_dict[key] = Heatmap(distribution)
             else:
                 self.heatmap_dict[key] = None
@@ -86,3 +87,5 @@ class DisplayGroup:
                 cv2.circle(field, tuple(point), 5, (0, 0, 0), thickness=-1)
                 cv2.putText(
                     field, str(likelifood), tuple(point), cv2.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), 2)
+
+        return field

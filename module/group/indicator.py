@@ -1,5 +1,5 @@
 from common.json import PERSON_FORMAT, GROUP_FORMAT
-from common.functions import cos_similarity
+from common.functions import cos_similarity, euclidean
 from group.halfline import HalfLine, calc_cross
 import inspect
 import numpy as np
@@ -75,7 +75,7 @@ def calc_attention(frame_num, person_datas, homo, k_init=1):
     return datas
 
 
-def calc_passing(frame_num, person_datas, homo, th_norm=100, th_shita=np.pi / 18):
+def calc_passing(frame_num, person_datas, homo, th_norm=300, th_shita=90):
     key = inspect.currentframe().f_code.co_name.replace('calc_', '')
     json_format = GROUP_FORMAT[key]
 
@@ -86,21 +86,33 @@ def calc_passing(frame_num, person_datas, homo, th_norm=100, th_shita=np.pi / 18
             p2 = person_datas[j]
 
             # obtain datas
-            p1_pos = np.array(p1[PERSON_FORMAT[3]])
-            p2_pos = np.array(p1[PERSON_FORMAT[3]])
-            p1_body = np.array(p1[PERSON_FORMAT[5]])
-            p2_body = np.array(p2[PERSON_FORMAT[5]])
+            p1_pos = p1[PERSON_FORMAT[3]]
+            p2_pos = p2[PERSON_FORMAT[3]]
+            p1_body = p1[PERSON_FORMAT[5]]
+            p2_body = p2[PERSON_FORMAT[5]]
+
+            if p1_pos is None or p2_pos is None or p1_body is None or p2_body is None:
+                datas.append({
+                    json_format[0]: frame_num,
+                    json_format[1]: None,
+                    json_format[2]: None})
+                return datas
+
+            p1_pos = np.array(p1_pos)
+            p2_pos = np.array(p2_pos)
+            p1_body = np.array(p1_body)
+            p2_body = np.array(p2_body)
 
             # calc vector of each other
             p1p2 = p2_pos - p1_pos
             p2p1 = p1_pos - p2_pos
 
             # calc angle between p1 body and p1p2 vector
-            shita1 = np.arccos(cos_similarity(p1_body, p1p2))
+            shita1 = np.rad2deg(np.arccos(cos_similarity(p1_body, p1p2)))
             # calc angle between p2 body and p2p1 vector
-            shita2 = np.arccos(cos_similarity(p2_body, p2p1))
+            shita2 = np.rad2deg(np.arccos(cos_similarity(p2_body, p2p1)))
 
-            norm = np.linalg.norm(p1_pos, p2_pos)
+            norm = euclidean(p1_pos, p2_pos)
             if norm < th_norm and (
                 (0 <= shita1 and shita1 <= th_shita) and
                 (0 <= shita2 and shita2 <= th_shita)
