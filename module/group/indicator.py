@@ -69,7 +69,7 @@ def calc_attention(frame_num, person_datas, homo, k_init=1):
         for cluster in gm.get_clusters():
             datas.append({
                 json_format[0]: frame_num,
-                json_format[1]: cross_points[cluster].tolist(),
+                json_format[1]: cross_points[cluster].astype(int).tolist(),
                 json_format[2]: len(cluster)})
 
     return datas
@@ -119,7 +119,7 @@ def calc_passing(frame_num, person_datas, homo, th_norm=100, th_shita=np.pi / 18
 
                 datas.append({
                     json_format[0]: frame_num,
-                    json_format[1]: center.tolist(),
+                    json_format[1]: center.astype(int).tolist(),
                     json_format[2]: likelifood})
             else:
                 datas.append({
