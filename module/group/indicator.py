@@ -75,7 +75,7 @@ def calc_attention(frame_num, person_datas, homo, k_init=1):
     return datas
 
 
-def calc_passing(frame_num, person_datas, homo, th_norm=300, th_shita=np.pi / 6):
+def calc_passing(frame_num, person_datas, homo, th_norm=200, th_shita=np.pi / 6):
     key = inspect.currentframe().f_code.co_name.replace('calc_', '')
     json_format = GROUP_FORMAT[key]
 
