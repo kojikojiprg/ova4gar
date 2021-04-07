@@ -43,12 +43,12 @@ class Keypoints(list):
     def get_middle(self, name):
         R = self.get('R' + name)
         L = self.get('L' + name)
-        if R[2] < confidence_th:
+        if R[2] < confidence_th and L[2] < confidence_th:
+            return None
+        elif R[2] < confidence_th:
             point = L
         elif L[2] < confidence_th:
             point = R
-        elif R[2] < confidence_th and L[2] < confidence_th:
-            return None
         else:
             point = (R + L) / 2
         return point[:2].astype(int)
