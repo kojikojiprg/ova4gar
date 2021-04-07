@@ -8,14 +8,15 @@ import os
 import cv2
 
 
-# IS_TRACKING = True
-# IS_PERSON = True
-# IS_GROUP = True
-# IS_DISPLAY = True
+# is_tracking = True
+# is_person = True
+# is_group = True
+# is_display = True
 
-# ROOM_NUM = '09'
-# DATE = '20210304'
-# NAME = 'pass2':
+# room_num = '09'
+# date = '20210304'
+# name = 'pass2'
+
 
 def main(room_num, date, name, is_tracking, is_person, is_group, is_display):
     video_path = os.path.join(common.data_dir, '{0}/{1}/{2}/AlphaPose_{2}.mp4'.format(room_num, date, name))
