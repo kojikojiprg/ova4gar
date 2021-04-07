@@ -24,7 +24,7 @@ def disp_body_face(person_datas, field):
         vector = data[key]
         arrow_length = VECTOR_SETTING_LIST[key][0]
 
-        if vector is not None:
+        if position is not None and vector is not None:
             # 矢印の先端の座標を計算
             end = (np.array(position) + (np.array(vector) * arrow_length)).astype(int)
 

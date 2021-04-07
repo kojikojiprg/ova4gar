@@ -28,6 +28,7 @@ class DisplayGroup:
                     append_data = data[data_keys[HEATMAP_SETTING_DICT[key][1]]]
                     if append_data is not None:
                         distribution.append(append_data)
+
                 self.heatmap_dict[key] = Heatmap(distribution)
             else:
                 self.heatmap_dict[key] = None
