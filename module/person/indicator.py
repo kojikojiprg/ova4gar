@@ -7,12 +7,6 @@ import numpy as np
 def calc_position(keypoints, average, position_que, homo, size=20, ratio=1.2):
     new_pos = keypoints.get_middle('Ankle')
     if new_pos is None:
-        # if len(position_que) == 0:
-        #     # 初期状態では何も追加しない
-        #     return
-        # else:
-        #     # 一つ前の値を追加する
-        #     new_pos = position_que[-1]
         shoulder = keypoints.get_middle('Shoulder')
         hip = keypoints.get_middle('Hip')
 
@@ -20,7 +14,7 @@ def calc_position(keypoints, average, position_que, homo, size=20, ratio=1.2):
             return None
         else:
             body_line = hip - shoulder
-            new_pos = body_line * ratio
+            new_pos = hip + body_line * ratio
 
     new_pos = homo.transform_point(new_pos)
     position_que.append(new_pos)
