@@ -88,6 +88,6 @@ class DisplayGroup:
                 color = self.heatmap_dict[key].colormap(likelifood)
                 cv2.circle(field, tuple(point), 5, color, thickness=-1)
                 cv2.putText(
-                    field, str(likelifood), tuple(point), cv2.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), 2)
+                    field, str(likelifood), tuple(point), cv2.FONT_HERSHEY_PLAIN, 2, color, 2)
 
         return field
