@@ -23,7 +23,7 @@ class Person:
         self.vector = np.array([0, 0])
 
     def _get_point(self, keypoints):
-        return keypoints.get_middle('Hip')
+        return keypoints.get_middle('Hip', th_conf=0.0)
 
     def reset(self):
         if not self.is_deleted():

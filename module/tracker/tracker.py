@@ -16,7 +16,7 @@ def track(keypoints_all_frame):
             person.reset()
 
         for keypoints in keypoints_lst:
-            target = keypoints.get_middle('Hip')
+            target = keypoints.get_middle('Hip', th_conf=0.0)
             max_person = None
             max_prob = 0.0
             for person in persons:

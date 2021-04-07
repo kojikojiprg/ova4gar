@@ -4,21 +4,29 @@ from common.functions import normalize_vector, cos_similarity, rotation
 import numpy as np
 
 
-def calc_position(keypoints, average, position_que, homo, size=20):
+def calc_position(keypoints, average, position_que, homo, size=20, ratio=1.2):
     new_pos = keypoints.get_middle('Ankle')
     if new_pos is None:
-        if len(position_que) == 0:
-            # 初期状態では何も追加しない
-            return
+        # if len(position_que) == 0:
+        #     # 初期状態では何も追加しない
+        #     return
+        # else:
+        #     # 一つ前の値を追加する
+        #     new_pos = position_que[-1]
+        shoulder = keypoints.get_middle('Shoulder')
+        hip = keypoints.get_middle('Hip')
+
+        if shoulder is None or hip is None:
+            return None
         else:
-            # 一つ前の値を追加する
-            new_pos = position_que[-1]
+            body_line = hip - shoulder
+            new_pos = body_line * ratio
 
     new_pos = homo.transform_point(new_pos)
     position_que.append(new_pos)
 
     if len(position_que) <= size:
-        pos = np.average(position_que[:len(position_que)], axis=0)
+        pos = np.average(position_que, axis=0)
     else:
         position_que = position_que[-size:]
         pos = np.average(position_que, axis=0)
@@ -36,15 +44,15 @@ def calc_face_vector(keypoints, homo):
     lear = np.append(homo.transform_point(lear[:2]), lear[2])
     rear = np.append(homo.transform_point(rear[:2]), rear[2])
 
-    if lear[2] < kp.confidence_th and nose[2] >= kp.confidence_th:
+    if lear[2] < kp.THRESHOLD_CONFIDENCE and nose[2] >= kp.THRESHOLD_CONFIDENCE:
         vector = nose - rear
         vector = vector[:2]
         vector = normalize_vector(vector)
-    elif rear[2] < kp.confidence_th and nose[2] >= kp.confidence_th:
+    elif rear[2] < kp.THRESHOLD_CONFIDENCE and nose[2] >= kp.THRESHOLD_CONFIDENCE:
         vector = nose - lear
         vector = vector[:2]
         vector = normalize_vector(vector)
-    elif rear[2] >= kp.confidence_th and lear[2] >= kp.confidence_th:
+    elif rear[2] >= kp.THRESHOLD_CONFIDENCE and lear[2] >= kp.THRESHOLD_CONFIDENCE:
         vector = lear - rear
         vector = vector[:2]
         vector = normalize_vector(vector)
@@ -63,7 +71,7 @@ def calc_body_vector(keypoints, homo):
     lshoulder = np.append(homo.transform_point(lshoulder[:2]), lshoulder[2])
     rshoulder = np.append(homo.transform_point(rshoulder[:2]), rshoulder[2])
 
-    if lshoulder[2] >= kp.confidence_th and rshoulder[2] >= kp.confidence_th:
+    if lshoulder[2] >= kp.THRESHOLD_CONFIDENCE and rshoulder[2] >= kp.THRESHOLD_CONFIDENCE:
         vector = lshoulder - rshoulder
         vector = vector[:2]
         vector = normalize_vector(vector)
@@ -76,18 +84,33 @@ def calc_body_vector(keypoints, homo):
 
 def calc_arm_extention(keypoints, homo):
     def calc(keypoints, lr):
-        body_line = keypoints.get_middle('Hip') - keypoints.get_middle('Shoulder')
-        upper_arm = keypoints.get(lr + 'Elbow', ignore_confidence=True) \
-            - keypoints.get(lr + 'Shoulder', ignore_confidence=True)
-        forearm = keypoints.get(lr + 'Wrist', ignore_confidence=True) \
-            - keypoints.get(lr + 'Elbow', ignore_confidence=True)
+        shoulder = keypoints.get_middle('Shoulder')
+        hip = keypoints.get_middle('Hip')
 
-        cos_body2upper = 1.0 - np.abs(cos_similarity(body_line, upper_arm))  # cos to sin
-        cos_upper2fore = np.abs(cos_similarity(upper_arm, forearm))
+        if shoulder is None or hip is None:
+            return None
+        else:
+            body_line = hip - shoulder
+            upper_arm = keypoints.get(lr + 'Elbow', ignore_confidence=True) \
+                - keypoints.get(lr + 'Shoulder', ignore_confidence=True)
+            forearm = keypoints.get(lr + 'Wrist', ignore_confidence=True) \
+                - keypoints.get(lr + 'Elbow', ignore_confidence=True)
 
-        return cos_body2upper * cos_upper2fore
+            cos_body2upper = 1.0 - np.abs(cos_similarity(body_line, upper_arm))  # cos to sin
+            cos_upper2fore = np.abs(cos_similarity(upper_arm, forearm))
 
-    return np.max((calc(keypoints, 'L'), calc(keypoints, 'R')))
+            return cos_body2upper * cos_upper2fore
+
+    larm = calc(keypoints, 'L')
+    rarm = calc(keypoints, 'R')
+    if larm is None and rarm is None:
+        return None
+    elif larm is None and rarm is not None:
+        return rarm
+    elif larm is not None and rarm is None:
+        return larm
+    else:
+        return np.max((larm, rarm))
 
 
 start_idx = 3
