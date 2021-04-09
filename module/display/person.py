@@ -14,6 +14,7 @@ VECTOR_SETTING_LIST = {
 def disp_person(person_datas, field):
     field = disp_body_face(person_datas, field)
     field = disp_arm_extention(person_datas, field)
+    field = disp_arm_extention2(person_datas, field)
 
     return field
 
@@ -51,5 +52,18 @@ def disp_arm_extention(person_datas, field):
             arm_estention = np.round(arm_estention, decimals=3)
             cv2.putText(
                 field, str(arm_estention), tuple(position), cv2.FONT_HERSHEY_PLAIN, 2, (0, 255, 0), 2)
+
+    return field
+
+
+def disp_arm_extention2(person_datas, field):
+    for data in person_datas:
+        position = data[PERSON_FORMAT[3]]
+        arm_estention = data[PERSON_FORMAT[7]]
+        if arm_estention is not None:
+            arm_estention = np.round(arm_estention, decimals=3)
+            position[1] += 20
+            cv2.putText(
+                field, str(arm_estention), tuple(position), cv2.FONT_HERSHEY_PLAIN, 2, (0, 230, 0), 2)
 
     return field

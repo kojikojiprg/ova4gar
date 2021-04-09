@@ -25,6 +25,7 @@ PERSON_FORMAT = [
     'face_vector',
     'body_vector',
     'arm',
+    'arm2',
 ]
 
 ATTENTION_FORMAT = [
@@ -52,6 +53,7 @@ PASSING_FORMAT = [
 GROUP_FORMAT = {
     'attention': ATTENTION_FORMAT,
     'passing': PASSING_FORMAT,
+    'passing2': PASSING_FORMAT,
 }
 
 

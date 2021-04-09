@@ -107,10 +107,37 @@ def calc_arm_extention(keypoints, homo):
         return np.max((larm, rarm))
 
 
+def calc_arm_extention2(keypoints, homo):
+    def calc(keypoints, lr):
+        shoulder = keypoints.get_middle('Shoulder')
+        hip = keypoints.get_middle('Hip')
+
+        if shoulder is None or hip is None:
+            return None
+        else:
+            body_line = hip - shoulder
+            arm = keypoints.get(lr + 'Wrist', ignore_confidence=True) \
+                - keypoints.get(lr + 'Shoulder', ignore_confidence=True)
+
+            return 1.0 - np.abs(cos_similarity(body_line, arm))  # cos to sin
+
+    larm = calc(keypoints, 'L')
+    rarm = calc(keypoints, 'R')
+    if larm is None and rarm is None:
+        return None
+    elif larm is None and rarm is not None:
+        return rarm
+    elif larm is not None and rarm is None:
+        return larm
+    else:
+        return np.max((larm, rarm))
+
+
 start_idx = 3
 INDICATOR_DICT = {
     PERSON_FORMAT[start_idx + 0]: calc_position,
     PERSON_FORMAT[start_idx + 1]: calc_face_vector,
     PERSON_FORMAT[start_idx + 2]: calc_body_vector,
     PERSON_FORMAT[start_idx + 3]: calc_arm_extention,
+    PERSON_FORMAT[start_idx + 4]: calc_arm_extention2,
 }
