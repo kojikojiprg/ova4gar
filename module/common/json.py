@@ -53,7 +53,6 @@ PASSING_FORMAT = [
 GROUP_FORMAT = {
     'attention': ATTENTION_FORMAT,
     'passing': PASSING_FORMAT,
-    'passing2': PASSING_FORMAT,
 }
 
 

@@ -10,7 +10,6 @@ HEATMAP_SETTING_DICT = {
     # key: [is_heatmap, heatmap_data_index]
     keys[0]: [True, -1],
     keys[1]: [True, -1],
-    keys[1] + '2': [True, -1],
 }
 
 
@@ -79,21 +78,6 @@ class DisplayGroup:
         return field
 
     def disp_passing(self, datas, field):
-        key = inspect.currentframe().f_code.co_name.replace('disp_', '')
-        json_format = GROUP_FORMAT[key]
-
-        for data in datas:
-            point = data[json_format[1]]
-            if point is not None:
-                likelifood = np.round(data[json_format[2]], decimals=3)
-                color = self.heatmap_dict[key].colormap(likelifood)
-                cv2.circle(field, tuple(point), 5, color, thickness=-1)
-                cv2.putText(
-                    field, str(likelifood), tuple(point), cv2.FONT_HERSHEY_PLAIN, 2, color, 2)
-
-        return field
-
-    def disp_passing2(self, datas, field):
         key = inspect.currentframe().f_code.co_name.replace('disp_', '')
         json_format = GROUP_FORMAT[key]
 
