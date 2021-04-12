@@ -11,6 +11,10 @@ def mahalanobis(x, data):
     return distance.mahalanobis(x, mu, inv)
 
 
+def gauss(x, a=1, mu=1, sigma=1):
+    return a * np.exp(-(x - mu)**2 / (2 * sigma**2))
+
+
 def euclidean(a, b, axis=None):
     return np.linalg.norm(a - b, axis=axis)
 
