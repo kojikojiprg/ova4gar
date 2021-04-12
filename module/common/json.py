@@ -25,7 +25,6 @@ PERSON_FORMAT = [
     'face_vector',
     'body_vector',
     'arm',
-    'arm2',
 ]
 
 ATTENTION_FORMAT = [

@@ -120,7 +120,7 @@ def calc_passing(frame_num, person_datas, homo, th=0.5, th_shita=np.pi / 3):
                 opposite = np.abs(cos_similarity(p1_body, p2_body))
 
                 # 腕を伸ばしている度合い
-                arm = np.average([p1[PERSON_FORMAT[7]], p2[PERSON_FORMAT[7]]])
+                arm = np.average([p1[PERSON_FORMAT[6]], p2[PERSON_FORMAT[6]]])
 
                 # 受け渡しをしている尤度
                 likelifood = np.average([opposite, arm]) * distance_prob
