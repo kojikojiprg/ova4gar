@@ -1,6 +1,5 @@
 from common.json import PERSON_FORMAT, GROUP_FORMAT
 from common.functions import cos_similarity, euclidean, gauss
-from group.halfline import HalfLine, calc_cross
 import inspect
 import numpy as np
 from pyclustering.cluster import gmeans
@@ -37,41 +36,40 @@ def calc_density(frame_num, person_datas, homo, k_init=3):
     return datas
 
 
-def calc_attention(frame_num, person_datas, homo, k_init=1):
+def calc_attention(frame_num, person_datas, homo, field, angle_range=np.pi / 9, division=5):
     key = inspect.currentframe().f_code.co_name.replace('calc_', '')
     json_format = GROUP_FORMAT[key]
 
-    # 直線を求める
-    lines = []
-    for data in person_datas:
-        position = data[PERSON_FORMAT[3]]
-        face_vector = data[PERSON_FORMAT[4]]
-        if position is not None and face_vector is not None:
-            line = HalfLine(position, face_vector)
-            lines.append(line)
+    pixcel_datas = np.zeros((field.shape[1], field.shape[0]))
+    for x in range(0, field.shape[1], division):
+        for y in range(0, field.shape[0], division):
+            point = np.array([x, y])
+            for data in person_datas:
+                pos = data[PERSON_FORMAT[3]]
+                face_vector = data[PERSON_FORMAT[4]]
+                if pos is None or face_vector is None:
+                    continue
 
-    # 半直線の交点を求める
-    cross_points = []
-    for i in range(len(lines) - 1):
-        for j in range(i + 1, len(lines)):
-            cross_point = calc_cross(lines[i], lines[j])
-            if cross_point is not None:
-                if lines[i].is_online(
-                        cross_point) and lines[j].is_online(cross_point):
-                    # 交点が半直線上にあれば追加する
-                    cross_points.append(cross_point)
-    cross_points = np.array(cross_points)
+                diff = point - np.array(pos)
+                shita = np.arctan2(diff[1], diff[0])
+
+                face_shita = np.arctan2(face_vector[1], face_vector[0])
+
+                if (
+                    face_shita - angle_range <= shita and
+                    shita <= face_shita + angle_range
+                ):
+                    pixcel_datas[x, y] += 1
 
     datas = []
-    # g-means でクラスタリング
-    if len(cross_points) > 0:
-        gm = gmeans.gmeans(cross_points, k_init=k_init)
-        gm.process()
-        for cluster in gm.get_clusters():
-            datas.append({
-                json_format[0]: frame_num,
-                json_format[1]: cross_points[cluster].astype(int).tolist(),
-                json_format[2]: len(cluster)})
+    for x, row in enumerate(pixcel_datas):
+        for y, data in enumerate(row):
+            if data > 0:
+                datas.append({
+                    json_format[0]: frame_num,
+                    json_format[1]: [x, y],
+                    json_format[2]: data
+                })
 
     return datas
 
@@ -91,8 +89,14 @@ def calc_passing(frame_num, person_datas, homo, th=0.5, th_shita=np.pi / 3):
             p2_pos = p2[PERSON_FORMAT[3]]
             p1_body = p1[PERSON_FORMAT[5]]
             p2_body = p2[PERSON_FORMAT[5]]
+            p1_arm = p1[PERSON_FORMAT[6]]
+            p2_arm = p2[PERSON_FORMAT[6]]
 
-            if p1_pos is None or p2_pos is None or p1_body is None or p2_body is None:
+            if (
+                p1_pos is None or p2_pos is None or
+                p1_body is None or p2_body is None or
+                p1_arm is None or p2_arm is None
+            ):
                 continue
 
             p1_pos = np.array(p1_pos)
@@ -120,7 +124,7 @@ def calc_passing(frame_num, person_datas, homo, th=0.5, th_shita=np.pi / 3):
                 opposite = np.abs(cos_similarity(p1_body, p2_body))
 
                 # 腕を伸ばしている度合い
-                arm = np.average([p1[PERSON_FORMAT[6]], p2[PERSON_FORMAT[6]]])
+                arm = np.average([p1_arm, p2_arm])
 
                 # 受け渡しをしている尤度
                 likelifood = np.average([opposite, arm]) * distance_prob

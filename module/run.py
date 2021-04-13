@@ -40,7 +40,7 @@ def main(room_num, date, name, is_tracking, is_person, is_group, is_display):
         pd.main(tracking_json_path, person_json_path, homo)
 
     if is_group:
-        gd.main(person_json_path, group_json_path, homo)
+        gd.main(person_json_path, group_json_path, homo, field_raw)
 
     if is_display:
         display(video_path, out_dir, person_json_path, group_json_path, field_raw)
