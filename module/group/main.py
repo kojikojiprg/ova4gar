@@ -2,10 +2,10 @@ from common import json
 from group.group import Group
 
 
-def main(person_json_path, group_json_path, homo):
+def main(person_json_path, group_json_path, homo, field):
     person_datas = json.load(person_json_path)
 
-    group = Group(homo)
+    group = Group(homo, field)
 
     last_frame_num = person_datas[-1]['image_id'] + 1
     for frame_num in range(last_frame_num):

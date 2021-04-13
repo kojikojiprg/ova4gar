@@ -29,7 +29,10 @@ class DisplayGroup:
                     if append_data is not None:
                         distribution.append(append_data)
 
-                self.heatmap_dict[key] = Heatmap(distribution)
+                if len(distribution) > 0:
+                    self.heatmap_dict[key] = Heatmap(distribution)
+                else:
+                    self.heatmap_dict[key] = None
             else:
                 self.heatmap_dict[key] = None
 
@@ -59,21 +62,16 @@ class DisplayGroup:
 
         return field
 
-    def disp_attention(self, datas, field, min_r=8):
+    def disp_attention(self, datas, field):
         key = inspect.currentframe().f_code.co_name.replace('disp_', '')
         json_format = GROUP_FORMAT[key]
 
         for data in datas:
-            points = np.array(data[json_format[1]])
-            for point in points:
-                # 視線が重なったところを黒色で表示
-                cv2.circle(field, tuple(point.astype(int)), 5, (0, 0, 0), thickness=-1)
+            point = data[json_format[1]]
+            value = data[json_format[2]]
 
-            # クラスターを表示
-            point = np.average(points, axis=0).astype(int)
-            r = min_r + len(points)
-            color = self.heatmap_dict[key].colormap(len(points))
-            cv2.circle(field, tuple(point), r, color, thickness=-1)
+            color = self.heatmap_dict[key].colormap(value)
+            cv2.circle(field, tuple(point), 1, color, thickness=-1)
 
         return field
 
