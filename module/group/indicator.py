@@ -36,7 +36,7 @@ def calc_density(frame_num, person_datas, homo, k_init=3):
     return datas
 
 
-def calc_attention(frame_num, person_datas, homo, field, angle_range=np.pi / 9, division=5):
+def calc_attention(frame_num, person_datas, homo, field, angle_range=np.pi / 18, division=5):
     key = inspect.currentframe().f_code.co_name.replace('calc_', '')
     json_format = GROUP_FORMAT[key]
 
