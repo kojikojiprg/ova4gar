@@ -2,7 +2,7 @@ from common import json
 from group.group import Group
 
 
-def main(person_json_path, group_json_path, homo, field, method=None):
+def main(person_json_path, group_json_path, homo, field, method=None, **karg):
     person_datas = json.load(person_json_path)
 
     group = Group(homo, field, method)
@@ -14,7 +14,7 @@ def main(person_json_path, group_json_path, homo, field, method=None):
             data for data in person_datas if data['image_id'] == frame_num]
 
         # 指標の計算
-        group.calc_indicator(frame_num, frame_person_datas)
+        group.calc_indicator(frame_num, frame_person_datas, **karg)
 
     # jsonフォーマットを生成して書き込み
     group_datas = group.to_json()
