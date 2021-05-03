@@ -19,7 +19,7 @@ import numpy as np
 # name = 'pass2'
 
 
-def main(room_num, date, name, is_tracking, is_person, is_group, is_display, angle=None):
+def main(room_num, date, name, is_tracking, is_person, is_group, is_display, **karg):
     video_path = os.path.join(common.data_dir, '{0}/{1}/{2}/AlphaPose_{2}.mp4'.format(room_num, date, name))
     out_dir = os.path.join(common.out_dir, '{0}/{1}/{2}/'.format(room_num, date, name))
     field_path = os.path.join(common.data_dir, 'field.png')
@@ -27,6 +27,7 @@ def main(room_num, date, name, is_tracking, is_person, is_group, is_display, ang
     tracking_json_path = os.path.join(common.json_dir, '{0}/{1}/{2}/tracking.json'.format(room_num, date, name))
     person_json_path = os.path.join(common.json_dir, '{0}/{1}/{2}/person.json'.format(room_num, date, name))
     group_json_path = os.path.join(common.json_dir, '{0}/{1}/{2}/group.json'.format(room_num, date, name))
+    angle_range = karg['angle_range']
 
     # homography
     field_raw = cv2.imread(field_path)
@@ -42,7 +43,7 @@ def main(room_num, date, name, is_tracking, is_person, is_group, is_display, ang
 
     method = __file__.replace('.py', '')
     if is_group:
-        gd.main(person_json_path, group_json_path, homo, field_raw, method, angle)
+        gd.main(person_json_path, group_json_path, homo, field_raw, method, angle_range=angle_range)
 
     if is_display:
         display(video_path, out_dir, person_json_path, group_json_path, field_raw, method)
@@ -57,7 +58,7 @@ if __name__ == '__main__':
     parser.add_argument('-p', '--person', default=False, action='store_true')
     parser.add_argument('-g', '--group', default=False, action='store_true')
     parser.add_argument('-d', '--display', default=False, action='store_true')
-    parser.add_argument('-a', '--angle', default=np.pi / 18, type=float)
+    parser.add_argument('-a', '--angle_range', default=np.pi / 18, type=float)
 
     args = parser.parse_args()
     room_num = args.room_num
@@ -67,6 +68,6 @@ if __name__ == '__main__':
     is_person = args.person
     is_group = args.group
     is_display = args.display
-    angle = args.angle
+    angle_range = args.angle_range
 
-    main(room_num, date, name, is_tracking, is_person, is_group, is_display, angle)
+    main(room_num, date, name, is_tracking, is_person, is_group, is_display, angle_range=angle_range)
