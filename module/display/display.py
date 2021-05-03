@@ -8,15 +8,20 @@ import numpy as np
 import cv2
 
 
-def display(video_path, out_dir, person_json_path, group_json_path, field):
+def display(video_path, out_dir, person_json_path, group_json_path, field, method=None):
+    if method is None:
+        methods = GROUP_FORMAT.keys()
+    else:
+        methods = [method]
+
     # out video file paths
     out_paths = [
         out_dir + '{}.mp4'.format('tracking'),
         out_dir + '{}.mp4'.format('person')
     ]
-    for key in GROUP_FORMAT.keys():
+    for method in methods:
         out_paths.append(
-            out_dir + '{}.mp4'.format(key)
+            out_dir + '{}.mp4'.format(method)
         )
 
     # load datas
@@ -29,7 +34,7 @@ def display(video_path, out_dir, person_json_path, group_json_path, field):
     video = Video(video_path)
 
     frames_lst = [[] for _ in range(len(out_paths))]
-    group_fields = [field.copy() for _ in range(len(GROUP_FORMAT))]
+    group_fields = [field.copy() for _ in range(len(methods))]
     for frame_num in range(video.frame_num):
         # read frame
         frame = video.read()
@@ -49,15 +54,15 @@ def display(video_path, out_dir, person_json_path, group_json_path, field):
         # 向きを表示
         field_tmp = disp_person(frame_person_datas, field_tmp)
 
-        for i, key in enumerate(GROUP_FORMAT):
+        for i, method in enumerate(methods):
             group_field = field_tmp.copy()
             group_fields[i] = display_group.disp(
-                key, frame_num, group_datas, group_field)
+                method, frame_num, group_datas, group_field)
 
         # append tracking result
         frames_lst[0].append(frame)
         frames_lst[1].append(combine_image(frame, field_tmp))
-        for i in range(len(GROUP_FORMAT)):
+        for i in range(len(methods)):
             frames_lst[i + 2].append(combine_image(frame, group_fields[i]))
 
     print('writing videos into {} ...'.format(out_dir))
