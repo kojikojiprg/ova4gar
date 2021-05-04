@@ -20,7 +20,9 @@ def display(video_path, out_dir, person_json_path, group_json_path, field, metho
         out_dir + '{}.mp4'.format('person')
     ]
     for method in methods:
-        if not karg['is_default_angle_range'] and method == 'attention':
+        if (
+            'is_default_angle_range' in karg and not karg['is_default_angle_range'] and method == 'attention'
+        ):
             # attention のとき、かつ視野角が異なるとき ファイル名に視野角を追加
             out_paths.append(
                 out_dir + '{}_{}.mp4'.format(method, karg['angle_range'])
