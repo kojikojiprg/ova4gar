@@ -27,3 +27,7 @@ homo = {
         np.float32([[336, 320], [400, 320], [400, 514], [336, 514]])
     ],
 }
+
+
+# Default Values
+DEFAULT_ANGLE_RANGE = 10        # 視野角
