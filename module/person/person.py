@@ -4,7 +4,7 @@ from person.indicator import INDICATOR_DICT
 
 
 class Person:
-    def __init__(self, person_id, start_frame_num, homo, method=None):
+    def __init__(self, person_id, start_frame_num, homo):
         self.id = person_id
         self.start_frame_num = start_frame_num
         self.keypoints_lst = KeypointsList()
@@ -13,7 +13,6 @@ class Person:
         self.indicator_dict = {k: [] for k in INDICATOR_DICT.keys()}
         self.position_que = []
         self.homo = homo
-        self.method = method
 
     def calc_indicator(self, keypoints, vector, average):
         if keypoints is None:
