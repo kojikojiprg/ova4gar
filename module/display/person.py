@@ -1,5 +1,4 @@
-
-from common.json import PERSON_FORMAT
+from common.json import PERSON_FORMAT, GROUP_FORMAT
 import numpy as np
 import cv2
 
@@ -11,9 +10,13 @@ VECTOR_SETTING_LIST = {
 }
 
 
-def disp_person(person_datas, field):
-    field = disp_body_face(person_datas, field)
-    field = disp_arm_extention(person_datas, field)
+def disp_person(person_datas, field, method=None):
+    if method == list(GROUP_FORMAT.keys())[0]:
+        # attention
+        field = disp_body_face(person_datas, field)
+    else:
+        field = disp_body_face(person_datas, field)
+        field = disp_arm_extention(person_datas, field)
 
     return field
 

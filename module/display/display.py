@@ -21,7 +21,9 @@ def display(video_path, out_dir, person_json_path, group_json_path, field, metho
     ]
     for method in methods:
         if (
-            'is_default_angle_range' in karg and not karg['is_default_angle_range'] and method == 'attention'
+            'is_default_angle_range' in karg and
+            not karg['is_default_angle_range'] and
+            method == list(GROUP_FORMAT.keys())[0]
         ):
             # attention のとき、かつ視野角が異なるとき ファイル名に視野角を追加
             out_paths.append(
@@ -60,7 +62,7 @@ def display(video_path, out_dir, person_json_path, group_json_path, field, metho
         # トラッキングの結果を表示
         frame = disp_tracking(frame_person_datas, frame)
         # 向きを表示
-        field_tmp = disp_person(frame_person_datas, field_tmp)
+        field_tmp = disp_person(frame_person_datas, field_tmp, method)
 
         for i, method in enumerate(methods):
             group_field = field_tmp.copy()
