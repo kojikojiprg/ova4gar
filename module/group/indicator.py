@@ -1,3 +1,4 @@
+from common.default import DENSITY_DEFAULT, ATTENTION_DEFAULT, PASSING_DEFAULT
 from common.json import PERSON_FORMAT, GROUP_FORMAT
 from common.functions import cos_similarity, euclidean, gauss
 import inspect
@@ -5,7 +6,7 @@ import numpy as np
 from pyclustering.cluster import gmeans
 
 
-def calc_density(frame_num, person_datas, homo, k_init=3):
+def calc_density(frame_num, person_datas, homo, k_init=DENSITY_DEFAULT['k']):
     key = inspect.currentframe().f_code.co_name.replace('calc_', '')
     json_format = GROUP_FORMAT[key]
 
@@ -36,9 +37,14 @@ def calc_density(frame_num, person_datas, homo, k_init=3):
     return datas
 
 
-def calc_attention(frame_num, person_datas, homo, field, angle_range=np.pi / 18, division=5):
+def calc_attention(
+    frame_num, person_datas, homo, field,
+    angle_range=ATTENTION_DEFAULT['angle'], division=ATTENTION_DEFAULT['division']
+):
     key = inspect.currentframe().f_code.co_name.replace('calc_', '')
     json_format = GROUP_FORMAT[key]
+
+    angle_range = np.deg2rad(angle_range)
 
     pixcel_datas = np.zeros((field.shape[1], field.shape[0]))
     for x in range(0, field.shape[1], division):
@@ -74,9 +80,14 @@ def calc_attention(frame_num, person_datas, homo, field, angle_range=np.pi / 18,
     return datas
 
 
-def calc_passing(frame_num, person_datas, homo, th=0.5, th_shita=np.pi / 3):
+def calc_passing(
+    frame_num, person_datas, homo,
+    th=PASSING_DEFAULT['th'], th_shita=PASSING_DEFAULT['th_shita']
+):
     key = inspect.currentframe().f_code.co_name.replace('calc_', '')
     json_format = GROUP_FORMAT[key]
+
+    th_shita = np.deg2rad(th_shita)
 
     datas = []
     for i in range(len(person_datas) - 1):

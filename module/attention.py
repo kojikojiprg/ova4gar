@@ -1,4 +1,5 @@
 from common import common, transform
+from common.default import ATTENTION_DEFAULT
 from tracker import main as tr
 from person import main as pd
 from group import main as gd
@@ -6,7 +7,6 @@ from display.display import display
 import argparse
 import os
 import cv2
-import numpy as np
 
 
 # is_tracking = True
@@ -29,10 +29,9 @@ def main(room_num, date, name, is_tracking, is_person, is_group, is_display, **k
     group_json_path = os.path.join(common.json_dir, '{0}/{1}/{2}/group.json'.format(room_num, date, name))
 
     angle_range = karg['angle_range']
-    is_default_angle_range = angle_range == common.DEFAULT_ANGLE_RANGE
+    is_default_angle_range = angle_range == ATTENTION_DEFAULT['angle']
     if not is_default_angle_range:
         group_json_path = group_json_path.replace('.json', '_{}.json'.format(angle_range))
-    angle_range_rad = np.deg2rad(angle_range)
 
     # homography
     field_raw = cv2.imread(field_path)
@@ -48,7 +47,9 @@ def main(room_num, date, name, is_tracking, is_person, is_group, is_display, **k
 
     method = __file__.replace('.py', '')
     if is_group:
-        gd.main(person_json_path, group_json_path, homo, field_raw, method, angle_range=angle_range_rad)
+        gd.main(
+            person_json_path, group_json_path, homo, field_raw, method,
+            angle_range=angle_range)
 
     if is_display:
         display(
@@ -65,7 +66,7 @@ if __name__ == '__main__':
     parser.add_argument('-p', '--person', default=False, action='store_true')
     parser.add_argument('-g', '--group', default=False, action='store_true')
     parser.add_argument('-d', '--display', default=False, action='store_true')
-    parser.add_argument('-a', '--angle_range', default=common.DEFAULT_ANGLE_RANGE, type=int)
+    parser.add_argument('-a', '--angle_range', default=ATTENTION_DEFAULT['angle'], type=int)
 
     args = parser.parse_args()
     room_num = args.room_num

@@ -1,10 +1,14 @@
+from common.default import POSITION_DEFAULT
 from common.json import PERSON_FORMAT
 from common import keypoint as kp
 from common.functions import normalize_vector, cos_similarity, rotation
 import numpy as np
 
 
-def calc_position(keypoints, average, position_que, homo, size=20, ratio=1.2):
+def calc_position(
+    keypoints, average, position_que, homo,
+    size=POSITION_DEFAULT['size'], ratio=POSITION_DEFAULT['ratio']
+):
     new_pos = keypoints.get_middle('Ankle')
     if new_pos is None:
         shoulder = keypoints.get_middle('Shoulder')
