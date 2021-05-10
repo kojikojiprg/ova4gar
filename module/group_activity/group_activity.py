@@ -2,7 +2,7 @@ from common.json import GROUP_FORMAT
 from group.indicator import INDICATOR_DICT
 
 
-class Group:
+class GroupActivity:
     def __init__(self, homo, field, method=None):
         self.homo = homo
         self.field = field
