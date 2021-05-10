@@ -10,7 +10,7 @@ VECTOR_SETTING_LIST = {
 }
 
 
-def disp_person(person_datas, field, method=None):
+def disp_indivisual_activity(person_datas, field, method=None):
     if method == list(GROUP_FORMAT.keys())[0]:
         # attention
         field = disp_body_face(person_datas, field)
