@@ -13,7 +13,7 @@ HEATMAP_SETTING_DICT = {
 }
 
 
-class DisplayGroup:
+class DisplayGroupActivity:
     def __init__(self, group_datas):
         self.heatmap_dict = {}
         self.make_heatmap(group_datas)
