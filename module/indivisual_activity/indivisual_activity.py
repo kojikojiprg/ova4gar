@@ -3,7 +3,7 @@ from common.json import PERSON_FORMAT
 from person.indicator import INDICATOR_DICT
 
 
-class Person:
+class IndivisualActivity:
     def __init__(self, person_id, start_frame_num, homo):
         self.id = person_id
         self.start_frame_num = start_frame_num
