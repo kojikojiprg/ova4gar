@@ -41,7 +41,7 @@ class DisplayGroupActivity:
 
         # フレームごとにデータを取得する
         frame_indicator_datas = [
-            data for data in indicator_datas if data['image_id'] == frame_num]
+            data for data in indicator_datas if data['frame'] == frame_num]
 
         # 指標を書き込む
         field = eval('self.disp_{}'.format(key))(

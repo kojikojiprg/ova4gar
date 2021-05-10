@@ -58,7 +58,7 @@ def display(
 
         # フレームごとにデータを取得する
         frame_indivisual_activity_datas = [
-            data for data in indivisual_activity_datas if data['image_id'] == frame_num]
+            data for data in indivisual_activity_datas if data['frame'] == frame_num]
 
         # フレーム番号を表示
         cv2.putText(frame, 'Frame:{}'.format(frame_num + 1), (10, 50),

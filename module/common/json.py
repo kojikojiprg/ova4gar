@@ -41,7 +41,7 @@ PASSING_FORMAT = [
 
 # not use
 # DENSITY_FORMAT = [
-#     'image_id',
+#     'frame',
 #     'cluster',
 #     'count',
 # ]
