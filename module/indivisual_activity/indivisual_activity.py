@@ -1,11 +1,11 @@
 from common.keypoint import Keypoints, KeypointsList
-from common.json import PERSON_FORMAT
-from person.indicator import INDICATOR_DICT
+from common.json import IA_FORMAT
+from indivisual_activity.indicator import INDICATOR_DICT
 
 
 class IndivisualActivity:
-    def __init__(self, person_id, start_frame_num, homo):
-        self.id = person_id
+    def __init__(self, activity_id, start_frame_num, homo):
+        self.id = activity_id
         self.start_frame_num = start_frame_num
         self.keypoints_lst = KeypointsList()
         self.vector_lst = []
@@ -34,7 +34,8 @@ class IndivisualActivity:
                     self.keypoints_lst[-1], self.average_lst[-1], self.position_que, self.homo)
             else:
                 # face vector ~
-                indicator = INDICATOR_DICT[k](self.keypoints_lst[-1], self.homo)
+                indicator = INDICATOR_DICT[k](
+                    self.keypoints_lst[-1], self.homo)
 
             self.indicator_dict[k].append(indicator)
 
@@ -44,14 +45,14 @@ class IndivisualActivity:
             return None
 
         data = {}
-        data[PERSON_FORMAT[0]] = self.id
-        data[PERSON_FORMAT[1]] = frame_num
+        data[IA_FORMAT[0]] = self.id
+        data[IA_FORMAT[1]] = frame_num
         if self.keypoints_lst[idx] is not None:
-            data[PERSON_FORMAT[2]] = self.keypoints_lst[idx].to_json()
+            data[IA_FORMAT[2]] = self.keypoints_lst[idx].to_json()
         else:
-            data[PERSON_FORMAT[2]] = None
+            data[IA_FORMAT[2]] = None
 
-        for k in PERSON_FORMAT[3:]:
+        for k in IA_FORMAT[3:]:
             indicator = self.indicator_dict[k][idx]
             if indicator is not None:
                 data[k] = indicator.tolist()
