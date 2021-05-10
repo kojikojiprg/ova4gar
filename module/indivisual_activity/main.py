@@ -1,6 +1,6 @@
 from common import json
 from common.json import TRACKING_FORMAT
-from indivisual_activity.indivisual_activity import IndiVisualActivity
+from indivisual_activity.indivisual_activity import IndivisualActivity
 
 
 def main(tracking_json_path, indivisual_activity_json_path, homo):
@@ -19,7 +19,7 @@ def main(tracking_json_path, indivisual_activity_json_path, homo):
         # indivisual_activityクラスを新規作成
         if len(indivisual_activitys) == indivisual_activity_id:
             indivisual_activitys.append(
-                IndiVisualActivity(indivisual_activity_id, frame_num, homo))
+                IndivisualActivity(indivisual_activity_id, frame_num, homo))
 
         # 指標を計算
         indivisual_activitys[indivisual_activity_id].calc_indicator(

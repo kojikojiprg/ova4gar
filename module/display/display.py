@@ -3,7 +3,7 @@ from common.json import GA_FORMAT
 from display.video import Video
 from display.tracking import disp_tracking
 from display.indivisual_activity import disp_indivisual_activity
-from display.group_activity import DisplayGroup
+from display.group_activity import DisplayGroupActivity
 import numpy as np
 import cv2
 
@@ -45,7 +45,7 @@ def display(
     indivisual_activity_datas = json.load(indivisual_activity_json_path)
     group_activity_datas = json.load(group_activity_json_path)
 
-    display_group_activity = DisplayGroup(group_activity_datas)
+    display_group_activity = DisplayGroupActivity(group_activity_datas)
 
     # load video
     video = Video(video_path)

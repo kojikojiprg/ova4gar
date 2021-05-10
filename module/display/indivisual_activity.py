@@ -1,4 +1,4 @@
-from common.json import IA_FORMAT, GROUP_FORMAT
+from common.json import IA_FORMAT, GA_FORMAT
 import numpy as np
 import cv2
 
@@ -11,7 +11,7 @@ VECTOR_SETTING_LIST = {
 
 
 def disp_indivisual_activity(indivisual_activity_datas, field, method=None):
-    if method == list(GROUP_FORMAT.keys())[0]:
+    if method == list(GA_FORMAT.keys())[0]:
         # attention
         field = disp_body_face(indivisual_activity_datas, field)
     else:
