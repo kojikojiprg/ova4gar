@@ -3,23 +3,23 @@ import json
 
 
 # tracking/tracking.py
-# person/main.py
+# indivisual_activity/main.py
 TRACKING_FORMAT = [
-    'person_id',
-    'image_id',
+    'label',
+    'frame',
     'keypoints',
     'vector',
     'average',
 ]
 
-# person/person.py
-# person/indicator.py
-# group/indicator.py
+# indivisual_activity/indivisual_activity.py
+# indivisual_activity/indicator.py
+# group_activity/indicator.py
 # display/tracking.py
-# display/person.py
-PERSON_FORMAT = [
-    'person_id',
-    'image_id',
+# display/indivisual_activity.py
+IA_FORMAT = [
+    'label',
+    'frame',
     'keypoints',
     'position',
     'face_vector',
@@ -28,29 +28,29 @@ PERSON_FORMAT = [
 ]
 
 ATTENTION_FORMAT = [
-    'image_id',
+    'frame',
     'point',
     'count',
 ]
 
 PASSING_FORMAT = [
-    'image_id',
+    'frame',
     'point',
     'probability',
 ]
 
 # not use
 # DENSITY_FORMAT = [
-#     'image_id',
+#     'frame',
 #     'cluster',
 #     'count',
 # ]
 
-# group/group.py
-# group/indicator.py
+# group_activity/group_activity.py
+# group_activity/indicator.py
 # display/display.py
-# display/group.py
-GROUP_FORMAT = {
+# display/group_activity.py
+GA_FORMAT = {
     'attention': ATTENTION_FORMAT,
     'passing': PASSING_FORMAT,
 }

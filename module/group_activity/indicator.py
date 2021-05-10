@@ -1,18 +1,22 @@
 from common.default import DENSITY_DEFAULT, ATTENTION_DEFAULT, PASSING_DEFAULT
-from common.json import PERSON_FORMAT, GROUP_FORMAT
+from common.json import IA_FORMAT, GA_FORMAT
 from common.functions import cos_similarity, euclidean, gauss
 import inspect
 import numpy as np
 from pyclustering.cluster import gmeans
 
 
-def calc_density(frame_num, person_datas, homo, k_init=DENSITY_DEFAULT['k']):
+def calc_density(
+        frame_num,
+        indivisual_activity_datas,
+        homo,
+        k_init=DENSITY_DEFAULT['k']):
     key = inspect.currentframe().f_code.co_name.replace('calc_', '')
-    json_format = GROUP_FORMAT[key]
+    json_format = GA_FORMAT[key]
 
     points = []
-    for data in person_datas:
-        position = data[PERSON_FORMAT[3]]
+    for data in indivisual_activity_datas:
+        position = data[IA_FORMAT[3]]
         if position is not None:
             points.append(position)
     points = np.array(points)
@@ -38,11 +42,14 @@ def calc_density(frame_num, person_datas, homo, k_init=DENSITY_DEFAULT['k']):
 
 
 def calc_attention(
-    frame_num, person_datas, homo, field,
-    angle_range=ATTENTION_DEFAULT['angle'], division=ATTENTION_DEFAULT['division']
-):
+        frame_num,
+        indivisual_activity_datas,
+        homo,
+        field,
+        angle_range=ATTENTION_DEFAULT['angle'],
+        division=ATTENTION_DEFAULT['division']):
     key = inspect.currentframe().f_code.co_name.replace('calc_', '')
-    json_format = GROUP_FORMAT[key]
+    json_format = GA_FORMAT[key]
 
     angle_range = np.deg2rad(angle_range)
 
@@ -50,9 +57,9 @@ def calc_attention(
     for x in range(0, field.shape[1], division):
         for y in range(0, field.shape[0], division):
             point = np.array([x, y])
-            for data in person_datas:
-                pos = data[PERSON_FORMAT[3]]
-                face_vector = data[PERSON_FORMAT[4]]
+            for data in indivisual_activity_datas:
+                pos = data[IA_FORMAT[3]]
+                face_vector = data[IA_FORMAT[4]]
                 if pos is None or face_vector is None:
                     continue
 
@@ -81,27 +88,27 @@ def calc_attention(
 
 
 def calc_passing(
-    frame_num, person_datas, homo,
+    frame_num, indivisual_activity_datas, homo,
     th=PASSING_DEFAULT['th'], th_shita=PASSING_DEFAULT['th_shita']
 ):
     key = inspect.currentframe().f_code.co_name.replace('calc_', '')
-    json_format = GROUP_FORMAT[key]
+    json_format = GA_FORMAT[key]
 
     th_shita = np.deg2rad(th_shita)
 
     datas = []
-    for i in range(len(person_datas) - 1):
-        for j in range(i + 1, len(person_datas)):
-            p1 = person_datas[i]
-            p2 = person_datas[j]
+    for i in range(len(indivisual_activity_datas) - 1):
+        for j in range(i + 1, len(indivisual_activity_datas)):
+            p1 = indivisual_activity_datas[i]
+            p2 = indivisual_activity_datas[j]
 
             # obtain datas
-            p1_pos = p1[PERSON_FORMAT[3]]
-            p2_pos = p2[PERSON_FORMAT[3]]
-            p1_body = p1[PERSON_FORMAT[5]]
-            p2_body = p2[PERSON_FORMAT[5]]
-            p1_arm = p1[PERSON_FORMAT[6]]
-            p2_arm = p2[PERSON_FORMAT[6]]
+            p1_pos = p1[IA_FORMAT[3]]
+            p2_pos = p2[IA_FORMAT[3]]
+            p1_body = p1[IA_FORMAT[5]]
+            p2_body = p2[IA_FORMAT[5]]
+            p1_arm = p1[IA_FORMAT[6]]
+            p2_arm = p2[IA_FORMAT[6]]
 
             if (
                 p1_pos is None or p2_pos is None or
@@ -152,7 +159,7 @@ def calc_passing(
     return datas
 
 
-keys = list(GROUP_FORMAT.keys())
+keys = list(GA_FORMAT.keys())
 INDICATOR_DICT = {
     keys[0]: calc_attention,
     keys[1]: calc_passing,

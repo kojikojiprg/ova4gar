@@ -1,5 +1,5 @@
 from common.default import POSITION_DEFAULT
-from common.json import PERSON_FORMAT
+from common.json import IA_FORMAT
 from common import keypoint as kp
 from common.functions import normalize_vector, cos_similarity, rotation
 import numpy as np
@@ -108,8 +108,8 @@ def calc_arm_extention(keypoints, homo):
 
 start_idx = 3
 INDICATOR_DICT = {
-    PERSON_FORMAT[start_idx + 0]: calc_position,
-    PERSON_FORMAT[start_idx + 1]: calc_face_vector,
-    PERSON_FORMAT[start_idx + 2]: calc_body_vector,
-    PERSON_FORMAT[start_idx + 3]: calc_arm_extention,
+    IA_FORMAT[start_idx + 0]: calc_position,
+    IA_FORMAT[start_idx + 1]: calc_face_vector,
+    IA_FORMAT[start_idx + 2]: calc_body_vector,
+    IA_FORMAT[start_idx + 3]: calc_arm_extention,
 }
