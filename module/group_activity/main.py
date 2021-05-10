@@ -1,21 +1,30 @@
 from common import json
-from group.group import Group
+from group_activity.group_activity import GroupActivity
 
 
-def main(person_json_path, group_json_path, homo, field, method=None, **karg):
-    person_datas = json.load(person_json_path)
+def main(
+        indivisual_activity_json_path,
+        group_activity_json_path,
+        homo,
+        field,
+        method=None,
+        **karg):
+    indivisual_activity_datas = json.load(indivisual_activity_json_path)
 
-    group = Group(homo, field, method)
+    group_activity = GroupActivity(homo, field, method)
 
-    last_frame_num = person_datas[-1]['image_id'] + 1
+    last_frame_num = indivisual_activity_datas[-1]['image_id'] + 1
     for frame_num in range(last_frame_num):
         # フレームごとにデータを取得する
-        frame_person_datas = [
-            data for data in person_datas if data['image_id'] == frame_num]
+        frame_indivisual_activity_datas = [
+            data for data in indivisual_activity_datas if data['image_id'] == frame_num]
 
         # 指標の計算
-        group.calc_indicator(frame_num, frame_person_datas, **karg)
+        group_activity.calc_indicator(
+            frame_num,
+            frame_indivisual_activity_datas,
+            **karg)
 
     # jsonフォーマットを生成して書き込み
-    group_datas = group.to_json()
-    json.dump(group_datas, group_json_path)
+    group_activity_datas = group_activity.to_json()
+    json.dump(group_activity_datas, group_activity_json_path)
