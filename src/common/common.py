@@ -2,12 +2,12 @@ import os
 import sys
 import numpy as np
 
-if 'module' in os.getcwd() or 'notebooks' in os.getcwd():
+if 'src' in os.getcwd() or 'notebooks' in os.getcwd():
     root = '../'
 else:
     root = './'
 
-sys.path.append(root + 'module/')
+sys.path.append(root + 'src/')
 
 data_dir = root + 'data/'
 out_dir = root + 'out/'
