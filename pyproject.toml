@@ -17,6 +17,7 @@ PyClustering = "^0.10.0"
 
 [tool.poetry.dev-dependencies]
 jupyter = "^1.0.0"
+jupyterlab = "^3.0.15"
 flake8 = "^3.8.2"
 autopep8 = "^1.5.2"
 rope = "^0.17.0"
