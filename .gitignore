@@ -11,3 +11,5 @@ out
 *.json
 *.db
 *.db-journal
+
+.ipynb_checkpoints
