@@ -23,8 +23,8 @@ def display(
 
     # out video file paths
     out_paths = [
-        out_dir + '{}.mp4'.format('tracking'),
-        out_dir + '{}.mp4'.format('indivisual_activity')
+        # out_dir + '{}.mp4'.format('tracking'),
+        # out_dir + '{}.mp4'.format('indivisual_activity')
     ]
     for method in methods:
         if (
@@ -78,11 +78,13 @@ def display(
                 method, frame_num, group_activity_datas, group_activity_field)
 
         # append tracking result
-        frames_lst[0].append(frame)
-        frames_lst[1].append(combine_image(frame, field_tmp))
+        # frames_lst[0].append(frame)
+        # frames_lst[1].append(combine_image(frame, field_tmp))
         for i in range(len(methods)):
-            frames_lst[i + 2].append(combine_image(frame,
-                                     group_activity_fields[i]))
+            # frames_lst[i + 2].append(combine_image(frame,
+            #                          group_activity_fields[i]))
+            frames_lst[i].append(
+                combine_image(frame, group_activity_fields[i]))
 
     print('writing videos into {} ...'.format(out_dir))
     for frames, out_path in zip(frames_lst, out_paths):
