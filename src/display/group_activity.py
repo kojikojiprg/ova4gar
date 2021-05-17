@@ -83,9 +83,8 @@ class DisplayGroupActivity:
             point = data[json_format[1]]
             if point is not None:
                 likelifood = np.round(data[json_format[2]], decimals=3)
-                color = self.heatmap_dict[key].colormap(likelifood)
-                cv2.circle(field, tuple(point), 5, color, thickness=-1)
+                cv2.circle(field, tuple(point), 5, (0, 255, 0), thickness=-1)
                 cv2.putText(field, str(likelifood), tuple(point),
-                            cv2.FONT_HERSHEY_PLAIN, 2, color, 2)
+                            cv2.FONT_HERSHEY_PLAIN, 3, (0, 255, 0), 2)
 
         return field
