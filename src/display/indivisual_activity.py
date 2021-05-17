@@ -16,7 +16,7 @@ def disp_indivisual_activity(indivisual_activity_datas, field, method=None):
         field = disp_body_face(indivisual_activity_datas, field)
     else:
         field = disp_body_face(indivisual_activity_datas, field)
-        field = disp_arm_extention(indivisual_activity_datas, field)
+        # field = disp_arm_extention(indivisual_activity_datas, field)
 
     return field
 
@@ -39,7 +39,8 @@ def disp_body_face(indivisual_activity_datas, field):
                 tuple(position),
                 tuple(end),
                 color,
-                tipLength=tip_length)
+                tipLength=tip_length,
+                thickness=2)
 
         return field
 
