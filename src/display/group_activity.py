@@ -82,7 +82,7 @@ class DisplayGroupActivity:
         for data in datas:
             point = data[json_format[1]]
             if point is not None:
-                likelifood = np.round(data[json_format[2]], decimals=3)
+                likelifood = np.round(data[json_format[3]], decimals=3)
                 cv2.circle(field, tuple(point), 5, (0, 255, 0), thickness=-1)
                 cv2.putText(field, str(likelifood), tuple(point),
                             cv2.FONT_HERSHEY_PLAIN, 3, (0, 255, 0), 2)

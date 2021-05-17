@@ -155,7 +155,8 @@ def calc_passing(
                     datas.append({
                         json_format[0]: frame_num,
                         json_format[1]: center.astype(int).tolist(),
-                        json_format[2]: likelifood})
+                        json_format[2]: [p1[IA_FORMAT[0]], p2[IA_FORMAT[0]]],
+                        json_format[3]: likelifood})
 
     return datas
 
