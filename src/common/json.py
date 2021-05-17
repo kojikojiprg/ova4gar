@@ -36,7 +36,8 @@ ATTENTION_FORMAT = [
 PASSING_FORMAT = [
     'frame',
     'point',
-    'probability',
+    'persons',
+    'likelihood',
 ]
 
 # not use
