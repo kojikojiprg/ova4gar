@@ -136,7 +136,8 @@ def calc_passing(
                 (0 <= shita2 and shita2 <= th_shita)
             ):
                 norm = euclidean(p1_pos, p2_pos)
-                distance_prob = gauss(norm, mu=200, sigma=100)
+                distance_prob = gauss(
+                    norm, mu=PASSING_DEFAULT['gauss_mu'], sigma=PASSING_DEFAULT['gauss_sig'])
 
                 # 向き合っている度合い
                 opposite = np.abs(cos_similarity(p1_body, p2_body))

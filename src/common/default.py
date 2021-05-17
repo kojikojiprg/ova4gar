@@ -13,6 +13,8 @@ ATTENTION_DEFAULT = {
     'division': 5,      # 計算するピクセル幅
 }
 PASSING_DEFAULT = {
-    'th': 0.5,          # 確率のしきい値
+    'th': 0.4,          # 確率のしきい値
     'th_shita': 60,     # cos類似度（向き合っている角度）のしきい値
+    'gauss_mu': 200,    # 距離に対するガウス分布の平均
+    'gauss_sig': 100,    # 距離に対するガウス分布の分散
 }
