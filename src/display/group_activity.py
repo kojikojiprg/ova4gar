@@ -75,16 +75,23 @@ class DisplayGroupActivity:
 
         return field
 
-    def disp_passing(self, datas, field):
+    def disp_passing(self, datas, field, persons=None):
         key = inspect.currentframe().f_code.co_name.replace('disp_', '')
         json_format = GA_FORMAT[key]
 
         for data in datas:
+            is_persons = False
+            if persons is None:
+                is_persons = True
+            else:
+                is_persons = data[json_format[2]][0] in persons and data[json_format[2]][1] in persons
+
             point = data[json_format[1]]
             if point is not None:
-                likelifood = np.round(data[json_format[3]], decimals=3)
-                cv2.circle(field, tuple(point), 5, (0, 255, 0), thickness=-1)
-                cv2.putText(field, str(likelifood), tuple(point),
-                            cv2.FONT_HERSHEY_PLAIN, 3, (0, 255, 0), 2)
+                if is_persons:
+                    likelifood = np.round(data[json_format[3]], decimals=3)
+                    cv2.circle(field, tuple(point), 5, (0, 255, 0), thickness=-1)
+                    cv2.putText(field, str(likelifood), tuple(point),
+                                cv2.FONT_HERSHEY_PLAIN, 3, (0, 255, 0), 2)
 
         return field
