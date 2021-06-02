@@ -29,18 +29,18 @@ def main(
         is_display,
         **karg):
     video_path = os.path.join(
-        common.data_dir, '{0}/{1}/{2}/AlphaPose_{2}.mp4'.format(room_num, date, name))
+        common.data_dir, '{0}/{1}/{2}/video/AlphaPose_{2}.mp4'.format(room_num, date, name))
     out_dir = os.path.join(
-        common.out_dir, '{0}/{1}/{2}/'.format(room_num, date, name))
+        common.data_dir, '{0}/{1}/{2}/out/'.format(room_num, date, name))
     field_path = os.path.join(common.data_dir, 'field.png')
     keypoints_path = os.path.join(
-        common.data_dir, '{0}/{1}/{2}/alphapose-results.json'.format(room_num, date, name))
+        common.data_dir, '{0}/{1}/{2}/json/alphapose-results.json'.format(room_num, date, name))
     tracking_json_path = os.path.join(
-        common.json_dir, '{0}/{1}/{2}/tracking.json'.format(room_num, date, name))
+        common.data_dir, '{0}/{1}/{2}/json/tracking.json'.format(room_num, date, name))
     indivisual_activity_json_path = os.path.join(
-        common.json_dir, '{0}/{1}/{2}/indivisual_activity.json'.format(room_num, date, name))
+        common.data_dir, '{0}/{1}/{2}/json/indivisual_activity.json'.format(room_num, date, name))
     group_activity_json_path = os.path.join(
-        common.json_dir, '{0}/{1}/{2}/group_activity.json'.format(room_num, date, name))
+        common.data_dir, '{0}/{1}/{2}/json/group_activity.json'.format(room_num, date, name))
 
     angle_range = karg['angle_range']
     is_default_angle_range = angle_range == ATTENTION_DEFAULT['angle']

@@ -2,16 +2,19 @@ import os
 import sys
 import numpy as np
 
-if 'src' in os.getcwd() or 'notebooks' in os.getcwd():
+if os.getcwd().endswith('src'):
     root = '../'
+elif 'notebooks' in os.getcwd():
+    if os.getcwd().endswith('notebooks'):
+        root = '../'
+    else:
+        root = '../../'
 else:
     root = './'
 
-sys.path.append(root + 'src/')
+sys.path.append(os.path.join(root, 'src/'))
 
-data_dir = root + 'data/'
-out_dir = root + 'out/'
-json_dir = root + 'json/'
+data_dir = os.path.join(root, 'data/')
 
 homo = {
     'record': [
