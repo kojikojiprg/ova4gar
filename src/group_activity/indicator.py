@@ -1,44 +1,8 @@
-from common.default import DENSITY_DEFAULT, ATTENTION_DEFAULT, PASSING_DEFAULT
+from common.default import ATTENTION_DEFAULT, PASSING_DEFAULT
 from common.json import IA_FORMAT, GA_FORMAT
 from common.functions import cos_similarity, euclidean, gauss
 import inspect
 import numpy as np
-from pyclustering.cluster import gmeans
-
-
-def calc_density(
-        frame_num,
-        indivisual_activity_datas,
-        homo,
-        k_init=DENSITY_DEFAULT['k']):
-    key = inspect.currentframe().f_code.co_name.replace('calc_', '')
-    json_format = GA_FORMAT[key]
-
-    points = []
-    for data in indivisual_activity_datas:
-        position = data[IA_FORMAT[3]]
-        if position is not None:
-            points.append(position)
-    points = np.array(points)
-
-    # g-means でクラスタリング
-    datas = []
-    if len(points) > 2:
-        gm = gmeans.gmeans(points, k_init=k_init)
-        gm.process()
-        for cluster in gm.get_clusters():
-            datas.append({
-                json_format[0]: frame_num,
-                json_format[1]: points[cluster].tolist(),
-                json_format[2]: len(cluster)})
-    else:
-        for point in points:
-            datas.append({
-                json_format[0]: frame_num,
-                json_format[1]: [point.tolist()],
-                json_format[2]: 1})
-
-    return datas
 
 
 def calc_attention(

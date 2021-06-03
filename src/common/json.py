@@ -40,13 +40,6 @@ PASSING_FORMAT = [
     'likelihood',
 ]
 
-# not use
-# DENSITY_FORMAT = [
-#     'frame',
-#     'cluster',
-#     'count',
-# ]
-
 # group_activity/group_activity.py
 # group_activity/indicator.py
 # display/display.py
