@@ -42,21 +42,39 @@ def calc_face_vector(keypoints, homo):
     lear = np.append(homo.transform_point(lear[:2]), lear[2])
     rear = np.append(homo.transform_point(rear[:2]), rear[2])
 
-    if lear[2] < kp.THRESHOLD_CONFIDENCE and nose[2] >= kp.THRESHOLD_CONFIDENCE:
-        vector = nose - rear
-        vector = vector[:2]
-        vector = normalize_vector(vector)
-    elif rear[2] < kp.THRESHOLD_CONFIDENCE and nose[2] >= kp.THRESHOLD_CONFIDENCE:
-        vector = nose - lear
-        vector = vector[:2]
-        vector = normalize_vector(vector)
-    elif rear[2] >= kp.THRESHOLD_CONFIDENCE and lear[2] >= kp.THRESHOLD_CONFIDENCE:
+    # if lear[2] < kp.THRESHOLD_CONFIDENCE and nose[2] >= kp.THRESHOLD_CONFIDENCE:
+    #     vector = nose - rear
+    #     vector = vector[:2]
+    #     vector = normalize_vector(vector)
+    # elif rear[2] < kp.THRESHOLD_CONFIDENCE and nose[2] >= kp.THRESHOLD_CONFIDENCE:
+    #     vector = nose - lear
+    #     vector = vector[:2]
+    #     vector = normalize_vector(vector)
+    # elif rear[2] >= kp.THRESHOLD_CONFIDENCE and lear[2] >= kp.THRESHOLD_CONFIDENCE:
+    #     vector = lear - rear
+    #     vector = vector[:2]
+    #     vector = normalize_vector(vector)
+    #     vector = rotation(vector, np.pi / 2)
+    # else:
+    #     vector = None
+
+    if lear[0] > rear[0]:
+        x1 = rear[0]
+        x2 = lear[0]
+    else:
+        x1 = lear[0]
+        x2 = rear[0]
+
+    if x1 < nose[0] and nose[0] < x2:
         vector = lear - rear
         vector = vector[:2]
         vector = normalize_vector(vector)
         vector = rotation(vector, np.pi / 2)
     else:
-        vector = None
+        center_ear = lear + (rear - lear) / 2
+        vector = nose - center_ear
+        vector = vector[:2]
+        vector = normalize_vector(vector)
 
     return vector
 
