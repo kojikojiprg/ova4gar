@@ -3,7 +3,7 @@ import json
 
 
 # tracking/tracking.py
-# indivisual_activity/main.py
+# individual_activity/main.py
 TRACKING_FORMAT = [
     'label',
     'frame',
@@ -12,11 +12,11 @@ TRACKING_FORMAT = [
     'average',
 ]
 
-# indivisual_activity/indivisual_activity.py
-# indivisual_activity/indicator.py
+# individual_activity/individual_activity.py
+# individual_activity/indicator.py
 # group_activity/indicator.py
 # display/tracking.py
-# display/indivisual_activity.py
+# display/individual_activity.py
 IA_FORMAT = [
     'label',
     'frame',

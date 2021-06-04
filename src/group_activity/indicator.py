@@ -7,7 +7,7 @@ import numpy as np
 
 def calc_attention(
         frame_num,
-        indivisual_activity_datas,
+        individual_activity_datas,
         homo,
         field,
         angle_range=ATTENTION_DEFAULT['angle'],
@@ -21,7 +21,7 @@ def calc_attention(
     for x in range(0, field.shape[1], division):
         for y in range(0, field.shape[0], division):
             point = np.array([x, y])
-            for data in indivisual_activity_datas:
+            for data in individual_activity_datas:
                 pos = data[IA_FORMAT[3]]
                 face_vector = data[IA_FORMAT[4]]
                 if pos is None or face_vector is None:
@@ -52,7 +52,7 @@ def calc_attention(
 
 
 def calc_passing(
-    frame_num, indivisual_activity_datas, homo,
+    frame_num, individual_activity_datas, homo,
     th=PASSING_DEFAULT['th'], th_shita=PASSING_DEFAULT['th_shita']
 ):
     key = inspect.currentframe().f_code.co_name.replace('calc_', '')
@@ -61,10 +61,10 @@ def calc_passing(
     th_shita = np.deg2rad(th_shita)
 
     datas = []
-    for i in range(len(indivisual_activity_datas) - 1):
-        for j in range(i + 1, len(indivisual_activity_datas)):
-            p1 = indivisual_activity_datas[i]
-            p2 = indivisual_activity_datas[j]
+    for i in range(len(individual_activity_datas) - 1):
+        for j in range(i + 1, len(individual_activity_datas)):
+            p1 = individual_activity_datas[i]
+            p2 = individual_activity_datas[j]
 
             # obtain datas
             p1_pos = p1[IA_FORMAT[3]]
@@ -101,7 +101,9 @@ def calc_passing(
             ):
                 norm = euclidean(p1_pos, p2_pos)
                 distance_prob = gauss(
-                    norm, mu=PASSING_DEFAULT['gauss_mu'], sigma=PASSING_DEFAULT['gauss_sig'])
+                    norm,
+                    mu=PASSING_DEFAULT['gauss_mu'],
+                    sigma=PASSING_DEFAULT['gauss_sig'])
 
                 # 向き合っている度合い
                 opposite = np.abs(cos_similarity(p1_body, p2_body))

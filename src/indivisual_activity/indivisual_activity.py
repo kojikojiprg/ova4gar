@@ -1,9 +1,9 @@
 from common.keypoint import Keypoints, KeypointsList
 from common.json import IA_FORMAT
-from indivisual_activity.indicator import INDICATOR_DICT
+from individual_activity.indicator import INDICATOR_DICT
 
 
-class IndivisualActivity:
+class IndividualActivity:
     def __init__(self, activity_id, start_frame_num, homo):
         self.id = activity_id
         self.start_frame_num = start_frame_num

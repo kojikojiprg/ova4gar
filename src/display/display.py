@@ -2,7 +2,7 @@ from common import json
 from common.json import GA_FORMAT
 from display.video import Video
 from display.tracking import disp_tracking
-from display.indivisual_activity import disp_indivisual_activity
+from display.individual_activity import disp_individual_activity
 from display.group_activity import DisplayGroupActivity
 import numpy as np
 import cv2
@@ -11,7 +11,7 @@ import cv2
 def display(
         video_path,
         out_dir,
-        indivisual_activity_json_path,
+        individual_activity_json_path,
         group_activity_json_path,
         field,
         method=None,
@@ -24,7 +24,7 @@ def display(
     # out video file paths
     out_paths = [
         # out_dir + '{}.mp4'.format('tracking'),
-        # out_dir + '{}.mp4'.format('indivisual_activity')
+        # out_dir + '{}.mp4'.format('individual_activity')
     ]
     for method in methods:
         if (
@@ -42,7 +42,7 @@ def display(
             )
 
     # load datas
-    indivisual_activity_datas = json.load(indivisual_activity_json_path)
+    individual_activity_datas = json.load(individual_activity_json_path)
     group_activity_datas = json.load(group_activity_json_path)
 
     display_group_activity = DisplayGroupActivity(group_activity_datas)
@@ -57,8 +57,8 @@ def display(
         frame = video.read()
 
         # フレームごとにデータを取得する
-        frame_indivisual_activity_datas = [
-            data for data in indivisual_activity_datas if data['frame'] == frame_num]
+        frame_individual_activity_datas = [
+            data for data in individual_activity_datas if data['frame'] == frame_num]
 
         # フレーム番号を表示
         cv2.putText(frame, 'Frame:{}'.format(frame_num + 1), (10, 50),
@@ -67,10 +67,10 @@ def display(
         field_tmp = field.copy()
 
         # トラッキングの結果を表示
-        frame = disp_tracking(frame_indivisual_activity_datas, frame)
+        frame = disp_tracking(frame_individual_activity_datas, frame)
         # 向きを表示
-        field_tmp = disp_indivisual_activity(
-            frame_indivisual_activity_datas, field_tmp, method)
+        field_tmp = disp_individual_activity(
+            frame_individual_activity_datas, field_tmp, method)
 
         for i, method in enumerate(methods):
             group_activity_field = field_tmp.copy()

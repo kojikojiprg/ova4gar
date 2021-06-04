@@ -10,18 +10,18 @@ VECTOR_SETTING_LIST = {
 }
 
 
-def disp_indivisual_activity(indivisual_activity_datas, field, method=None):
+def disp_individual_activity(individual_activity_datas, field, method=None):
     if method == list(GA_FORMAT.keys())[0]:
         # attention
-        field = disp_body_face(indivisual_activity_datas, field)
+        field = disp_body_face(individual_activity_datas, field)
     else:
-        field = disp_body_face(indivisual_activity_datas, field)
-        # field = disp_arm_extention(indivisual_activity_datas, field)
+        field = disp_body_face(individual_activity_datas, field)
+        # field = disp_arm_extention(individual_activity_datas, field)
 
     return field
 
 
-def disp_body_face(indivisual_activity_datas, field):
+def disp_body_face(individual_activity_datas, field):
     def disp_arrow(key, data, field):
         position = data[IA_FORMAT[3]]
         vector = data[key]
@@ -44,7 +44,7 @@ def disp_body_face(indivisual_activity_datas, field):
 
         return field
 
-    for data in indivisual_activity_datas:
+    for data in individual_activity_datas:
         # face vector
         field = disp_arrow(IA_FORMAT[4], data, field)
         # body vector
@@ -53,8 +53,8 @@ def disp_body_face(indivisual_activity_datas, field):
     return field
 
 
-def disp_arm_extention(indivisual_activity_datas, field):
-    for data in indivisual_activity_datas:
+def disp_arm_extention(individual_activity_datas, field):
+    for data in individual_activity_datas:
         position = data[IA_FORMAT[3]]
         arm_estention = data[IA_FORMAT[6]]
         if arm_estention is not None:
