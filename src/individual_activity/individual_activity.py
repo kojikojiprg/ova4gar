@@ -39,6 +39,16 @@ class IndividualActivity:
 
             self.indicator_dict[k].append(indicator)
 
+    def get_data(self, key, frame_num):
+        if key not in IA_FORMAT:
+            raise KeyError
+
+        idx = frame_num - self.start_frame_num
+        if key == 'keypoints':
+            return self.keypoints_lst[idx]
+        else:
+            return self.indicator_dict[key][idx]
+
     def to_json(self, frame_num):
         idx = frame_num - self.start_frame_num
         if idx < 0 or len(self.keypoints_lst) <= idx:
