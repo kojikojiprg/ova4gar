@@ -83,7 +83,7 @@ class KeypointsList(list):
         elif keypoints is None:
             super().append(None)
         else:
-            if keypoints.shape == (17, 3):
+            if keypoints.shape == (17, 3) or keypoints.shape == (51,):
                 super().append(Keypoints(keypoints))
             else:
                 super().append(None)
