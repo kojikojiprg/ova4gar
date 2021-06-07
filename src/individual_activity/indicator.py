@@ -1,4 +1,4 @@
-from common.default import POSITION_DEFAULT, BODY_DEFAULT
+from common.default import POSITION_DEFAULT, FACE_DEFAULT, BODY_DEFAULT, ARM_DEFAULT
 from common.json import IA_FORMAT
 from common import keypoint as kp
 from common.functions import mahalanobis, normalize_vector, cos_similarity, rotation
@@ -46,7 +46,10 @@ def calc_position(
     return pos.astype(int), position_que
 
 
-def calc_face_vector(keypoints, homo):
+def calc_face_vector(
+    keypoints, homo, face_que,
+    size=FACE_DEFAULT['size'], std_th=FACE_DEFAULT['std_th']
+):
     nose = keypoints.get('Nose')
     lear = keypoints.get('LEar')
     rear = keypoints.get('REar')
@@ -80,17 +83,36 @@ def calc_face_vector(keypoints, homo):
         x2 = rear[0]
 
     if x1 < nose[0] and nose[0] < x2:
-        vector = lear - rear
-        vector = vector[:2]
-        vector = normalize_vector(vector)
-        vector = rotation(vector, np.pi / 2)
+        new_vector = lear - rear
+        new_vector = new_vector[:2]
+        new_vector = normalize_vector(new_vector)
+        new_vector = rotation(new_vector, np.pi / 2)
     else:
         center_ear = lear + (rear - lear) / 2
-        vector = nose - center_ear
-        vector = vector[:2]
-        vector = normalize_vector(vector)
+        new_vector = nose - center_ear
+        new_vector = new_vector[:2]
+        new_vector = normalize_vector(new_vector)
 
-    return vector
+    face_que.append(new_vector)
+    if len(face_que) < size:
+        vector = np.average(face_que, axis=0)
+    else:
+        face_que = face_que[-size:]
+        tmp_que = np.array(face_que)
+
+        # 各点の中心からのマハラノビス距離を求める
+        distances = [mahalanobis(x, tmp_que) for x in tmp_que]
+
+        # 中心からの距離の平均と分散を求める
+        mean = np.average(distances)
+        std = np.std(distances)
+
+        # 外れ値を除去した平均値をポジションとする
+        vector = np.average(
+            tmp_que[np.abs(distances - mean) < std * std_th],
+            axis=0)
+
+    return vector, face_que
 
 
 def calc_body_vector(
@@ -134,7 +156,10 @@ def calc_body_vector(
     return vector, body_que
 
 
-def calc_arm_extention(keypoints, homo):
+def calc_arm_extention(
+    keypoints, homo, arm_que,
+    size=ARM_DEFAULT['size'], std_th=ARM_DEFAULT['std_th']
+):
     def calc(keypoints, lr):
         shoulder = keypoints.get_middle('Shoulder')
         hip = keypoints.get_middle('Hip')
@@ -151,13 +176,35 @@ def calc_arm_extention(keypoints, homo):
     larm = calc(keypoints, 'L')
     rarm = calc(keypoints, 'R')
     if larm is None and rarm is None:
-        return None
+        return None, arm_que
     elif larm is None and rarm is not None:
-        return rarm
+        new_arm = rarm
     elif larm is not None and rarm is None:
-        return larm
+        new_arm = larm
     else:
-        return np.max((larm, rarm))
+        new_arm = np.max((larm, rarm))
+
+    arm_que.append(new_arm)
+    if len(arm_que) < size:
+        arm = np.average(arm_que)
+    else:
+        arm_que = arm_que[-size:]
+        tmp_que = np.array(arm_que)
+
+        # 各点の中心からの距離を求める
+        mean = np.average(tmp_que)
+        distances = np.abs(tmp_que - mean)
+
+        # 中心からの距離の平均と分散を求める
+        mean = np.average(distances)
+        std = np.std(distances)
+
+        # 外れ値を除去した平均値をポジションとする
+        arm = np.average(
+            tmp_que[np.abs(distances - mean) < std * std_th],
+            axis=0)
+
+    return arm, arm_que
 
 
 start_idx = 3

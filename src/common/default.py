@@ -5,8 +5,16 @@ POSITION_DEFAULT = {
     'ratio': 1.5,
     'std_th': 1,        # 外れ値に対する分散の閾値
 }
+FACE_DEFAULT = {
+    'size': 20,
+    'std_th': 1,        # 外れ値に対する分散の閾値
+}
 BODY_DEFAULT = {
-    'size': 30,
+    'size': 20,
+    'std_th': 1,        # 外れ値に対する分散の閾値
+}
+ARM_DEFAULT = {
+    'size': 5,
     'std_th': 1,        # 外れ値に対する分散の閾値
 }
 

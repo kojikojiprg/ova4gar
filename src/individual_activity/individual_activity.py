@@ -11,8 +11,7 @@ class IndividualActivity:
         self.vector_lst = []
         self.average_lst = []
         self.indicator_dict = {k: [] for k in INDICATOR_DICT.keys()}
-        self.position_que = []
-        self.body_que = []
+        self.que_dict = {k: [] for k in INDICATOR_DICT.keys()}
         self.homo = homo
 
     def calc_indicator(self, keypoints, vector, average):
@@ -29,18 +28,8 @@ class IndividualActivity:
         self.average_lst.append(average)
 
         for k in self.indicator_dict.keys():
-            if k == 'position':
-                # position
-                indicator, self.position_que = INDICATOR_DICT[k](
-                    self.keypoints_lst[-1], self.homo, self.position_que)
-            elif k == 'body_vector':
-                # body_vector
-                indicator, self.body_que = INDICATOR_DICT[k](
-                    self.keypoints_lst[-1], self.homo, self.body_que)
-            else:
-                # face vector ~
-                indicator = INDICATOR_DICT[k](
-                    self.keypoints_lst[-1], self.homo)
+            indicator, self.que_dict[k] = INDICATOR_DICT[k](
+                self.keypoints_lst[-1], self.homo, self.que_dict[k])
 
             self.indicator_dict[k].append(indicator)
 
