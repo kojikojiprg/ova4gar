@@ -1,5 +1,6 @@
 from tracker.person import Person
 from common.json import TRACKING_FORMAT
+from tqdm import tqdm
 
 
 def track(keypoints_all_frame):
@@ -10,7 +11,7 @@ def track(keypoints_all_frame):
 
     # トラッキング
     tracking_results = []
-    for i, keypoints_lst in enumerate(keypoints_all_frame):
+    for i, keypoints_lst in tqdm(enumerate(keypoints_all_frame)):
         # 状態をリセット
         for person in persons:
             person.reset()

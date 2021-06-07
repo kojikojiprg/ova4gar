@@ -4,6 +4,7 @@ from tracker.tracker import track
 
 
 def main(keypoints_path, result_path):
+    print('Runinng tracking...')
     # keypoints.json を開く
     keypoints_all_frame = load_pose_json(keypoints_path)
 

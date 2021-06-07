@@ -4,6 +4,7 @@ from display.video import Video
 from display.tracking import disp_tracking
 from display.individual_activity import disp_individual_activity
 from display.group_activity import DisplayGroupActivity
+from tqdm import tqdm
 import numpy as np
 import cv2
 
@@ -16,6 +17,7 @@ def display(
         field,
         method=None,
         **karg):
+    print('Prepareing video frames...')
     if method is None:
         methods = GA_FORMAT.keys()
     else:
@@ -52,7 +54,7 @@ def display(
 
     frames_lst = [[] for _ in range(len(out_paths))]
     group_activity_fields = [field.copy() for _ in range(len(methods))]
-    for frame_num in range(video.frame_num):
+    for frame_num in tqdm(range(video.frame_num)):
         # read frame
         frame = video.read()
 
@@ -88,7 +90,7 @@ def display(
                 combine_image(frame, group_activity_fields[i]))
 
     for frames, out_path in zip(frames_lst, out_paths):
-        print('writing video {} ...'.format(out_path))
+        print('Writing video {} ...'.format(out_path))
         video.write(frames, out_path, frames[0].shape[1::-1])
 
 

@@ -1,5 +1,6 @@
 from common import json
 from group_activity.group_activity import GroupActivity
+from tqdm import tqdm
 
 
 def main(
@@ -9,12 +10,13 @@ def main(
         field,
         method=None,
         **karg):
+    print('Running group activity...')
     individual_activity_datas = json.load(individual_activity_json_path)
 
     group_activity = GroupActivity(homo, field, method)
 
     last_frame_num = individual_activity_datas[-1]['frame'] + 1
-    for frame_num in range(last_frame_num):
+    for frame_num in tqdm(range(last_frame_num)):
         # フレームごとにデータを取得する
         frame_individual_activity_datas = [
             data for data in individual_activity_datas if data['frame'] == frame_num]

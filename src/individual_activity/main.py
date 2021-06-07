@@ -1,14 +1,16 @@
 from common import json
 from common.json import TRACKING_FORMAT
 from individual_activity.individual_activity import IndividualActivity
+from tqdm import tqdm
 
 
 def main(tracking_json_path, individual_activity_json_path, homo):
+    print('Running individual activity...')
     tracking_datas = json.load(tracking_json_path)
 
     individual_activitys = []
     individual_activity_datas = []
-    for item in tracking_datas:
+    for item in tqdm(tracking_datas):
         # trackingのデータを取得
         individual_activity_id = item[TRACKING_FORMAT[0]]
         frame_num = item[TRACKING_FORMAT[1]]
