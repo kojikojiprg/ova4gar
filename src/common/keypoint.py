@@ -40,10 +40,7 @@ class Keypoints(list):
         else:
             return self[body[body_name]]
 
-    def get_middle(self, name, th_conf=None):
-        if th_conf is None:
-            th_conf = THRESHOLD_CONFIDENCE
-
+    def get_middle(self, name, th_conf=THRESHOLD_CONFIDENCE):
         R = self.get('R' + name)
         L = self.get('L' + name)
         if R[2] < th_conf and L[2] < th_conf:
