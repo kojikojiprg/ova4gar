@@ -5,6 +5,32 @@ from common.functions import mahalanobis, normalize_vector, cos_similarity, rota
 import numpy as np
 
 
+def calc_ma(que, std_th):
+    que = np.array(que)
+
+    if np.any(np.std(que, axis=0) < 1.0):
+        # 分布の中身がほぼ同じのとき
+        val = np.average(que, axis=0)
+    else:
+        if que.ndim < 2:
+            # 各点の中心からの距離を求める
+            mean = np.average(que)
+            distances = np.abs(que - mean)
+        else:
+            # 各点の中心からのマハラノビス距離を求める
+            distances = [mahalanobis(x, que) for x in que]
+
+        # 中心からの距離の平均と分散を求める
+        mean = np.average(distances)
+        std = np.std(distances)
+
+        # 外れ値を除去した平均値を値とする
+        val = np.average(
+            que[np.abs(distances - mean) < std * std_th], axis=0)
+
+    return val
+
+
 def calc_position(
     keypoints, homo, position_que,
     ankle_th=POSITION_DEFAULT['ankle_th'],
@@ -29,19 +55,7 @@ def calc_position(
         pos = np.average(position_que, axis=0)
     else:
         position_que = position_que[-size:]
-        tmp_que = np.array(position_que)
-
-        # 各点の中心からのマハラノビス距離を求める
-        distances = [mahalanobis(x, tmp_que) for x in tmp_que]
-
-        # 中心からの距離の平均と分散を求める
-        mean = np.average(distances)
-        std = np.std(distances)
-
-        # 外れ値を除去した平均値をポジションとする
-        pos = np.average(
-            tmp_que[np.abs(distances - mean) < std * std_th],
-            axis=0)
+        pos = calc_ma(position_que, std_th)
 
     return pos.astype(int), position_que
 
@@ -58,22 +72,6 @@ def calc_face_vector(
     nose = np.append(homo.transform_point(nose[:2]), nose[2])
     lear = np.append(homo.transform_point(lear[:2]), lear[2])
     rear = np.append(homo.transform_point(rear[:2]), rear[2])
-
-    # if lear[2] < kp.THRESHOLD_CONFIDENCE and nose[2] >= kp.THRESHOLD_CONFIDENCE:
-    #     vector = nose - rear
-    #     vector = vector[:2]
-    #     vector = normalize_vector(vector)
-    # elif rear[2] < kp.THRESHOLD_CONFIDENCE and nose[2] >= kp.THRESHOLD_CONFIDENCE:
-    #     vector = nose - lear
-    #     vector = vector[:2]
-    #     vector = normalize_vector(vector)
-    # elif rear[2] >= kp.THRESHOLD_CONFIDENCE and lear[2] >= kp.THRESHOLD_CONFIDENCE:
-    #     vector = lear - rear
-    #     vector = vector[:2]
-    #     vector = normalize_vector(vector)
-    #     vector = rotation(vector, np.pi / 2)
-    # else:
-    #     vector = None
 
     if lear[0] > rear[0]:
         x1 = rear[0]
@@ -98,19 +96,7 @@ def calc_face_vector(
         vector = np.average(face_que, axis=0)
     else:
         face_que = face_que[-size:]
-        tmp_que = np.array(face_que)
-
-        # 各点の中心からのマハラノビス距離を求める
-        distances = [mahalanobis(x, tmp_que) for x in tmp_que]
-
-        # 中心からの距離の平均と分散を求める
-        mean = np.average(distances)
-        std = np.std(distances)
-
-        # 外れ値を除去した平均値をポジションとする
-        vector = np.average(
-            tmp_que[np.abs(distances - mean) < std * std_th],
-            axis=0)
+        vector = calc_ma(face_que, std_th)
 
     return vector, face_que
 
@@ -139,19 +125,7 @@ def calc_body_vector(
         vector = np.average(body_que, axis=0)
     else:
         body_que = body_que[-size:]
-        tmp_que = np.array(body_que)
-
-        # 各点の中心からのマハラノビス距離を求める
-        distances = [mahalanobis(x, tmp_que) for x in tmp_que]
-
-        # 中心からの距離の平均と分散を求める
-        mean = np.average(distances)
-        std = np.std(distances)
-
-        # 外れ値を除去した平均値をポジションとする
-        vector = np.average(
-            tmp_que[np.abs(distances - mean) < std * std_th],
-            axis=0)
+        vector = calc_ma(body_que, std_th)
 
     return vector, body_que
 
@@ -189,20 +163,7 @@ def calc_arm_extention(
         arm = np.average(arm_que)
     else:
         arm_que = arm_que[-size:]
-        tmp_que = np.array(arm_que)
-
-        # 各点の中心からの距離を求める
-        mean = np.average(tmp_que)
-        distances = np.abs(tmp_que - mean)
-
-        # 中心からの距離の平均と分散を求める
-        mean = np.average(distances)
-        std = np.std(distances)
-
-        # 外れ値を除去した平均値をポジションとする
-        arm = np.average(
-            tmp_que[np.abs(distances - mean) < std * std_th],
-            axis=0)
+        arm = calc_ma(arm_que, std_th)
 
     return arm, arm_que
 
