@@ -83,13 +83,13 @@ def calc_face_vector(
     if x1 < nose[0] and nose[0] < x2:
         new_vector = lear - rear
         new_vector = new_vector[:2]
-        new_vector = normalize_vector(new_vector)
+        # new_vector = normalize_vector(new_vector)
         new_vector = rotation(new_vector, np.pi / 2)
     else:
         center_ear = lear + (rear - lear) / 2
         new_vector = nose - center_ear
         new_vector = new_vector[:2]
-        new_vector = normalize_vector(new_vector)
+        # new_vector = normalize_vector(new_vector)
 
     face_que.append(new_vector)
     if len(face_que) < size:
@@ -98,6 +98,7 @@ def calc_face_vector(
         face_que = face_que[-size:]
         vector = calc_ma(face_que, std_th)
 
+    vector = normalize_vector(vector)
     return vector, face_que
 
 
@@ -115,7 +116,7 @@ def calc_body_vector(
     if lshoulder[2] >= kp.THRESHOLD_CONFIDENCE and rshoulder[2] >= kp.THRESHOLD_CONFIDENCE:
         new_vector = lshoulder - rshoulder
         new_vector = new_vector[:2]
-        new_vector = normalize_vector(new_vector)
+        # new_vector = normalize_vector(new_vector)
         new_vector = rotation(new_vector, np.pi / 2)
     else:
         return None, body_que
@@ -127,6 +128,7 @@ def calc_body_vector(
         body_que = body_que[-size:]
         vector = calc_ma(body_que, std_th)
 
+    vector = normalize_vector(vector)
     return vector, body_que
 
 
