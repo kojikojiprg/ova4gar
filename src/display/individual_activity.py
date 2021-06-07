@@ -16,7 +16,7 @@ def disp_individual_activity(individual_activity_datas, field, method=None):
         field = disp_body_face(individual_activity_datas, field)
     else:
         field = disp_body_face(individual_activity_datas, field)
-        # field = disp_arm_extention(individual_activity_datas, field)
+        field = disp_arm_extention(individual_activity_datas, field)
 
     return field
 
