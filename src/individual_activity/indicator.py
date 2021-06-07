@@ -1,35 +1,49 @@
 from common.default import POSITION_DEFAULT
 from common.json import IA_FORMAT
 from common import keypoint as kp
-from common.functions import normalize_vector, cos_similarity, rotation
+from common.functions import mahalanobis, normalize_vector, cos_similarity, rotation
 import numpy as np
 
 
 def calc_position(
-    keypoints, average, position_que, homo,
-    size=POSITION_DEFAULT['size'], ratio=POSITION_DEFAULT['ratio']
+    keypoints, position_que, homo,
+    ankle_th=POSITION_DEFAULT['ankle_th'],
+    size=POSITION_DEFAULT['size'], ratio=POSITION_DEFAULT['ratio'],
+    std_th=POSITION_DEFAULT['std_th']
 ):
-    new_pos = keypoints.get_middle('Ankle')
+    new_pos = keypoints.get_middle('Ankle', th_conf=ankle_th)
     if new_pos is None:
         shoulder = keypoints.get_middle('Shoulder')
         hip = keypoints.get_middle('Hip')
 
         if shoulder is None or hip is None:
-            return None
+            return None, position_que
         else:
             body_line = hip - shoulder
             new_pos = hip + body_line * ratio
 
-    new_pos = homo.transform_point(new_pos)
     position_que.append(new_pos)
 
-    if len(position_que) <= size:
+    if len(position_que) < size:
         pos = np.average(position_que, axis=0)
     else:
         position_que = position_que[-size:]
-        pos = np.average(position_que, axis=0)
+        tmp_que = np.array(position_que)
 
-    return pos.astype(int)
+        # 各点の中心からのマハラノビス距離を求める
+        distances = [mahalanobis(x, tmp_que) for x in tmp_que]
+
+        # 中心からの距離の平均と分散を求める
+        mean = np.average(distances)
+        std = np.std(distances)
+
+        # 外れ値を除去した平均値をポジションとする
+        pos = np.average(
+            tmp_que[np.abs(distances - mean) < std * std_th],
+            axis=0)
+
+    pos = homo.transform_point(pos)
+    return pos.astype(int), position_que
 
 
 def calc_face_vector(keypoints, homo):

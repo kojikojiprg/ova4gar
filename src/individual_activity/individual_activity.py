@@ -30,8 +30,8 @@ class IndividualActivity:
         for k in self.indicator_dict.keys():
             if k == 'position':
                 # position
-                indicator = INDICATOR_DICT[k](
-                    self.keypoints_lst[-1], self.average_lst[-1], self.position_que, self.homo)
+                indicator, self.position_que = INDICATOR_DICT[k](
+                    self.keypoints_lst[-1], self.position_que, self.homo)
             else:
                 # face vector ~
                 indicator = INDICATOR_DICT[k](

@@ -1,7 +1,9 @@
 # PERSON INDICATORS
 POSITION_DEFAULT = {
-    'size': 20,
-    'ratio': 1.2,
+    'ankle_th': 0.7,    # Ankleキーポイントに対する閾値
+    'size': 50,
+    'ratio': 2.0,
+    'std_th': 1,        # 外れ値に対する分散の閾値
 }
 
 # GROUP INDICATORS
