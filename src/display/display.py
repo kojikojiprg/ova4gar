@@ -86,8 +86,8 @@ def display(
             frames_lst[i].append(
                 combine_image(frame, group_activity_fields[i]))
 
-    print('writing videos into {} ...'.format(out_dir))
     for frames, out_path in zip(frames_lst, out_paths):
+        print('writing video {} ...'.format(out_path))
         video.write(frames, out_path, frames[0].shape[1::-1])
 
 
