@@ -1,4 +1,4 @@
-from common.default import POSITION_DEFAULT
+from common.default import POSITION_DEFAULT, BODY_DEFAULT
 from common.json import IA_FORMAT
 from common import keypoint as kp
 from common.functions import mahalanobis, normalize_vector, cos_similarity, rotation
@@ -6,7 +6,7 @@ import numpy as np
 
 
 def calc_position(
-    keypoints, position_que, homo,
+    keypoints, homo, position_que,
     ankle_th=POSITION_DEFAULT['ankle_th'],
     size=POSITION_DEFAULT['size'], ratio=POSITION_DEFAULT['ratio'],
     std_th=POSITION_DEFAULT['std_th']
@@ -93,7 +93,10 @@ def calc_face_vector(keypoints, homo):
     return vector
 
 
-def calc_body_vector(keypoints, homo):
+def calc_body_vector(
+    keypoints, homo, body_que,
+    size=BODY_DEFAULT['size'], std_th=BODY_DEFAULT['std_th']
+):
     lshoulder = keypoints.get('LShoulder')
     rshoulder = keypoints.get('RShoulder')
 
@@ -102,14 +105,33 @@ def calc_body_vector(keypoints, homo):
     rshoulder = np.append(homo.transform_point(rshoulder[:2]), rshoulder[2])
 
     if lshoulder[2] >= kp.THRESHOLD_CONFIDENCE and rshoulder[2] >= kp.THRESHOLD_CONFIDENCE:
-        vector = lshoulder - rshoulder
-        vector = vector[:2]
-        vector = normalize_vector(vector)
-        vector = rotation(vector, np.pi / 2)
+        new_vector = lshoulder - rshoulder
+        new_vector = new_vector[:2]
+        new_vector = normalize_vector(new_vector)
+        new_vector = rotation(new_vector, np.pi / 2)
     else:
-        vector = None
+        return None, body_que
 
-    return vector
+    body_que.append(new_vector)
+    if len(body_que) < size:
+        vector = np.average(body_que, axis=0)
+    else:
+        body_que = body_que[-size:]
+        tmp_que = np.array(body_que)
+
+        # 各点の中心からのマハラノビス距離を求める
+        distances = [mahalanobis(x, tmp_que) for x in tmp_que]
+
+        # 中心からの距離の平均と分散を求める
+        mean = np.average(distances)
+        std = np.std(distances)
+
+        # 外れ値を除去した平均値をポジションとする
+        vector = np.average(
+            tmp_que[np.abs(distances - mean) < std * std_th],
+            axis=0)
+
+    return vector, body_que
 
 
 def calc_arm_extention(keypoints, homo):

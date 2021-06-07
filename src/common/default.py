@@ -1,8 +1,12 @@
 # PERSON INDICATORS
 POSITION_DEFAULT = {
-    'ankle_th': 0.7,    # Ankleキーポイントに対する閾値
-    'size': 50,
-    'ratio': 2.0,
+    'ankle_th': 0.5,    # Ankleキーポイントに対する閾値
+    'size': 30,
+    'ratio': 1.5,
+    'std_th': 1,        # 外れ値に対する分散の閾値
+}
+BODY_DEFAULT = {
+    'size': 30,
     'std_th': 1,        # 外れ値に対する分散の閾値
 }
 
@@ -17,6 +21,6 @@ ATTENTION_DEFAULT = {
 PASSING_DEFAULT = {
     'th': 0.4,          # 確率のしきい値
     'th_shita': 60,     # cos類似度（向き合っている角度）のしきい値
-    'gauss_mu': 120,    # 距離に対するガウス分布の平均
-    'gauss_sig': 50,    # 距離に対するガウス分布の分散
+    'gauss_mu': 50,    # 距離に対するガウス分布の平均
+    'gauss_sig': 200,    # 距離に対するガウス分布の分散
 }
