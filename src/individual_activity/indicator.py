@@ -22,6 +22,7 @@ def calc_position(
             body_line = hip - shoulder
             new_pos = hip + body_line * ratio
 
+    new_pos = homo.transform_point(new_pos)
     position_que.append(new_pos)
 
     if len(position_que) < size:
@@ -42,7 +43,6 @@ def calc_position(
             tmp_que[np.abs(distances - mean) < std * std_th],
             axis=0)
 
-    pos = homo.transform_point(pos)
     return pos.astype(int), position_que
 
 
