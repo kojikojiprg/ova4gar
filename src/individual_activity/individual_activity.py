@@ -39,9 +39,15 @@ class IndividualActivity:
 
         idx = frame_num - self.start_frame_num
         if key == 'keypoints':
-            return self.keypoints_lst[idx]
+            try:
+                return self.keypoints_lst[idx]
+            except IndexError:
+                return None
         else:
-            return self.indicator_dict[key][idx]
+            try:
+                return self.indicator_dict[key][idx]
+            except IndexError:
+                return None
 
     def to_json(self, frame_num):
         idx = frame_num - self.start_frame_num
