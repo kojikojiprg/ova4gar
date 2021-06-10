@@ -65,15 +65,10 @@ def calc_passing(
             pred = clf.predict(p1, p2)
 
             if pred is not None:
-                # 中心点
-                p1_pos = p1[IA_FORMAT[3]]
-                p2_pos = p2[IA_FORMAT[3]]
-                center = np.average([p1_pos, p2_pos], axis=0)
-
                 datas.append({
                     json_format[0]: frame_num,
-                    json_format[1]: center.astype(int).tolist(),
-                    json_format[2]: [p1[IA_FORMAT[0]], p2[IA_FORMAT[0]]],
+                    json_format[1]: [p1[IA_FORMAT[0]], p2[IA_FORMAT[0]]],
+                    json_format[2]: [p1[IA_FORMAT[3]], p2[IA_FORMAT[3]]],
                     json_format[3]: pred})
 
     return datas

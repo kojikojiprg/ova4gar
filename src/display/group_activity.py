@@ -84,11 +84,11 @@ class DisplayGroupActivity:
             if persons is None:
                 is_persons = True
             else:
-                is_persons = data[json_format[2]][0] in persons and data[json_format[2]][1] in persons
+                is_persons = data[json_format[1]][0] in persons and data[json_format[1]][1] in persons
 
-            point = data[json_format[1]]
+            points = data[json_format[2]]
             pred = data[json_format[3]]
-            if is_persons and point is not None and pred == 1:
-                cv2.circle(field, tuple(point), 5, (0, 255, 0), thickness=-1)
+            if is_persons and points is not None and pred == 1:
+                cv2.line(field, points[0], points[1], color=(255, 165, 0), thickness=2)
 
         return field

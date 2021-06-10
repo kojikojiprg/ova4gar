@@ -36,8 +36,8 @@ ATTENTION_FORMAT = [
 
 PASSING_FORMAT = [
     'frame',
-    'point',
     'persons',
+    'points',
     'passing',
 ]
 
