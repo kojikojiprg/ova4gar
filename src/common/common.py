@@ -15,6 +15,7 @@ else:
 sys.path.append(os.path.join(root, 'src/'))
 
 data_dir = os.path.join(root, 'data/')
+model_dir = os.path.join(root, 'model/')
 
 homo = {
     'record': [
