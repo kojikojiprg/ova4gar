@@ -29,6 +29,6 @@ ATTENTION_DEFAULT = {
 PASSING_DEFAULT = {
     'gauss_mu': 100,    # 距離に対するガウス分布の平均
     'gauss_sig': 100,    # 距離に対するガウス分布の分散
-    'C': 10,
-    'gamma': 0.09
+    'C': 86,
+    'gamma': 0.99
 }
