@@ -87,11 +87,8 @@ class DisplayGroupActivity:
                 is_persons = data[json_format[2]][0] in persons and data[json_format[2]][1] in persons
 
             point = data[json_format[1]]
-            if point is not None:
-                if is_persons:
-                    likelifood = np.round(data[json_format[3]], decimals=3)
-                    cv2.circle(field, tuple(point), 5, (0, 255, 0), thickness=-1)
-                    cv2.putText(field, str(likelifood), tuple(point),
-                                cv2.FONT_HERSHEY_PLAIN, 3, (0, 255, 0), 2)
+            pred = data[json_format[3]]
+            if is_persons and point is not None and pred == 1:
+                cv2.circle(field, tuple(point), 5, (0, 255, 0), thickness=-1)
 
         return field
