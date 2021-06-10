@@ -47,6 +47,8 @@ class PassingDetector:
         # calc arm average
         arm_ave = np.average([p1_arm, p2_arm])
 
-        feature = [distance, body_direction, arm_ave]
+        feature = np.array([distance, body_direction, arm_ave]).reshape(1, -1)
 
-        return self.clf.predict(feature)
+        pred = self.clf.predict(feature)
+        pred = pred.ravel()[0]  # extract value
+        return pred
