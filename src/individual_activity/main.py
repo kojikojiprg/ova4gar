@@ -21,11 +21,11 @@ def main(tracking_json_path, individual_activity_json_path, homo):
         # individual_activityクラスを新規作成
         if len(individual_activitys) == individual_activity_id:
             individual_activitys.append(
-                IndividualActivity(individual_activity_id, frame_num, homo))
+                IndividualActivity(individual_activity_id, homo))
 
         # 指標を計算
         individual_activitys[individual_activity_id].calc_indicator(
-            keypoints, vector, average)
+            frame_num, keypoints, vector, average)
 
         # jsonフォーマットを作成して追加
         data = individual_activitys[individual_activity_id].to_json(frame_num)

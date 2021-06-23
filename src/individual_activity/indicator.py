@@ -62,11 +62,29 @@ def calc_position(
 
 def calc_face_vector(
     keypoints, homo, face_que,
-    size=FACE_DEFAULT['size'], std_th=FACE_DEFAULT['std_th']
+    size=FACE_DEFAULT['size'], ratio=FACE_DEFAULT['ratio'],
+    std_th=FACE_DEFAULT['std_th']
 ):
     nose = keypoints.get('Nose')
     lear = keypoints.get('LEar')
     rear = keypoints.get('REar')
+
+    # 足元にポイントを落とす
+    # ankle = keypoints.get_middle('Ankle')
+    # if ankle is not None:
+    #     diff = ankle - nose[:2]
+    # else:
+    #     shoulder = keypoints.get_middle('Shoulder')
+    #     hip = keypoints.get_middle('Hip')
+    #     if shoulder is None or hip is None:
+    #         return None, face_que
+
+    #     diff = hip - shoulder
+    #     diff *= ratio
+
+    # nose[:2] += diff
+    # lear[:2] += diff
+    # rear[:2] += diff
 
     # ホモグラフィ変換
     nose = np.append(homo.transform_point(nose[:2]), nose[2])
@@ -170,7 +188,7 @@ def calc_arm_extention(
     return arm, arm_que
 
 
-start_idx = 3
+start_idx = 2
 INDICATOR_DICT = {
     IA_FORMAT[start_idx + 0]: calc_position,
     IA_FORMAT[start_idx + 1]: calc_face_vector,

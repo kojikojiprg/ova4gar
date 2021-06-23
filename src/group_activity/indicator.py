@@ -21,8 +21,8 @@ def calc_attention(
         for y in range(0, field.shape[0], division):
             point = np.array([x, y])
             for data in individual_activity_datas:
-                pos = data[IA_FORMAT[3]]
-                face_vector = data[IA_FORMAT[4]]
+                pos = data[IA_FORMAT[2]]
+                face_vector = data[IA_FORMAT[3]]
                 if pos is None or face_vector is None:
                     continue
 
@@ -68,7 +68,7 @@ def calc_passing(
                 datas.append({
                     json_format[0]: frame_num,
                     json_format[1]: [p1[IA_FORMAT[0]], p2[IA_FORMAT[0]]],
-                    json_format[2]: [p1[IA_FORMAT[3]], p2[IA_FORMAT[3]]],
+                    json_format[2]: [p1[IA_FORMAT[2]], p2[IA_FORMAT[2]]],
                     json_format[3]: pred})
 
     return datas
