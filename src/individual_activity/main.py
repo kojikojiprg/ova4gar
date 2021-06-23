@@ -15,8 +15,6 @@ def main(tracking_json_path, individual_activity_json_path, homo):
         individual_activity_id = item[TRACKING_FORMAT[0]]
         frame_num = item[TRACKING_FORMAT[1]]
         keypoints = item[TRACKING_FORMAT[2]]
-        vector = item[TRACKING_FORMAT[3]]
-        average = item[TRACKING_FORMAT[4]]
 
         # individual_activityクラスを新規作成
         if len(individual_activitys) == individual_activity_id:
@@ -24,8 +22,7 @@ def main(tracking_json_path, individual_activity_json_path, homo):
                 IndividualActivity(individual_activity_id, homo))
 
         # 指標を計算
-        individual_activitys[individual_activity_id].calc_indicator(
-            frame_num, keypoints, vector, average)
+        individual_activitys[individual_activity_id].calc_indicator(frame_num, keypoints)
 
         # jsonフォーマットを作成して追加
         data = individual_activitys[individual_activity_id].to_json(frame_num)

@@ -21,6 +21,7 @@ TRACKING_FORMAT = [
 IA_FORMAT = [
     'label',
     'frame',
+    'tracking_position',
     'position',
     'face_vector',
     'body_vector',

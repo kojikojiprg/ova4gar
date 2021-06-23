@@ -188,7 +188,7 @@ def calc_arm_extention(
     return arm, arm_que
 
 
-start_idx = 2
+start_idx = 3
 INDICATOR_DICT = {
     IA_FORMAT[start_idx + 0]: calc_position,
     IA_FORMAT[start_idx + 1]: calc_face_vector,
