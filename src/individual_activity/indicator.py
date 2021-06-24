@@ -171,6 +171,8 @@ def calc_arm_extention(
             body_line = hip - shoulder
             arm = keypoints.get(lr + 'Wrist', ignore_confidence=True) \
                 - keypoints.get(lr + 'Shoulder', ignore_confidence=True)
+            body_line = normalize_vector(body_line)
+            arm = normalize_vector(arm)
 
             return 1.0 - np.abs(cos_similarity(body_line, arm))  # cos to sin
 

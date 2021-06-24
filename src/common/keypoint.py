@@ -36,9 +36,9 @@ class Keypoints(list):
 
     def get(self, body_name, ignore_confidence=False):
         if ignore_confidence:
-            return self[body[body_name]][:2]
+            return self[body[body_name]][:2].copy()
         else:
-            return self[body[body_name]]
+            return self[body[body_name]].copy()
 
     def get_middle(self, name, th_conf=THRESHOLD_CONFIDENCE):
         R = self.get('R' + name)
