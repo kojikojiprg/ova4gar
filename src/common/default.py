@@ -2,15 +2,17 @@
 POSITION_DEFAULT = {
     'ankle_th': 0.5,    # Ankleキーポイントに対する閾値
     'size': 30,
-    'ratio': 1.5,
+    'ratio': 1.2,
     'std_th': 1,        # 外れ値に対する分散の閾値
 }
 FACE_DEFAULT = {
     'size': 20,
+    'ratio': 2.7,       # 耳の位置 / 肩と腰の差分
     'std_th': 1,        # 外れ値に対する分散の閾値
 }
 BODY_DEFAULT = {
     'size': 20,
+    'ratio': 2.2,       # 肩の位置 / 肩と腰の差分
     'std_th': 1,        # 外れ値に対する分散の閾値
 }
 ARM_DEFAULT = {
@@ -19,9 +21,6 @@ ARM_DEFAULT = {
 }
 
 # GROUP INDICATORS
-DENSITY_DEFAULT = {
-    'k': 3,
-}
 ATTENTION_DEFAULT = {
     'angle': 10,        # 視野角
     'division': 5,      # 計算するピクセル幅
