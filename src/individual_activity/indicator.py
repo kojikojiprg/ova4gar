@@ -70,26 +70,27 @@ def calc_face_vector(
     rear = keypoints.get('REar')
 
     # 足元にポイントを落とす
-    # ankle = keypoints.get_middle('Ankle')
-    # if ankle is not None:
-    #     diff = ankle - nose[:2]
-    # else:
-    #     shoulder = keypoints.get_middle('Shoulder')
-    #     hip = keypoints.get_middle('Hip')
-    #     if shoulder is None or hip is None:
-    #         return None, face_que
+    ankle = keypoints.get_middle('Ankle')
+    ear = keypoints.get_middle('Ear')
+    if ankle is not None and ear is not None:
+        diff = ankle[:2] - ear
+    else:
+        shoulder = keypoints.get_middle('Shoulder')
+        hip = keypoints.get_middle('Hip')
+        if shoulder is None or hip is None:
+            return None, face_que
 
-    #     diff = hip - shoulder
-    #     diff *= ratio
+        diff = hip - shoulder
+        diff = diff.astype(float) * ratio
 
-    # nose[:2] += diff
-    # lear[:2] += diff
-    # rear[:2] += diff
+    nose[:2] += diff
+    lear[:2] += diff
+    rear[:2] += diff
 
     # ホモグラフィ変換
-    nose = np.append(homo.transform_point(nose[:2]), nose[2])
-    lear = np.append(homo.transform_point(lear[:2]), lear[2])
-    rear = np.append(homo.transform_point(rear[:2]), rear[2])
+    nose_homo = np.append(homo.transform_point(nose[:2]), nose[2])
+    lear_homo = np.append(homo.transform_point(lear[:2]), lear[2])
+    rear_homo = np.append(homo.transform_point(rear[:2]), rear[2])
 
     if lear[0] > rear[0]:
         x1 = rear[0]
@@ -99,15 +100,12 @@ def calc_face_vector(
         x2 = rear[0]
 
     if x1 < nose[0] and nose[0] < x2:
-        new_vector = lear - rear
-        new_vector = new_vector[:2]
-        # new_vector = normalize_vector(new_vector)
-        new_vector = rotation(new_vector, np.pi / 2)
+        new_vector = rear_homo - lear_homo
+        new_vector = rotation(new_vector[:2], - np.pi / 2)
     else:
-        center_ear = lear + (rear - lear) / 2
-        new_vector = nose - center_ear
+        center_ear = rear_homo + (lear_homo - rear_homo) / 2
+        new_vector = nose_homo - center_ear
         new_vector = new_vector[:2]
-        # new_vector = normalize_vector(new_vector)
 
     face_que.append(new_vector)
     if len(face_que) < size:
@@ -122,22 +120,31 @@ def calc_face_vector(
 
 def calc_body_vector(
     keypoints, homo, body_que,
-    size=BODY_DEFAULT['size'], std_th=BODY_DEFAULT['std_th']
+    size=BODY_DEFAULT['size'], ratio=BODY_DEFAULT['ratio'],
+    std_th=BODY_DEFAULT['std_th']
 ):
     lshoulder = keypoints.get('LShoulder')
     rshoulder = keypoints.get('RShoulder')
+    if lshoulder[2] < kp.THRESHOLD_CONFIDENCE or rshoulder[2] < kp.THRESHOLD_CONFIDENCE:
+        return None, body_que
+
+    # 足元にポイントを落とす
+    shoulder = keypoints.get_middle('Shoulder')
+    hip = keypoints.get_middle('Hip')
+    if shoulder is None or hip is None:
+        return None, body_que
+
+    diff = hip - shoulder
+    diff = diff.astype(float) * ratio
+    lshoulder[:2] += diff
+    rshoulder[:2] += diff
 
     # ホモグラフィ変換
-    lshoulder = np.append(homo.transform_point(lshoulder[:2]), lshoulder[2])
-    rshoulder = np.append(homo.transform_point(rshoulder[:2]), rshoulder[2])
+    lshoulder = homo.transform_point(lshoulder[:2])
+    rshoulder = homo.transform_point(rshoulder[:2])
 
-    if lshoulder[2] >= kp.THRESHOLD_CONFIDENCE and rshoulder[2] >= kp.THRESHOLD_CONFIDENCE:
-        new_vector = lshoulder - rshoulder
-        new_vector = new_vector[:2]
-        # new_vector = normalize_vector(new_vector)
-        new_vector = rotation(new_vector, np.pi / 2)
-    else:
-        return None, body_que
+    new_vector = rshoulder - lshoulder
+    new_vector = rotation(new_vector[:2], - np.pi / 2)
 
     body_que.append(new_vector)
     if len(body_que) < size:
