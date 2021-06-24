@@ -28,9 +28,9 @@ class IndividualActivity:
         if key not in IA_FORMAT:
             raise KeyError
 
-        try:
+        if frame_num in self.indicator_dict[key]:
             return self.indicator_dict[key][frame_num]
-        except IndexError:
+        else:
             return None
 
     def to_json(self, frame_num):
