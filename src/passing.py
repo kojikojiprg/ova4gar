@@ -57,7 +57,6 @@ def main(
         ga.main(
             individual_activity_json_path,
             group_activity_json_path,
-            homo,
             field_raw,
             method)
 

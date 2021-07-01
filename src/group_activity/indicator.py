@@ -7,7 +7,6 @@ import numpy as np
 def calc_attention(
         frame_num,
         individual_activity_datas,
-        homo,
         field,
         angle_range=ATTENTION_DEFAULT['angle'],
         division=ATTENTION_DEFAULT['division']):
@@ -51,7 +50,7 @@ def calc_attention(
 
 
 def calc_passing(
-    frame_num, individual_activity_datas, homo, clf
+    frame_num, individual_activity_datas, clf
     # th=PASSING_DEFAULT['th'], th_shita=PASSING_DEFAULT['th_shita']
 ):
     key = inspect.currentframe().f_code.co_name.replace('calc_', '')

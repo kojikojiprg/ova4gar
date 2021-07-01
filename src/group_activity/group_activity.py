@@ -6,8 +6,7 @@ import os
 
 
 class GroupActivity:
-    def __init__(self, homo, field, method=None):
-        self.homo = homo
+    def __init__(self, field, method=None):
         self.field = field
         self.method = method
         self.indicator_dict = {k: [] for k in INDICATOR_DICT.keys()}
@@ -21,14 +20,14 @@ class GroupActivity:
                     # key == attention
                     angle = karg['angle_range']
                     self.indicator_dict[key] += func(
-                        frame_num, individual_activity_datas, self.homo, self.field, angle_range=angle)
+                        frame_num, individual_activity_datas, self.field, angle_range=angle)
                 elif key == list(GA_FORMAT.keys())[1]:
                     # key == passing
                     self.indicator_dict[key] += func(
-                        frame_num, individual_activity_datas, self.homo, self.pass_clf)
+                        frame_num, individual_activity_datas, self.pass_clf)
                 else:
                     self.indicator_dict[key] += func(
-                        frame_num, individual_activity_datas, self.homo)
+                        frame_num, individual_activity_datas)
         else:
             func = INDICATOR_DICT[self.method]
             if self.method == list(GA_FORMAT.keys())[0]:

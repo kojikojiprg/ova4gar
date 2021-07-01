@@ -63,7 +63,7 @@ def main(
     method = __file__.replace('.py', '')
     if is_group_activity:
         ga.main(individual_activity_json_path, group_activity_json_path,
-                homo, field_raw, method, angle_range=angle_range)
+                field_raw, method, angle_range=angle_range)
 
     if is_display:
         display(

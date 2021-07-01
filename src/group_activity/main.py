@@ -6,14 +6,13 @@ from tqdm import tqdm
 def main(
         individual_activity_json_path,
         group_activity_json_path,
-        homo,
         field,
         method=None,
         **karg):
     print('Running group activity...')
     individual_activity_datas = json.load(individual_activity_json_path)
 
-    group_activity = GroupActivity(homo, field, method)
+    group_activity = GroupActivity(field, method)
 
     last_frame_num = individual_activity_datas[-1]['frame'] + 1
     for frame_num in tqdm(range(last_frame_num)):
