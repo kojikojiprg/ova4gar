@@ -1,5 +1,4 @@
 from common import common, transform
-from common.default import ATTENTION_DEFAULT
 from tracker import main as tr
 from individual_activity import main as ia
 from group_activity import main as ga
@@ -26,8 +25,7 @@ def main(
         is_tracking,
         is_individual_activity,
         is_group_activity,
-        is_display,
-        **karg):
+        is_display):
     video_path = os.path.join(
         common.data_dir, '{0}/{1}/{2}/video/AlphaPose_{2}.mp4'.format(room_num, date, name))
     out_dir = os.path.join(
@@ -41,12 +39,6 @@ def main(
         common.data_dir, '{0}/{1}/{2}/json/individual_activity.json'.format(room_num, date, name))
     group_activity_json_path = os.path.join(
         common.data_dir, '{0}/{1}/{2}/json/group_activity.json'.format(room_num, date, name))
-
-    angle_range = karg['angle_range']
-    is_default_angle_range = angle_range == ATTENTION_DEFAULT['angle']
-    if not is_default_angle_range:
-        group_activity_json_path = group_activity_json_path.replace(
-            '.json', '_{}.json'.format(angle_range))
 
     # homography
     field_raw = cv2.imread(field_path)
@@ -62,8 +54,11 @@ def main(
 
     method = __file__.replace('.py', '')
     if is_group_activity:
-        ga.main(individual_activity_json_path, group_activity_json_path,
-                field_raw, method, angle_range=angle_range)
+        ga.main(
+            individual_activity_json_path,
+            group_activity_json_path,
+            field_raw,
+            method)
 
     if is_display:
         display(
@@ -72,9 +67,7 @@ def main(
             individual_activity_json_path,
             group_activity_json_path,
             field_raw,
-            method,
-            angle_range=angle_range,
-            is_default_angle_range=is_default_angle_range)
+            method)
 
 
 if __name__ == '__main__':
@@ -94,11 +87,6 @@ if __name__ == '__main__':
         default=False,
         action='store_true')
     parser.add_argument('-d', '--display', default=False, action='store_true')
-    parser.add_argument(
-        '-a',
-        '--angle_range',
-        default=ATTENTION_DEFAULT['angle'],
-        type=int)
 
     args = parser.parse_args()
     room_num = args.room_num
@@ -108,7 +96,6 @@ if __name__ == '__main__':
     is_individual_activity = args.individual_activity
     is_group_activity = args.group_activity
     is_display = args.display
-    angle_range = args.angle_range
 
     main(
         room_num,
@@ -117,5 +104,4 @@ if __name__ == '__main__':
         is_tracking,
         is_individual_activity,
         is_group_activity,
-        is_display,
-        angle_range=angle_range)
+        is_display)
