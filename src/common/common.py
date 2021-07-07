@@ -2,13 +2,18 @@ import os
 import sys
 import numpy as np
 
-if os.getcwd().endswith('src'):
-    root = '../'
-elif 'notebooks' in os.getcwd():
-    if os.getcwd().endswith('notebooks'):
-        root = '../'
-    else:
-        root = '../../'
+cur_dir = os.getcwd()
+if 'notebooks' in os.getcwd() or 'src' in os.getcwd():
+    root = cur_dir
+    dirs = cur_dir.split('/')
+
+    if 'notebooks' in os.getcwd():
+        dir_num = len(dirs) - dirs.index('notebooks')
+    elif 'src' in os.getcwd():
+        dir_num = len(dirs) - dirs.index('src')
+
+    for _ in range(dir_num):
+        root = os.dirname(root)
 else:
     root = './'
 
