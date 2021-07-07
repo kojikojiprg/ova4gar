@@ -13,9 +13,9 @@ if 'notebooks' in os.getcwd() or 'src' in os.getcwd():
         dir_num = len(dirs) - dirs.index('src')
 
     for _ in range(dir_num):
-        root = os.dirname(root)
+        root = os.path.dirname(root)
 else:
-    root = './'
+    root = cur_dir
 
 sys.path.append(os.path.join(root, 'src/'))
 
