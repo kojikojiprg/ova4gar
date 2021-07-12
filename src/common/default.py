@@ -22,8 +22,10 @@ ARM_DEFAULT = {
 
 # GROUP INDICATORS
 ATTENTION_DEFAULT = {
-    'angle': 10,        # 視野角
-    'division': 5,      # 計算するピクセル幅
+    # 'angle': 10,        # 視野角
+    # 'division': 5,      # 計算するピクセル幅
+    'angle_th': 15,
+    'count_th': 2
 }
 PASSING_DEFAULT = {
     'gauss_mu': 100,    # 距離に対するガウス分布の平均

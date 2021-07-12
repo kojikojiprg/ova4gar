@@ -1,15 +1,14 @@
 from common.json import GA_FORMAT
 from display.heatmap import Heatmap
 import inspect
-import numpy as np
 import cv2
 
 
 keys = list(GA_FORMAT.keys())
 HEATMAP_SETTING_DICT = {
     # key: [is_heatmap, heatmap_data_index]
-    keys[0]: [True, -1],
-    keys[1]: [True, -1],
+    keys[0]: [False, None],
+    keys[1]: [False, None],
 }
 
 
@@ -49,29 +48,20 @@ class DisplayGroupActivity:
 
         return field
 
-    def disp_density(self, datas, field, min_r=8):
-        key = inspect.currentframe().f_code.co_name.replace('disp_', '')
-        json_format = GA_FORMAT[key]
-
-        for data in datas:
-            points = data[json_format[1]]
-            point = np.average(points, axis=0).astype(int)
-            r = min_r + len(points)
-            color = self.heatmap_dict[key].colormap(len(points))
-            cv2.circle(field, tuple(point), r, color, thickness=-1)
-
-        return field
-
     def disp_attention(self, datas, field):
         key = inspect.currentframe().f_code.co_name.replace('disp_', '')
         json_format = GA_FORMAT[key]
 
         for data in datas:
             point = data[json_format[1]]
-            value = data[json_format[2]]
+            person_points = data[json_format[2]]
+            # likelihood = data[json_format[3]]
 
-            color = self.heatmap_dict[key].colormap(value)
-            cv2.circle(field, tuple(point), 1, color, thickness=-1)
+            # color = self.heatmap_dict[key].colormap(likelihood)
+            for person_point in person_points:
+                cv2.line(field, point, person_point, color=(255, 165, 0), thickness=2)
+
+            cv2.circle(field, tuple(point), 8, (255, 165, 0), thickness=-1)
 
         return field
 

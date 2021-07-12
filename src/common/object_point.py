@@ -1,5 +1,6 @@
+# for field0304.png
 EX0304 = {
-    1: (679, 772),  # monitor
-    2: (54, 772),   # PC
-    3: (368, 420),  # operating table
+    1: (710, 812),  # monitor
+    2: (80, 772),   # PC
+    3: (390, 443),  # operating table
 }

@@ -28,9 +28,15 @@ IA_FORMAT = [
     'arm',
 ]
 
+
+# group_activity/group_activity.py
+# group_activity/indicator.py
+# display/display.py
+# display/group_activity.py
 ATTENTION_FORMAT = [
     'frame',
     'point',
+    'person_points',
     'count',
 ]
 
@@ -38,13 +44,9 @@ PASSING_FORMAT = [
     'frame',
     'persons',
     'points',
-    'passing',
+    'precision',
 ]
 
-# group_activity/group_activity.py
-# group_activity/indicator.py
-# display/display.py
-# display/group_activity.py
 GA_FORMAT = {
     'attention': ATTENTION_FORMAT,
     'passing': PASSING_FORMAT,

@@ -13,15 +13,15 @@ class GroupActivity:
 
         self.pass_clf = PassingDetector(os.path.join(common.model_dir, 'pass_model.pickle'))
 
-    def calc_indicator(self, frame_num, individual_activity_datas, **karg):
+    def calc_indicator(self, frame_num, individual_activity_datas):
         if self.method is None:
             for key, func in INDICATOR_DICT.items():
-                if key == list(GA_FORMAT.keys())[0]:
-                    # key == attention
-                    angle = karg['angle_range']
-                    self.indicator_dict[key] += func(
-                        frame_num, individual_activity_datas, self.field, angle_range=angle)
-                elif key == list(GA_FORMAT.keys())[1]:
+                # if key == list(GA_FORMAT.keys())[0]:
+                #     # key == attention
+                #     self.indicator_dict[key] += func(
+                #         frame_num, individual_activity_datas, self.field)
+                # elif key == list(GA_FORMAT.keys())[1]:
+                if key == list(GA_FORMAT.keys())[1]:
                     # key == passing
                     self.indicator_dict[key] += func(
                         frame_num, individual_activity_datas, self.pass_clf)
@@ -30,18 +30,18 @@ class GroupActivity:
                         frame_num, individual_activity_datas)
         else:
             func = INDICATOR_DICT[self.method]
-            if self.method == list(GA_FORMAT.keys())[0]:
-                # method == attention
-                angle = karg['angle_range']
-                self.indicator_dict[self.method] += func(
-                    frame_num, individual_activity_datas, self.homo, self.field, angle_range=angle)
-            elif self.method == list(GA_FORMAT.keys())[1]:
+            # if self.method == list(GA_FORMAT.keys())[0]:
+            #     # method == attention
+            #     self.indicator_dict[self.method] += func(
+            #         frame_num, individual_activity_datas, self.field)
+            # elif self.method == list(GA_FORMAT.keys())[1]:
+            if self.method == list(GA_FORMAT.keys())[1]:
                 # key == passing
                 self.indicator_dict[self.method] += func(
-                    frame_num, individual_activity_datas, self.homo, self.pass_clf)
+                    frame_num, individual_activity_datas, self.pass_clf)
             else:
                 self.indicator_dict[self.method] += func(
-                    frame_num, individual_activity_datas, self.homo)
+                    frame_num, individual_activity_datas)
 
     def to_json(self):
         return self.indicator_dict
