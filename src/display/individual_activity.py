@@ -11,13 +11,24 @@ VECTOR_SETTING_LIST = {
 
 
 def disp_individual_activity(individual_activity_datas, field, method=None):
+    field = disp_label(individual_activity_datas, field)
     if method == list(GA_FORMAT.keys())[0]:
         # attention
         field = disp_body_face(individual_activity_datas, field)
     else:
         field = disp_body_face(individual_activity_datas, field)
-        field = disp_arm_extention(individual_activity_datas, field)
+        # field = disp_arm_extention(individual_activity_datas, field)
 
+    return field
+
+
+def disp_label(individual_activity_datas, field):
+    for data in individual_activity_datas:
+        label = data[IA_FORMAT[0]]
+        position = data[IA_FORMAT[3]]
+        if position is not None:
+            cv2.putText(field, str(label), tuple(position),
+                        cv2.FONT_HERSHEY_PLAIN, 2, (20, 20, 20), 2)
     return field
 
 
