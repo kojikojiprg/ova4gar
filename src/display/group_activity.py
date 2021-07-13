@@ -1,6 +1,7 @@
 from common.json import GA_FORMAT
 from display.heatmap import Heatmap
 import inspect
+import numpy as np
 import cv2
 
 
@@ -54,14 +55,9 @@ class DisplayGroupActivity:
 
         for data in datas:
             point = data[json_format[1]]
-            person_points = data[json_format[2]]
-            # likelihood = data[json_format[3]]
 
-            # color = self.heatmap_dict[key].colormap(likelihood)
-            for person_point in person_points:
-                cv2.line(field, point, person_point, color=(255, 165, 0), thickness=2)
-
-            cv2.circle(field, tuple(point), 8, (255, 165, 0), thickness=-1)
+            cv2.circle(field, tuple(point), 10, (255, 165, 0), thickness=-1)
+            cv2.circle(field, tuple(point), 45, (255, 165, 0), thickness=1)
 
         return field
 
@@ -79,6 +75,18 @@ class DisplayGroupActivity:
             points = data[json_format[2]]
             pred = data[json_format[3]]
             if is_persons and points is not None and pred == 1:
-                cv2.line(field, points[0], points[1], color=(255, 165, 0), thickness=2)
+                p1 = np.array(points[0])
+                p2 = np.array(points[1])
+
+                # 楕円を計算
+                diff = p2 - p1
+                center = p1 + diff / 2
+                major = int(np.abs(np.linalg.norm(diff))) + 20
+                minor = int(major * 0.5)
+                angle = np.rad2deg(np.arctan2(diff[1], diff[0]))
+
+                # 描画
+                cv2.line(field, p1, p2, color=(255, 165, 0), thickness=1)
+                cv2.ellipse(field, (center, (major, minor), angle), color=(255, 165, 0), thickness=2)
 
         return field
