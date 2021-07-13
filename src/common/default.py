@@ -24,7 +24,7 @@ ARM_DEFAULT = {
 ATTENTION_DEFAULT = {
     # 'angle': 10,        # 視野角
     # 'division': 5,      # 計算するピクセル幅
-    'angle_th': 15,
+    'angle_th': 10,
     'count_th': 2
 }
 PASSING_DEFAULT = {
