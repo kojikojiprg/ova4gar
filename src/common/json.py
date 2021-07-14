@@ -44,7 +44,7 @@ PASSING_FORMAT = [
     'frame',
     'persons',
     'points',
-    'precision',
+    'precdiction',
 ]
 
 GA_FORMAT = {
