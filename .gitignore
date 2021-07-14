@@ -11,6 +11,7 @@ model
 
 *.zip
 *.mp4
+*.pdf
 *.json
 *.db
 *.db-journal
