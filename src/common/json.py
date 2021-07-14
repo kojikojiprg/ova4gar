@@ -35,6 +35,7 @@ IA_FORMAT = [
 # display/group_activity.py
 ATTENTION_FORMAT = [
     'frame',
+    'object_label',
     'point',
     'person_points',
     'count',

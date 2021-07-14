@@ -49,15 +49,16 @@ class DisplayGroupActivity:
 
         return field
 
-    def disp_attention(self, datas, field):
+    def disp_attention(self, datas, field, th=2):
         key = inspect.currentframe().f_code.co_name.replace('disp_', '')
         json_format = GA_FORMAT[key]
 
         for data in datas:
-            point = data[json_format[1]]
-
-            cv2.circle(field, tuple(point), 10, (255, 165, 0), thickness=-1)
-            cv2.circle(field, tuple(point), 45, (255, 165, 0), thickness=1)
+            point = data[json_format[2]]
+            count = data[json_format[4]]
+            if count >= th:
+                cv2.circle(field, tuple(point), 10, (255, 165, 0), thickness=-1)
+                cv2.circle(field, tuple(point), 45, (255, 165, 0), thickness=1)
 
         return field
 

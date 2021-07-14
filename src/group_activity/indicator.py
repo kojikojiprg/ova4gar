@@ -85,14 +85,13 @@ def calc_attention(
 
     datas = []
     for label in object_points.keys():
-        count = object_count[label]
-        if count >= th:
-            datas.append({
-                json_format[0]: frame_num,
-                json_format[1]: object_points[label],
-                json_format[2]: object_persons[label],
-                json_format[3]: object_count[label]
-            })
+        datas.append({
+            json_format[0]: frame_num,
+            json_format[1]: label,
+            json_format[2]: object_points[label],
+            json_format[3]: object_persons[label],
+            json_format[4]: object_count[label]
+        })
 
     return datas
 
