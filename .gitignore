@@ -13,7 +13,7 @@ model
 *.mp4
 *.pdf
 *.json
-*.db
-*.db-journal
+*.csv
+*.xlsx
 
 .ipynb_checkpoints
