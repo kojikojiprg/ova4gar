@@ -58,7 +58,7 @@ class DisplayGroupActivity:
             count = data[json_format[4]]
             if count >= th:
                 cv2.circle(field, tuple(point), 10, (255, 165, 0), thickness=-1)
-                cv2.circle(field, tuple(point), 45, (255, 165, 0), thickness=1)
+                cv2.circle(field, tuple(point), 45, (255, 165, 0), thickness=3)
 
         return field
 
