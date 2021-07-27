@@ -5,7 +5,7 @@ import cv2
 
 LABEL_SETTING = [
     # size, color, thickness
-    4, (20, 20, 20), 2
+    3, (20, 20, 20), 2
 ]
 
 VECTOR_SETTING_LIST = {

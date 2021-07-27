@@ -9,6 +9,6 @@ def disp_tracking(individual_activity_datas, frame):
         if point is not None:
             cv2.circle(frame, tuple(point), 7, (0, 0, 255), thickness=-1)
             cv2.putText(frame, str(individual_activity_id), tuple(point),
-                        cv2.FONT_HERSHEY_PLAIN, 2, (255, 255, 255), 2)
+                        cv2.FONT_HERSHEY_PLAIN, 3, (255, 255, 255), 2)
 
     return frame
