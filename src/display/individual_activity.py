@@ -3,10 +3,15 @@ import numpy as np
 import cv2
 
 
+LABEL_SETTING = [
+    # size, color, thickness
+    4, (20, 20, 20), 2
+]
+
 VECTOR_SETTING_LIST = {
     # arrow_length, color, tip_length
-    IA_FORMAT[4]: [20, (255, 0, 0), 1.0],   # face vector
-    IA_FORMAT[5]: [30, (0, 0, 255), 1.5],   # body vector
+    IA_FORMAT[4]: [40, (255, 0, 0), 1.0],   # face vector
+    IA_FORMAT[5]: [60, (0, 0, 255), 1.5],   # body vector
 }
 
 
@@ -27,8 +32,8 @@ def disp_label(individual_activity_datas, field):
         label = data[IA_FORMAT[0]]
         position = data[IA_FORMAT[3]]
         if position is not None:
-            cv2.putText(field, str(label), tuple(position),
-                        cv2.FONT_HERSHEY_PLAIN, 2, (20, 20, 20), 2)
+            cv2.putText(field, str(label), tuple(position), cv2.FONT_HERSHEY_PLAIN,
+                        LABEL_SETTING[0], LABEL_SETTING[1], LABEL_SETTING[2])
     return field
 
 
