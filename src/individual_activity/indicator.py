@@ -103,7 +103,7 @@ def calc_face_vector(
         new_vector = rear_homo - lear_homo
         new_vector = rotation(new_vector[:2], - np.pi / 2)
     else:
-        center_ear = rear_homo + (lear_homo - rear_homo) / 2
+        center_ear = (lear_homo + rear_homo) / 2
         new_vector = nose_homo - center_ear
         new_vector = new_vector[:2]
 
