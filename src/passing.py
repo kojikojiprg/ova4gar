@@ -30,7 +30,7 @@ def main(
         common.data_dir, '{0}/{1}/{2}/video/AlphaPose_{2}.mp4'.format(room_num, date, name))
     out_dir = os.path.join(
         common.data_dir, '{0}/{1}/{2}/out/'.format(room_num, date, name))
-    field_path = os.path.join(common.data_dir, 'field.png')
+    field_path = os.path.join(common.data_dir, '{}/field0304.png'.format(room_num))
     keypoints_path = os.path.join(
         common.data_dir, '{0}/{1}/{2}/json/alphapose-results.json'.format(room_num, date, name))
     tracking_json_path = os.path.join(
