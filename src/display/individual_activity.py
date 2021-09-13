@@ -16,7 +16,7 @@ VECTOR_SETTING_LIST = {
 
 
 def disp_individual_activity(individual_activity_datas, field, method=None):
-    field = disp_label(individual_activity_datas, field)
+    # field = disp_label(individual_activity_datas, field)
     if method == list(GA_FORMAT.keys())[0]:
         # attention
         field = disp_body_face(individual_activity_datas, field)
