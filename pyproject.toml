@@ -22,10 +22,12 @@ jupyter = "^1.0.0"
 jupyterlab = "^3.0.15"
 jupyterlab-vim = "^0.14.2"
 ipympl = "^0.7.0"
-flake8 = "^3.8.2"
-autopep8 = "^1.5.2"
 rope = "^0.17.0"
 tqdm = "^4.60.0"
+flake8 = "^3.8.2"
+black = "^21.9b0"
+isort = "^5.9.3"
+mypy = "^0.910"
 
 [build-system]
 requires = ["poetry>=0.12"]
