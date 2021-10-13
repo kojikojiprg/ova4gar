@@ -4,7 +4,7 @@ from individual_activity.indicator import INDICATOR_DICT
 
 
 class IndividualActivity:
-    def __init__(self, activity_id, homo):
+    def __init__(self, activity_id, homo=None):
         self.id = activity_id
         self.tracking_points = {}
         self.indicator_dict = {k: {} for k in INDICATOR_DICT.keys()}
