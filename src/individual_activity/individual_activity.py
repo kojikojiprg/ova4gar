@@ -1,5 +1,6 @@
-from common.keypoint import Keypoints
 from common.json import IA_FORMAT
+from common.keypoint import Keypoints
+
 from individual_activity.indicator import INDICATOR_DICT
 
 
