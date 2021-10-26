@@ -1,5 +1,6 @@
 from tracker.person import Person
 from common.json import TRACKING_FORMAT
+from tqdm import tqdm
 
 
 def track(keypoints_all_frame):
@@ -10,7 +11,7 @@ def track(keypoints_all_frame):
 
     # トラッキング
     tracking_results = []
-    for i, keypoints_lst in enumerate(keypoints_all_frame):
+    for i, keypoints_lst in tqdm(enumerate(keypoints_all_frame)):
         # 状態をリセット
         for person in persons:
             person.reset()
@@ -56,14 +57,6 @@ def track(keypoints_all_frame):
                     TRACKING_FORMAT[2]: person.keypoints_lst[-1].to_json(),
                     TRACKING_FORMAT[3]: person.average_lst[-1].tolist(),
                     TRACKING_FORMAT[4]: person.vector.tolist(),
-                })
-            else:
-                tracking_results.append({
-                    TRACKING_FORMAT[0]: person.id,
-                    TRACKING_FORMAT[1]: i,
-                    TRACKING_FORMAT[2]: None,
-                    TRACKING_FORMAT[3]: None,
-                    TRACKING_FORMAT[4]: None,
                 })
 
     return tracking_results

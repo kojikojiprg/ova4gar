@@ -1,7 +1,6 @@
 from common import common, transform
-from common.default import ATTENTION_DEFAULT
 from tracker import main as tr
-from indivisual_activity import main as ia
+from individual_activity import main as ia
 from group_activity import main as ga
 from display.display import display
 import argparse
@@ -10,7 +9,7 @@ import cv2
 
 
 # is_tracking = True
-# is_indivisual_activity = True
+# is_individual_activity = True
 # is_group_activity = True
 # is_display = True
 
@@ -24,57 +23,54 @@ def main(
         date,
         name,
         is_tracking,
-        is_indivisual_activity,
+        is_individual_activity,
         is_group_activity,
-        is_display,
-        **karg):
+        is_display):
     video_path = os.path.join(
-        common.data_dir, '{0}/{1}/{2}/AlphaPose_{2}.mp4'.format(room_num, date, name))
+        common.data_dir, '{0}/{1}/{2}/video/AlphaPose_{2}.mp4'.format(room_num, date, name))
     out_dir = os.path.join(
-        common.out_dir, '{0}/{1}/{2}/'.format(room_num, date, name))
-    field_path = os.path.join(common.data_dir, 'field.png')
+        common.data_dir, '{0}/{1}/{2}/out/'.format(room_num, date, name))
+    # field_path = os.path.join(common.data_dir, 'field.png')
+    field_path = os.path.join(common.data_dir, '{}/field0304.png'.format(room_num))
     keypoints_path = os.path.join(
-        common.data_dir, '{0}/{1}/{2}/alphapose-results.json'.format(room_num, date, name))
+        common.data_dir, '{0}/{1}/{2}/json/alphapose-results.json'.format(room_num, date, name))
     tracking_json_path = os.path.join(
-        common.json_dir, '{0}/{1}/{2}/tracking.json'.format(room_num, date, name))
-    indivisual_activity_json_path = os.path.join(
-        common.json_dir, '{0}/{1}/{2}/indivisual_activity.json'.format(room_num, date, name))
+        common.data_dir, '{0}/{1}/{2}/json/tracking.json'.format(room_num, date, name))
+    individual_activity_json_path = os.path.join(
+        common.data_dir, '{0}/{1}/{2}/json/individual_activity.json'.format(room_num, date, name))
     group_activity_json_path = os.path.join(
-        common.json_dir, '{0}/{1}/{2}/group_activity.json'.format(room_num, date, name))
-
-    angle_range = karg['angle_range']
-    is_default_angle_range = angle_range == ATTENTION_DEFAULT['angle']
-    if not is_default_angle_range:
-        group_activity_json_path = group_activity_json_path.replace(
-            '.json', '_{}.json'.format(angle_range))
+        common.data_dir, '{0}/{1}/{2}/json/group_activity.json'.format(room_num, date, name))
 
     # homography
     field_raw = cv2.imread(field_path)
-    p_video = common.homo[room_num][0]
-    p_field = common.homo[room_num][1]
+    # p_video = common.homo[room_num][0]
+    # p_field = common.homo[room_num][1]
+    p_video = common.homo['09_0304'][0]
+    p_field = common.homo['09_0304'][1]
     homo = transform.Homography(p_video, p_field, field_raw.shape)
 
     if is_tracking:
         tr.main(keypoints_path, tracking_json_path)
 
-    if is_indivisual_activity:
-        ia.main(tracking_json_path, indivisual_activity_json_path, homo)
+    if is_individual_activity:
+        ia.main(tracking_json_path, individual_activity_json_path, homo)
 
     method = __file__.replace('.py', '')
     if is_group_activity:
-        ga.main(indivisual_activity_json_path, group_activity_json_path,
-                homo, field_raw, method, angle_range=angle_range)
+        ga.main(
+            individual_activity_json_path,
+            group_activity_json_path,
+            field_raw,
+            method)
 
     if is_display:
         display(
             video_path,
             out_dir,
-            indivisual_activity_json_path,
+            individual_activity_json_path,
             group_activity_json_path,
             field_raw,
-            method,
-            angle_range=angle_range,
-            is_default_angle_range=is_default_angle_range)
+            method)
 
 
 if __name__ == '__main__':
@@ -85,7 +81,7 @@ if __name__ == '__main__':
     parser.add_argument('-t', '--tracking', default=False, action='store_true')
     parser.add_argument(
         '-ia',
-        '--indivisual_activity',
+        '--individual_activity',
         default=False,
         action='store_true')
     parser.add_argument(
@@ -94,28 +90,21 @@ if __name__ == '__main__':
         default=False,
         action='store_true')
     parser.add_argument('-d', '--display', default=False, action='store_true')
-    parser.add_argument(
-        '-a',
-        '--angle_range',
-        default=ATTENTION_DEFAULT['angle'],
-        type=int)
 
     args = parser.parse_args()
     room_num = args.room_num
     date = args.date
     name = args.name
     is_tracking = args.tracking
-    is_indivisual_activity = args.indivisual_activity
+    is_individual_activity = args.individual_activity
     is_group_activity = args.group_activity
     is_display = args.display
-    angle_range = args.angle_range
 
     main(
         room_num,
         date,
         name,
         is_tracking,
-        is_indivisual_activity,
+        is_individual_activity,
         is_group_activity,
-        is_display,
-        angle_range=angle_range)
+        is_display)

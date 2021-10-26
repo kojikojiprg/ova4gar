@@ -1,9 +1,10 @@
 import os
 import json
+import numpy as np
 
 
 # tracking/tracking.py
-# indivisual_activity/main.py
+# individual_activity/main.py
 TRACKING_FORMAT = [
     'label',
     'frame',
@@ -12,44 +13,41 @@ TRACKING_FORMAT = [
     'average',
 ]
 
-# indivisual_activity/indivisual_activity.py
-# indivisual_activity/indicator.py
+# individual_activity/individual_activity.py
+# individual_activity/indicator.py
 # group_activity/indicator.py
 # display/tracking.py
-# display/indivisual_activity.py
+# display/individual_activity.py
 IA_FORMAT = [
     'label',
     'frame',
-    'keypoints',
+    'tracking_position',
     'position',
     'face_vector',
     'body_vector',
     'arm',
 ]
 
-ATTENTION_FORMAT = [
-    'frame',
-    'point',
-    'count',
-]
-
-PASSING_FORMAT = [
-    'frame',
-    'point',
-    'probability',
-]
-
-# not use
-# DENSITY_FORMAT = [
-#     'frame',
-#     'cluster',
-#     'count',
-# ]
 
 # group_activity/group_activity.py
 # group_activity/indicator.py
 # display/display.py
 # display/group_activity.py
+ATTENTION_FORMAT = [
+    'frame',
+    'object_label',
+    'point',
+    'person_points',
+    'count',
+]
+
+PASSING_FORMAT = [
+    'frame',
+    'persons',
+    'points',
+    'precdiction',
+]
+
 GA_FORMAT = {
     'attention': ATTENTION_FORMAT,
     'passing': PASSING_FORMAT,
@@ -67,4 +65,16 @@ def dump(data, json_path):
     os.makedirs(os.path.dirname(json_path), exist_ok=True)
 
     with open(json_path, 'w') as f:
-        json.dump(data, f)
+        json.dump(data, f, cls=MyEncoder)
+
+
+class MyEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        elif isinstance(obj, np.floating):
+            return float(obj)
+        elif isinstance(obj, np.ndarray):
+            return obj.tolist()
+        else:
+            return super(MyEncoder, self).default(obj)

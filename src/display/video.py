@@ -26,7 +26,7 @@ class Video:
             os.makedirs(out_dir, exist_ok=True)
 
         # writer object
-        fmt = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
+        fmt = cv2.VideoWriter_fourcc('h', '2', '6', '4')
         self._writer = cv2.VideoWriter(
             out_path, fmt, self.frame_rate, size)
 

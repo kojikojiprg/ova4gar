@@ -8,8 +8,8 @@ import cv2
 keys = list(GA_FORMAT.keys())
 HEATMAP_SETTING_DICT = {
     # key: [is_heatmap, heatmap_data_index]
-    keys[0]: [True, -1],
-    keys[1]: [True, -1],
+    keys[0]: [False, None],
+    keys[1]: [False, None],
 }
 
 
@@ -49,43 +49,45 @@ class DisplayGroupActivity:
 
         return field
 
-    def disp_density(self, datas, field, min_r=8):
+    def disp_attention(self, datas, field, th=2):
         key = inspect.currentframe().f_code.co_name.replace('disp_', '')
         json_format = GA_FORMAT[key]
 
         for data in datas:
-            points = data[json_format[1]]
-            point = np.average(points, axis=0).astype(int)
-            r = min_r + len(points)
-            color = self.heatmap_dict[key].colormap(len(points))
-            cv2.circle(field, tuple(point), r, color, thickness=-1)
+            point = data[json_format[2]]
+            count = data[json_format[4]]
+            if count >= th:
+                cv2.circle(field, tuple(point), 10, (255, 165, 0), thickness=-1)
+                cv2.circle(field, tuple(point), 45, (255, 165, 0), thickness=3)
 
         return field
 
-    def disp_attention(self, datas, field):
+    def disp_passing(self, datas, field, persons=None):
         key = inspect.currentframe().f_code.co_name.replace('disp_', '')
         json_format = GA_FORMAT[key]
 
         for data in datas:
-            point = data[json_format[1]]
-            value = data[json_format[2]]
+            is_persons = False
+            if persons is None:
+                is_persons = True
+            else:
+                is_persons = data[json_format[1]][0] in persons and data[json_format[1]][1] in persons
 
-            color = self.heatmap_dict[key].colormap(value)
-            cv2.circle(field, tuple(point), 1, color, thickness=-1)
+            points = data[json_format[2]]
+            pred = data[json_format[3]]
+            if is_persons and points is not None and pred == 1:
+                p1 = np.array(points[0])
+                p2 = np.array(points[1])
 
-        return field
+                # 楕円を計算
+                diff = p2 - p1
+                center = p1 + diff / 2
+                major = int(np.abs(np.linalg.norm(diff))) + 20
+                minor = int(major * 0.5)
+                angle = np.rad2deg(np.arctan2(diff[1], diff[0]))
 
-    def disp_passing(self, datas, field):
-        key = inspect.currentframe().f_code.co_name.replace('disp_', '')
-        json_format = GA_FORMAT[key]
-
-        for data in datas:
-            point = data[json_format[1]]
-            if point is not None:
-                likelifood = np.round(data[json_format[2]], decimals=3)
-                color = self.heatmap_dict[key].colormap(likelifood)
-                cv2.circle(field, tuple(point), 5, color, thickness=-1)
-                cv2.putText(field, str(likelifood), tuple(point),
-                            cv2.FONT_HERSHEY_PLAIN, 2, color, 2)
+                # 描画
+                cv2.line(field, p1, p2, color=(255, 165, 0), thickness=1)
+                cv2.ellipse(field, (center, (major, minor), angle), color=(255, 165, 0), thickness=2)
 
         return field

@@ -4,10 +4,16 @@
 
 __pycache__
 data
+video
+json
 out
+model
 
 *.zip
 *.mp4
+*.pdf
 *.json
-*.db
-*.db-journal
+*.csv
+*.xlsx
+
+.ipynb_checkpoints

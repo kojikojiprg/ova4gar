@@ -7,7 +7,7 @@ def mahalanobis(x, data):
     mu = np.average(data, axis=0)
     sigma = np.cov(data.T)
 
-    inv = np.linalg.inv(sigma)
+    inv = np.linalg.pinv(sigma)
     return distance.mahalanobis(x, mu, inv)
 
 
@@ -40,6 +40,7 @@ def softmax(x):
 
 
 def normalize_vector(vec):
+    vec = vec.astype(np.float64)
     vec += 1e-10
     vec /= np.linalg.norm(vec)
     return vec

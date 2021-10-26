@@ -36,14 +36,11 @@ class Keypoints(list):
 
     def get(self, body_name, ignore_confidence=False):
         if ignore_confidence:
-            return self[body[body_name]][:2]
+            return self[body[body_name]][:2].copy()
         else:
-            return self[body[body_name]]
+            return self[body[body_name]].copy()
 
-    def get_middle(self, name, th_conf=None):
-        if th_conf is None:
-            th_conf = THRESHOLD_CONFIDENCE
-
+    def get_middle(self, name, th_conf=THRESHOLD_CONFIDENCE):
         R = self.get('R' + name)
         L = self.get('L' + name)
         if R[2] < th_conf and L[2] < th_conf:
@@ -83,7 +80,7 @@ class KeypointsList(list):
         elif keypoints is None:
             super().append(None)
         else:
-            if keypoints.shape == (17, 3):
+            if keypoints.shape == (17, 3) or keypoints.shape == (51,):
                 super().append(Keypoints(keypoints))
             else:
                 super().append(None)

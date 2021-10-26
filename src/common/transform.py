@@ -14,6 +14,6 @@ class Homography:
         point = np.append(point, 1)
         result = np.dot(self.M, point)
         return np.array([
-            int(result[0] / result[2]),
-            int(result[1] / result[2]),
+            result[0] / result[2],
+            result[1] / result[2],
         ])
