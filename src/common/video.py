@@ -7,7 +7,6 @@ class Video:
         self._video = cv2.VideoCapture(in_path)
 
         # video info
-        self.frame_count = int(self._video.get(cv2.CAP_PROP_FRAME_COUNT))
         self.frame_rate = int(self._video.get(cv2.CAP_PROP_FPS))
         self.frame_num = int(self._video.get(cv2.CAP_PROP_FRAME_COUNT))
 
