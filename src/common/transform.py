@@ -2,6 +2,7 @@ import glob
 
 import cv2
 import numpy as np
+import matplotlib.pyplot as plt
 from tqdm import tqdm
 
 from . import json
@@ -31,22 +32,25 @@ class CameraCalibration:
         self.mtx = None
         self.dist = None
         if json_path is not None:
-            data = json.load(json_path)
-            self.mtx = data["mtx"]
-            self.dist = data["dist"]
+            self.from_json(json_path)
+
+    def from_json(self, json_path):
+        data = json.load(json_path)
+        self.mtx = data["mtx"]
+        self.dist = data["dist"]
 
     def to_json(self, json_path):
         data = {"mtx": self.mtx, "dist": self.dist}
         json.dump(data, json_path)
 
-    def fit(self, images_folder_path, corner_pattern=(10, 7)):
+    def fit(self, images_folder_path, corner_pattern=(10, 7), square_size=6.8, is_verbose=False):
         # termination criteria
-        criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
+        criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.01)
 
         # prepare object points, like (0,0,0), (1,0,0), (2,0,0) ....,(6,5,0)
-        w, h = corner_pattern
-        objp = np.zeros((w * h, 3), np.float32)
-        objp[:, :2] = np.mgrid[0:h, 0:w].T.reshape(-1, 2)
+        objp = np.zeros((np.prod(corner_pattern), 3), np.float32)
+        objp[:, :2] = np.indices(corner_pattern).T.reshape(-1, 2)
+        objp *= square_size
 
         # Arrays to store object points and image points from all the images.
         objpoints = []  # 3d point in real world space
@@ -59,14 +63,20 @@ class CameraCalibration:
             gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
             # Find the chess board corners
-            ret, corners = cv2.findChessboardCorners(gray, corner_pattern, None)
+            ret, corners = cv2.findChessboardCorners(gray, corner_pattern)
 
             # If found, add object points, image points (after refining them)
             if ret:
                 objpoints.append(objp)
 
-                corners2 = cv2.cornerSubPix(gray, corners, (11, 11), (-1, -1), criteria)
+                corners2 = cv2.cornerSubPix(gray, corners, (7, 7), (-1, -1), criteria)
                 imgpoints.append(corners2)
+
+                if is_verbose:
+                    # Draw and display the corners
+                    img = cv2.drawChessboardCorners(img, corner_pattern, corners2, ret)
+                    plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+                    plt.show()
 
         ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(
             objpoints, imgpoints, gray.shape[::-1], None, None
@@ -76,16 +86,6 @@ class CameraCalibration:
         self.dist = dist
 
     def transform(self, img):
-        h, w = img.shape[:2]
-        newcameramtx, roi = cv2.getOptimalNewCameraMatrix(
-            self.mtx, self.dist, (w, h), 1, (w, h)
-        )
-
-        # undistort
-        dst = cv2.undistort(img, self.mtx, self.dist, None, newcameramtx)
-
-        # crop the image
-        x, y, w, h = roi
-        dst = dst[y : y + h, x : x + w]
+        dst = cv2.undistort(img, self.mtx, self.dist, None, None)
 
         return dst
