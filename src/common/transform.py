@@ -1,8 +1,8 @@
 import glob
 
 import cv2
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 from tqdm import tqdm
 
 from . import json
@@ -36,14 +36,20 @@ class CameraCalibration:
 
     def from_json(self, json_path):
         data = json.load(json_path)
-        self.mtx = data["mtx"]
-        self.dist = data["dist"]
+        self.mtx = np.array(data["mtx"])
+        self.dist = np.array(data["dist"])
 
     def to_json(self, json_path):
         data = {"mtx": self.mtx, "dist": self.dist}
         json.dump(data, json_path)
 
-    def fit(self, images_folder_path, corner_pattern=(10, 7), square_size=6.8, is_verbose=False):
+    def fit(
+        self,
+        images_folder_path,
+        corner_pattern=(10, 7),
+        square_size=6.8,
+        is_verbose=False,
+    ):
         # termination criteria
         criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.01)
 
@@ -85,7 +91,16 @@ class CameraCalibration:
         self.mtx = mtx
         self.dist = dist
 
-    def transform(self, img):
-        dst = cv2.undistort(img, self.mtx, self.dist, None, None)
+    def transform(self, img, alpha=0.0, is_crop=True):
+        h, w = img.shape[:2]
+        newcameramtx, roi = cv2.getOptimalNewCameraMatrix(
+            self.mtx, self.dist, (w, h), alpha, (w, h)
+        )
+
+        dst = cv2.undistort(img, self.mtx, self.dist, None, newcameramtx)
+
+        if is_crop:
+            x, y, w, h = roi
+            dst = dst[y : y + h, x : x + w]
 
         return dst
