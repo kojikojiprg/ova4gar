@@ -48,6 +48,11 @@ class ParticleFilter:
 
     def weighted_average(self):
         return np.average(self.particles.T, weights=self.weights, axis=1)
+        
+        # if np.any(self.weights != 0):
+        #     return np.average(self.particles.T, weights=self.weights, axis=1)
+        # else:
+        #     return np.average(self.particles.T, axis=1)
 
     def filter(self, point):
         # 尤度関数(ガウス分布)からパーティクルの重みを計算

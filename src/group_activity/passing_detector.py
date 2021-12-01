@@ -1,5 +1,5 @@
 from common.default import PASSING_DEFAULT
-from common.json import IA_FORMAT
+from common.json import IA_FORMAT, START_IDX
 from common.functions import cos_similarity, gauss
 import numpy as np
 import pickle
@@ -16,12 +16,12 @@ class PassingDetector:
                 self.clf = pickle.load(f)
 
     def predict(self, p1, p2, mu=PASSING_DEFAULT['gauss_mu'], sigma=PASSING_DEFAULT['gauss_sig']):
-        p1_pos = p1[IA_FORMAT[3]]
-        p2_pos = p2[IA_FORMAT[3]]
-        p1_body = p1[IA_FORMAT[5]]
-        p2_body = p2[IA_FORMAT[5]]
-        p1_arm = p1[IA_FORMAT[6]]
-        p2_arm = p2[IA_FORMAT[6]]
+        p1_pos = p1[IA_FORMAT[START_IDX + 0]]
+        p2_pos = p2[IA_FORMAT[START_IDX + 0]]
+        p1_body = p1[IA_FORMAT[START_IDX + 2]]
+        p2_body = p2[IA_FORMAT[START_IDX + 2]]
+        p1_arm = p1[IA_FORMAT[START_IDX + 3]]
+        p2_arm = p2[IA_FORMAT[START_IDX + 3]]
 
         if (
             p1_pos is None or p2_pos is None or

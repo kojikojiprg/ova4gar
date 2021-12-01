@@ -1,8 +1,8 @@
 import glob
 
 import cv2
-import matplotlib.pyplot as plt
 import numpy as np
+import matplotlib.pyplot as plt
 from tqdm import tqdm
 
 from . import json
@@ -43,13 +43,7 @@ class CameraCalibration:
         data = {"mtx": self.mtx, "dist": self.dist}
         json.dump(data, json_path)
 
-    def fit(
-        self,
-        images_folder_path,
-        corner_pattern=(10, 7),
-        square_size=6.8,
-        is_verbose=False,
-    ):
+    def fit(self, images_folder_path, corner_pattern=(10, 7), square_size=6.8, is_verbose=False):
         # termination criteria
         criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.01)
 

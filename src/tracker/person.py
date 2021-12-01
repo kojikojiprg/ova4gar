@@ -1,9 +1,8 @@
-from enum import Enum, auto
-
-import numpy as np
-from common.functions import cosine, euclidean, normalize, softmax
 from common.keypoint import KeypointsList
+from common.functions import euclidean, cosine, normalize, softmax
 from common.particle_filter import ParticleFilter
+import numpy as np
+from enum import Enum, auto
 
 
 class Person:
@@ -24,7 +23,7 @@ class Person:
         self.vector = np.array([0, 0])
 
     def _get_point(self, keypoints):
-        return keypoints.get_middle("Hip", th_conf=0.0)
+        return keypoints.get_middle('Hip', th_conf=0.0)
 
     def reset(self):
         if not self.is_deleted():
@@ -82,7 +81,7 @@ class Person:
             return
 
         # 差分を求める
-        average = self.average_lst[-self.vector_size :]
+        average = self.average_lst[-self.vector_size:]
         diffs = []
         for i in range(self.vector_size - 1):
             now = average[i]

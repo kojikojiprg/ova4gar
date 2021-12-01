@@ -5,6 +5,7 @@ from group_activity import main as ga
 from display.display import display
 import argparse
 import os
+from glob import glob
 import cv2
 
 
@@ -27,10 +28,10 @@ def main(
         is_group_activity,
         is_display):
     video_path = os.path.join(
-        common.data_dir, '{0}/{1}/{2}/video/AlphaPose_{2}.mp4'.format(room_num, date, name))
+        common.data_dir, '{0}/{1}/{2}/video/AlphaPose_{3}.mp4'.format(room_num, date, name, name.replace('passing/', '')))
     out_dir = os.path.join(
         common.data_dir, '{0}/{1}/{2}/out/'.format(room_num, date, name))
-    field_path = os.path.join(common.data_dir, '{}/field0304.png'.format(room_num))
+    field_path = os.path.join(common.data_dir, '{}/field.png'.format(room_num))
     keypoints_path = os.path.join(
         common.data_dir, '{0}/{1}/{2}/json/alphapose-results.json'.format(room_num, date, name))
     tracking_json_path = os.path.join(
@@ -52,7 +53,7 @@ def main(
     if is_individual_activity:
         ia.main(tracking_json_path, individual_activity_json_path, homo)
 
-    method = __file__.replace('.py', '')
+    method = 'passing'
     if is_group_activity:
         ga.main(
             individual_activity_json_path,
@@ -74,7 +75,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('room_num', type=str)
     parser.add_argument('date', type=str)
-    parser.add_argument('name', type=str)
+    parser.add_argument('-n', '--name', default=None, type=str)
+    parser.add_argument('-a', '--all', default=False, action='store_true')
     parser.add_argument('-t', '--tracking', default=False, action='store_true')
     parser.add_argument(
         '-ia',
@@ -92,16 +94,33 @@ if __name__ == '__main__':
     room_num = args.room_num
     date = args.date
     name = args.name
+    is_all = args.all
     is_tracking = args.tracking
     is_individual_activity = args.individual_activity
     is_group_activity = args.group_activity
     is_display = args.display
 
-    main(
-        room_num,
-        date,
-        name,
-        is_tracking,
-        is_individual_activity,
-        is_group_activity,
-        is_display)
+    if is_all:
+        dirs = sorted(glob(f'{common.data_dir}/{room_num}/{date}/passing/*'))
+        if dirs[-1].endswith('make_csv.csv'):
+            dirs = dirs[:-1]  # del make_csv.csv
+        print(dirs)
+        for name in dirs:
+            name = 'passing/' + name.split('/')[-1]
+            main(
+                room_num,
+                date,
+                name,
+                is_tracking,
+                is_individual_activity,
+                is_group_activity,
+                is_display)
+    else:
+        main(
+            room_num,
+            date,
+            name,
+            is_tracking,
+            is_individual_activity,
+            is_group_activity,
+            is_display)

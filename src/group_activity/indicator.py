@@ -1,5 +1,5 @@
 from common.default import ATTENTION_DEFAULT
-from common.json import IA_FORMAT, GA_FORMAT
+from common.json import IA_FORMAT, GA_FORMAT, START_IDX
 from common.functions import cos_similarity, normalize_vector
 from common.object_point import EX0304
 import inspect
@@ -66,8 +66,8 @@ def calc_attention(
     th_cos = np.cos(np.deg2rad(angle_th))
 
     for individual in individual_activity_datas:
-        position = individual[IA_FORMAT[3]]
-        face = individual[IA_FORMAT[4]]
+        position = individual[IA_FORMAT[START_IDX + 0]]
+        face = individual[IA_FORMAT[START_IDX + 1]]
 
         if position is None or face is None:
             continue
@@ -81,7 +81,7 @@ def calc_attention(
             cos = cos_similarity(face, pos2obj)
             if cos >= th_cos:
                 object_count[label] += 1
-                object_persons[label].append(individual[IA_FORMAT[3]])
+                object_persons[label].append(individual[IA_FORMAT[START_IDX + 0]])
 
     datas = []
     for label in object_points.keys():
@@ -113,7 +113,7 @@ def calc_passing(
                 datas.append({
                     json_format[0]: frame_num,
                     json_format[1]: [p1[IA_FORMAT[0]], p2[IA_FORMAT[0]]],
-                    json_format[2]: [p1[IA_FORMAT[3]], p2[IA_FORMAT[3]]],
+                    json_format[2]: [p1[IA_FORMAT[START_IDX + 0]], p2[IA_FORMAT[START_IDX + 0]]],
                     json_format[3]: pred})
 
     return datas

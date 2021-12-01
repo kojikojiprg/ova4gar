@@ -1,8 +1,8 @@
-import numpy as np
+from common.default import POSITION_DEFAULT, FACE_DEFAULT, BODY_DEFAULT, ARM_DEFAULT, KEYPOINTS_DEFAULT
+from common.json import IA_FORMAT, START_IDX
 from common import keypoint as kp
-from common.default import ARM_DEFAULT, BODY_DEFAULT, FACE_DEFAULT, POSITION_DEFAULT
-from common.functions import cos_similarity, mahalanobis, normalize_vector, rotation
-from common.json import IA_FORMAT
+from common.functions import mahalanobis, normalize_vector, cos_similarity, rotation
+import numpy as np
 
 
 def calc_ma(que, std_th):
@@ -14,35 +14,57 @@ def calc_ma(que, std_th):
     else:
         if que.ndim < 2:
             # 各点の中心からの距離を求める
-            mean = np.average(que)
+            mean = np.nanmean(que)
             distances = np.abs(que - mean)
         else:
             # 各点の中心からのマハラノビス距離を求める
             distances = [mahalanobis(x, que) for x in que]
 
         # 中心からの距離の平均と分散を求める
-        mean = np.average(distances)
+        mean = np.nanmean(distances)
         std = np.std(distances)
 
         # 外れ値を除去した平均値を値とする
-        val = np.average(que[np.abs(distances - mean) < std * std_th], axis=0)
+        val = np.average(
+            que[np.abs(distances - mean) < std * std_th], axis=0)
 
     return val
 
 
-def calc_position(
-    keypoints,
-    homo,
-    position_que,
-    ankle_th=POSITION_DEFAULT["ankle_th"],
-    size=POSITION_DEFAULT["size"],
-    ratio=POSITION_DEFAULT["ratio"],
-    std_th=POSITION_DEFAULT["std_th"],
+def calc_keypoints(
+    keypoints, homo, que_dict,
+    size=KEYPOINTS_DEFAULT['size'], std_th=KEYPOINTS_DEFAULT['std_th'],
 ):
-    new_pos = keypoints.get_middle("Ankle", th_conf=ankle_th)
+    new_keypoints = []
+    for key, point in zip(kp.body, keypoints):
+        if point[2] < kp.THRESHOLD_CONFIDENCE:
+            new_point = [np.nan, np.nan]
+        else:
+            new_point = point[:2]
+
+        que_dict[key].append(new_point)
+
+        if len(que_dict[key]) < size:
+            point = np.nanmean(que_dict[key], axis=0)
+        else:
+            que_dict[key] = que_dict[key][-size:]
+            point = calc_ma(que_dict[key], std_th)
+            
+        new_keypoints.append(point.tolist())
+        
+    return new_keypoints, que_dict
+
+
+def calc_position(
+    keypoints, homo, position_que,
+    ankle_th=POSITION_DEFAULT['ankle_th'],
+    size=POSITION_DEFAULT['size'], ratio=POSITION_DEFAULT['ratio'],
+    std_th=POSITION_DEFAULT['std_th']
+):
+    new_pos = keypoints.get_middle('Ankle', th_conf=ankle_th)
     if new_pos is None:
-        shoulder = keypoints.get_middle("Shoulder")
-        hip = keypoints.get_middle("Hip")
+        shoulder = keypoints.get_middle('Shoulder')
+        hip = keypoints.get_middle('Hip')
 
         if shoulder is None or hip is None:
             return None, position_que
@@ -63,25 +85,22 @@ def calc_position(
 
 
 def calc_face_vector(
-    keypoints,
-    homo,
-    face_que,
-    size=FACE_DEFAULT["size"],
-    ratio=FACE_DEFAULT["ratio"],
-    std_th=FACE_DEFAULT["std_th"],
+    keypoints, homo, face_que,
+    size=FACE_DEFAULT['size'], ratio=FACE_DEFAULT['ratio'],
+    std_th=FACE_DEFAULT['std_th']
 ):
-    nose = keypoints.get("Nose")
-    lear = keypoints.get("LEar")
-    rear = keypoints.get("REar")
+    nose = keypoints.get('Nose')
+    lear = keypoints.get('LEar')
+    rear = keypoints.get('REar')
 
     # 足元にポイントを落とす
-    ankle = keypoints.get_middle("Ankle")
-    ear = keypoints.get_middle("Ear")
+    ankle = keypoints.get_middle('Ankle')
+    ear = keypoints.get_middle('Ear')
     if ankle is not None and ear is not None:
         diff = ankle[:2] - ear
     else:
-        shoulder = keypoints.get_middle("Shoulder")
-        hip = keypoints.get_middle("Hip")
+        shoulder = keypoints.get_middle('Shoulder')
+        hip = keypoints.get_middle('Hip')
         if shoulder is None or hip is None:
             return None, face_que
 
@@ -106,7 +125,7 @@ def calc_face_vector(
 
     if x1 < nose[0] and nose[0] < x2:
         new_vector = rear_homo - lear_homo
-        new_vector = rotation(new_vector[:2], -np.pi / 2)
+        new_vector = rotation(new_vector[:2], - np.pi / 2)
     else:
         center_ear = (lear_homo + rear_homo) / 2
         new_vector = nose_homo - center_ear
@@ -124,21 +143,18 @@ def calc_face_vector(
 
 
 def calc_body_vector(
-    keypoints,
-    homo,
-    body_que,
-    size=BODY_DEFAULT["size"],
-    ratio=BODY_DEFAULT["ratio"],
-    std_th=BODY_DEFAULT["std_th"],
+    keypoints, homo, body_que,
+    size=BODY_DEFAULT['size'], ratio=BODY_DEFAULT['ratio'],
+    std_th=BODY_DEFAULT['std_th']
 ):
-    lshoulder = keypoints.get("LShoulder")
-    rshoulder = keypoints.get("RShoulder")
+    lshoulder = keypoints.get('LShoulder')
+    rshoulder = keypoints.get('RShoulder')
     if lshoulder[2] < kp.THRESHOLD_CONFIDENCE or rshoulder[2] < kp.THRESHOLD_CONFIDENCE:
         return None, body_que
 
     # 足元にポイントを落とす
-    shoulder = keypoints.get_middle("Shoulder")
-    hip = keypoints.get_middle("Hip")
+    shoulder = keypoints.get_middle('Shoulder')
+    hip = keypoints.get_middle('Hip')
     if shoulder is None or hip is None:
         return None, body_que
 
@@ -152,7 +168,7 @@ def calc_body_vector(
     rshoulder = homo.transform_point(rshoulder[:2])
 
     new_vector = rshoulder - lshoulder
-    new_vector = rotation(new_vector[:2], -np.pi / 2)
+    new_vector = rotation(new_vector[:2], - np.pi / 2)
 
     body_que.append(new_vector)
     if len(body_que) < size:
@@ -166,26 +182,26 @@ def calc_body_vector(
 
 
 def calc_arm_extention(
-    keypoints, homo, arm_que, size=ARM_DEFAULT["size"], std_th=ARM_DEFAULT["std_th"]
+    keypoints, homo, arm_que,
+    size=ARM_DEFAULT['size'], std_th=ARM_DEFAULT['std_th']
 ):
     def calc(keypoints, lr):
-        shoulder = keypoints.get_middle("Shoulder")
-        hip = keypoints.get_middle("Hip")
+        shoulder = keypoints.get_middle('Shoulder')
+        hip = keypoints.get_middle('Hip')
 
         if shoulder is None or hip is None:
             return None
         else:
             body_line = hip - shoulder
-            arm = keypoints.get(lr + "Wrist", ignore_confidence=True) - keypoints.get(
-                lr + "Shoulder", ignore_confidence=True
-            )
+            arm = keypoints.get(lr + 'Wrist', ignore_confidence=True) \
+                - keypoints.get(lr + 'Shoulder', ignore_confidence=True)
             body_line = normalize_vector(body_line)
             arm = normalize_vector(arm)
 
             return 1.0 - np.abs(cos_similarity(body_line, arm))  # cos to sin
 
-    larm = calc(keypoints, "L")
-    rarm = calc(keypoints, "R")
+    larm = calc(keypoints, 'L')
+    rarm = calc(keypoints, 'R')
     if larm is None and rarm is None:
         return None, arm_que
     elif larm is None and rarm is not None:
@@ -205,10 +221,9 @@ def calc_arm_extention(
     return arm, arm_que
 
 
-start_idx = 3
 INDICATOR_DICT = {
-    IA_FORMAT[start_idx + 0]: calc_position,
-    IA_FORMAT[start_idx + 1]: calc_face_vector,
-    IA_FORMAT[start_idx + 2]: calc_body_vector,
-    IA_FORMAT[start_idx + 3]: calc_arm_extention,
+    IA_FORMAT[START_IDX + 0]: calc_position,
+    IA_FORMAT[START_IDX + 1]: calc_face_vector,
+    IA_FORMAT[START_IDX + 2]: calc_body_vector,
+    IA_FORMAT[START_IDX + 3]: calc_arm_extention,
 }

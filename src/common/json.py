@@ -18,14 +18,16 @@ TRACKING_FORMAT = [
 # group_activity/indicator.py
 # display/tracking.py
 # display/individual_activity.py
+START_IDX = 4
 IA_FORMAT = [
     'label',
     'frame',
     'tracking_position',
+    'keypoints',
     'position',
     'face_vector',
     'body_vector',
-    'arm',
+    'arm_ext',
 ]
 
 
