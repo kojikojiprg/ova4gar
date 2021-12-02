@@ -1,6 +1,7 @@
-from tracker.person import Person
 from common.json import TRACKING_FORMAT
 from tqdm import tqdm
+
+from tracker.person import Person
 
 
 def track(keypoints_all_frame):
@@ -11,13 +12,14 @@ def track(keypoints_all_frame):
 
     # トラッキング
     tracking_results = []
-    for i, keypoints_lst in tqdm(enumerate(keypoints_all_frame)):
+    frame_num = 0
+    for keypoints_lst in tqdm(keypoints_all_frame):
         # 状態をリセット
         for person in persons:
             person.reset()
 
         for keypoints in keypoints_lst:
-            target = keypoints.get_middle('Hip', th_conf=0.0)
+            target = keypoints.get_middle("Hip", th_conf=0.0)
             max_person = None
             max_prob = 0.0
             for person in persons:
@@ -51,12 +53,16 @@ def track(keypoints_all_frame):
 
         for person in persons:
             if person.keypoints_lst[-1] is not None:
-                tracking_results.append({
-                    TRACKING_FORMAT[0]: person.id,
-                    TRACKING_FORMAT[1]: i,
-                    TRACKING_FORMAT[2]: person.keypoints_lst[-1].to_json(),
-                    TRACKING_FORMAT[3]: person.average_lst[-1].tolist(),
-                    TRACKING_FORMAT[4]: person.vector.tolist(),
-                })
+                tracking_results.append(
+                    {
+                        TRACKING_FORMAT[0]: person.id,
+                        TRACKING_FORMAT[1]: frame_num,
+                        TRACKING_FORMAT[2]: person.keypoints_lst[-1].to_json(),
+                        TRACKING_FORMAT[3]: person.average_lst[-1].tolist(),
+                        TRACKING_FORMAT[4]: person.vector.tolist(),
+                    }
+                )
+
+        frame_num += 1
 
     return tracking_results
