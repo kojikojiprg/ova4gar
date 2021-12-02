@@ -1,6 +1,5 @@
 import numpy as np
 
-
 body = {
     "Nose": 0,
     "LEye": 1,
@@ -21,7 +20,7 @@ body = {
     "RAnkle": 16,
 }
 
-THRESHOLD_CONFIDENCE = 0.2
+THRESHOLD_CONFIDENCE = 0.0
 
 
 class Keypoints(list):
@@ -41,8 +40,8 @@ class Keypoints(list):
             return self[body[body_name]].copy()
 
     def get_middle(self, name, th_conf=THRESHOLD_CONFIDENCE):
-        R = self.get('R' + name)
-        L = self.get('L' + name)
+        R = self.get("R" + name)
+        L = self.get("L" + name)
         if R[2] < th_conf and L[2] < th_conf:
             return None
         elif R[2] < th_conf:
