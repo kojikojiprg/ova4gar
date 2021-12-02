@@ -1,10 +1,10 @@
-from common.default import ATTENTION_DEFAULT
-from common.json import IA_FORMAT, GA_FORMAT, START_IDX
-from common.functions import cos_similarity, normalize_vector
-from common.object_point import EX0304
 import inspect
-import numpy as np
 
+import numpy as np
+from common.default import ATTENTION_DEFAULT
+from common.functions import cos_similarity, normalize_vector
+from common.json import GA_FORMAT, IA_FORMAT, START_IDX
+from common.object_point import EX0304
 
 # def calc_attention(
 #         frame_num,
@@ -52,12 +52,13 @@ import numpy as np
 
 
 def calc_attention(
-        frame_num,
-        individual_activity_datas,
-        object_points=EX0304,
-        angle_th=ATTENTION_DEFAULT['angle_th'],
-        th=ATTENTION_DEFAULT['count_th']):
-    key = inspect.currentframe().f_code.co_name.replace('calc_', '')
+    frame_num,
+    individual_activity_datas,
+    object_points=EX0304,
+    angle_th=ATTENTION_DEFAULT["angle_th"],
+    th=ATTENTION_DEFAULT["count_th"],
+):
+    key = inspect.currentframe().f_code.co_name.replace("calc_", "")
     json_format = GA_FORMAT[key]
 
     object_count = {label: 0 for label in object_points.keys()}
@@ -85,21 +86,21 @@ def calc_attention(
 
     datas = []
     for label in object_points.keys():
-        datas.append({
-            json_format[0]: frame_num,
-            json_format[1]: label,
-            json_format[2]: object_points[label],
-            json_format[3]: object_persons[label],
-            json_format[4]: object_count[label]
-        })
+        datas.append(
+            {
+                json_format[0]: frame_num,
+                json_format[1]: label,
+                json_format[2]: object_points[label],
+                json_format[3]: object_persons[label],
+                json_format[4]: object_count[label],
+            }
+        )
 
     return datas
 
 
-def calc_passing(
-    frame_num, individual_activity_datas, clf
-):
-    key = inspect.currentframe().f_code.co_name.replace('calc_', '')
+def calc_passing(frame_num, individual_activity_datas, clf):
+    key = inspect.currentframe().f_code.co_name.replace("calc_", "")
     json_format = GA_FORMAT[key]
 
     datas = []
@@ -110,11 +111,17 @@ def calc_passing(
             pred = clf.predict(p1, p2)
 
             if pred is not None:
-                datas.append({
-                    json_format[0]: frame_num,
-                    json_format[1]: [p1[IA_FORMAT[0]], p2[IA_FORMAT[0]]],
-                    json_format[2]: [p1[IA_FORMAT[START_IDX + 0]], p2[IA_FORMAT[START_IDX + 0]]],
-                    json_format[3]: pred})
+                datas.append(
+                    {
+                        json_format[0]: frame_num,
+                        json_format[1]: [p1[IA_FORMAT[0]], p2[IA_FORMAT[0]]],
+                        json_format[2]: [
+                            p1[IA_FORMAT[START_IDX + 0]],
+                            p2[IA_FORMAT[START_IDX + 0]],
+                        ],
+                        json_format[3]: pred,
+                    }
+                )
 
     return datas
 
