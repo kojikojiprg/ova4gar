@@ -1,5 +1,4 @@
 import numpy as np
-from common.functions import standardize
 from common.json import IA_FORMAT, START_IDX
 from common.keypoint import Keypoints, body
 
@@ -23,7 +22,7 @@ class IndividualActivity:
 
         self.tracking_points[frame_num] = keypoints.get_middle("Hip")
         self.keypoints[frame_num], self.keypoints_que = calc_keypoints(
-            keypoints, self.homo, self.keypoints_que
+            keypoints, self.keypoints_que
         )
 
         for k in self.indicator_dict.keys():
@@ -51,7 +50,7 @@ class IndividualActivity:
         else:
             return None
 
-    def get_keypoints_dict(self, window=3, is_std=True) -> dict:
+    def get_keypoints_dict(self, window=3) -> dict:
         # fill nan
         min_frame_num = min(self.keypoints.keys())
         max_frame_num = max(self.keypoints.keys())
@@ -88,15 +87,7 @@ class IndividualActivity:
         for i, kps in enumerate(ma_kps_lst):
             ma_kps_dict[min_frame_num + i] = np.array(kps)
 
-        if is_std:
-            # standardize
-            std_kps_dict = {}
-            for frame_num, kps in ma_kps_dict.items():
-                std_kps_dict[frame_num] = np.array(standardize(kps))
-
-            return std_kps_dict
-        else:
-            return ma_kps_dict
+        return ma_kps_dict
 
     def to_json(self, frame_num):
         data = {}
