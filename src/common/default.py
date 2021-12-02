@@ -32,10 +32,10 @@ ATTENTION_DEFAULT = {
     'count_th': 2
 }
 PASSING_DEFAULT = {
-    'gauss_mu': 180,    # 距離に対するガウス分布の平均
+    'gauss_mu': 250,    # 距離に対するガウス分布の平均
     'gauss_sig': 50,    # 距離に対するガウス分布の分散
     'C': 54,
     'gamma': 0.37,
-    'wrist_gauss_mu': 97,    # 手首の距離に対するガウス分布の平均
-    'wrist_gauss_sig': 30,    # 手首の距離に対するガウス分布の分散
+    'wrist_gauss_mu': 100,    # 手首の距離に対するガウス分布の平均
+    'wrist_gauss_sig': 50,    # 手首の距離に対するガウス分布の分散
 }
