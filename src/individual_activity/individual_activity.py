@@ -1,7 +1,8 @@
 import numpy as np
-from common.keypoint import Keypoints, body
-from common.json import IA_FORMAT, START_IDX
 from common.functions import standardize
+from common.json import IA_FORMAT, START_IDX
+from common.keypoint import Keypoints, body
+
 from individual_activity.indicator import INDICATOR_DICT, calc_keypoints
 
 
@@ -20,14 +21,15 @@ class IndividualActivity:
             return
         keypoints = Keypoints(keypoints)
 
-        self.tracking_points[frame_num] = keypoints.get_middle('Hip')
+        self.tracking_points[frame_num] = keypoints.get_middle("Hip")
         self.keypoints[frame_num], self.keypoints_que = calc_keypoints(
             keypoints, self.homo, self.keypoints_que
         )
 
         for k in self.indicator_dict.keys():
             indicator, self.que_dict[k] = INDICATOR_DICT[k](
-                keypoints, self.homo, self.que_dict[k])
+                keypoints, self.homo, self.que_dict[k]
+            )
 
             self.indicator_dict[k][frame_num] = indicator
 
@@ -39,16 +41,16 @@ class IndividualActivity:
             return self.indicator_dict[key][frame_num]
         else:
             return None
-        
+
     def get_keypoints(self, key, frame_num):
         if key not in body:
             raise KeyError
-            
+
         if frame_num in self.keypoints:
             return self.keypoints[frame_num][body[key]]
         else:
             return None
-        
+
     def get_keypoints_dict(self, window=3, is_std=True) -> dict:
         # fill nan
         min_frame_num = min(self.keypoints.keys())
@@ -74,18 +76,18 @@ class IndividualActivity:
             # if np.any(np.isnan(copy_kps_lst[i:i + window])):
             #     print(copy_kps_lst[i:i + window])
             #     print(np.nanmean(copy_kps_lst[i:i + window], axis=0))
-            means = np.nanmean(copy_kps_lst[i:i + window], axis=0)
-            for kps in copy_kps_lst[i:i + window]:
+            means = np.nanmean(copy_kps_lst[i : i + window], axis=0)
+            for kps in copy_kps_lst[i : i + window]:
                 if True in np.isnan(kps):
                     kps = np.where(np.isnan(kps), means, kps).copy()
 
                 if len(ma_kps_lst) <= i + window:
                     ma_kps_lst.append(kps)
-                    
+
         ma_kps_dict = {}
         for i, kps in enumerate(ma_kps_lst):
             ma_kps_dict[min_frame_num + i] = np.array(kps)
-                    
+
         if is_std:
             # standardize
             std_kps_dict = {}
@@ -95,7 +97,7 @@ class IndividualActivity:
             return std_kps_dict
         else:
             return ma_kps_dict
-    
+
     def to_json(self, frame_num):
         data = {}
         data[IA_FORMAT[0]] = self.id
@@ -109,5 +111,5 @@ class IndividualActivity:
                 data[k] = indicator.tolist()
             else:
                 data[k] = None
-                
+
         return data
