@@ -1,0 +1,1 @@
+python scripts/demo_inference.py --cfg .\configs\coco\hrnet\256x192_w32_lr1e-3.yaml --checkpoint .\pretrained_models\hrnet_w32_256x192.pth --video ..\research\data\test\test.mp4 --outdir ..\research\data\test\ --save_video --eval --vis-fast --detbatch 40 --posebatch 10000 --qsize 4096
