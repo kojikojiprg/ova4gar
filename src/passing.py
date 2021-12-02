@@ -20,26 +20,39 @@ import cv2
 
 
 def main(
-        room_num,
-        date,
-        name,
-        is_tracking,
-        is_individual_activity,
-        is_group_activity,
-        is_display):
+    room_num,
+    date,
+    name,
+    is_tracking,
+    is_individual_activity,
+    is_group_activity,
+    is_display,
+):
     video_path = os.path.join(
-        common.data_dir, '{0}/{1}/{2}/video/AlphaPose_{3}.mp4'.format(room_num, date, name, name.replace('passing/', '')))
+        common.data_dir,
+        "{0}/{1}/{2}/video/AlphaPose_{3}.mp4".format(
+            room_num, date, name, name.replace("passing/", "")
+        ),
+    )
     out_dir = os.path.join(
-        common.data_dir, '{0}/{1}/{2}/out/'.format(room_num, date, name))
-    field_path = os.path.join(common.data_dir, '{}/field.png'.format(room_num))
+        common.data_dir, "{0}/{1}/{2}/out/".format(room_num, date, name)
+    )
+    field_path = os.path.join(common.data_dir, "{}/field.png".format(room_num))
     keypoints_path = os.path.join(
-        common.data_dir, '{0}/{1}/{2}/json/alphapose-results.json'.format(room_num, date, name))
+        common.data_dir,
+        "{0}/{1}/{2}/json/alphapose-results.json".format(room_num, date, name),
+    )
     tracking_json_path = os.path.join(
-        common.data_dir, '{0}/{1}/{2}/json/tracking.json'.format(room_num, date, name))
+        common.data_dir, "{0}/{1}/{2}/json/tracking.json".format(room_num, date, name)
+    )
     individual_activity_json_path = os.path.join(
-        common.data_dir, '{0}/{1}/{2}/json/individual_activity.json'.format(room_num, date, name))
+        common.data_dir,
+        "{0}/{1}/{2}/json/individual_activity.json".format(room_num, date, name),
+    )
     group_activity_json_path = os.path.join(
-        common.data_dir, '{0}/{1}/{2}/json/group_activity.json'.format(room_num, date, name))
+        common.data_dir,
+        "{0}/{1}/{2}/json/group_activity.json".format(room_num, date, name),
+    )
 
     # homography
     field_raw = cv2.imread(field_path)
@@ -53,13 +66,11 @@ def main(
     if is_individual_activity:
         ia.main(tracking_json_path, individual_activity_json_path, homo)
 
-    method = 'passing'
+    method = "passing"
     if is_group_activity:
         ga.main(
-            individual_activity_json_path,
-            group_activity_json_path,
-            field_raw,
-            method)
+            individual_activity_json_path, group_activity_json_path, field_raw, method
+        )
 
     if is_display:
         display(
@@ -68,27 +79,22 @@ def main(
             individual_activity_json_path,
             group_activity_json_path,
             field_raw,
-            method)
+            method,
+        )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('room_num', type=str)
-    parser.add_argument('date', type=str)
-    parser.add_argument('-n', '--name', default=None, type=str)
-    parser.add_argument('-a', '--all', default=False, action='store_true')
-    parser.add_argument('-t', '--tracking', default=False, action='store_true')
+    parser.add_argument("room_num", type=str)
+    parser.add_argument("date", type=str)
+    parser.add_argument("-n", "--name", default=None, type=str)
+    parser.add_argument("-a", "--all", default=False, action="store_true")
+    parser.add_argument("-t", "--tracking", default=False, action="store_true")
     parser.add_argument(
-        '-ia',
-        '--individual_activity',
-        default=False,
-        action='store_true')
-    parser.add_argument(
-        '-ga',
-        '--group_activity',
-        default=False,
-        action='store_true')
-    parser.add_argument('-d', '--display', default=False, action='store_true')
+        "-ia", "--individual_activity", default=False, action="store_true"
+    )
+    parser.add_argument("-ga", "--group_activity", default=False, action="store_true")
+    parser.add_argument("-d", "--display", default=False, action="store_true")
 
     args = parser.parse_args()
     room_num = args.room_num
@@ -101,12 +107,12 @@ if __name__ == '__main__':
     is_display = args.display
 
     if is_all:
-        dirs = sorted(glob(f'{common.data_dir}/{room_num}/{date}/passing/*'))
-        if dirs[-1].endswith('make_csv.csv'):
+        dirs = sorted(glob(f"{common.data_dir}/{room_num}/{date}/passing/*"))
+        if dirs[-1].endswith("make_csv.csv"):
             dirs = dirs[:-1]  # del make_csv.csv
         print(dirs)
         for name in dirs:
-            name = 'passing/' + name.split('/')[-1]
+            name = "passing/" + common.split_path(name)[-1]
             main(
                 room_num,
                 date,
@@ -114,7 +120,8 @@ if __name__ == '__main__':
                 is_tracking,
                 is_individual_activity,
                 is_group_activity,
-                is_display)
+                is_display,
+            )
     else:
         main(
             room_num,
@@ -123,4 +130,5 @@ if __name__ == '__main__':
             is_tracking,
             is_individual_activity,
             is_group_activity,
-            is_display)
+            is_display,
+        )
