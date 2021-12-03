@@ -3,7 +3,7 @@ import pickle
 import numpy as np
 from common.default import PASSING_DEFAULT
 from common.functions import cos_similarity, gauss
-from common.json_io import IA_FORMAT, START_IDX
+from common.json_io_io import IA_FORMAT, START_IDX
 from common.keypoint import body
 from sklearn.svm import SVC
 
@@ -37,12 +37,12 @@ class PassingDetector:
         p2_arm = p2[IA_FORMAT[START_IDX + 3]]
 
         if (
-            p1_pos is None or
-            p2_pos is None or
-            p1_body is None or
-            p2_body is None or
-            p1_arm is None or
-            p2_arm is None
+            p1_pos is None
+            or p2_pos is None
+            or p1_body is None
+            or p2_body is None
+            or p1_arm is None
+            or p2_arm is None
         ):
             return None
 

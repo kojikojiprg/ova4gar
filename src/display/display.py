@@ -1,5 +1,5 @@
 from common import json_io
-from common.json_io import GA_FORMAT
+from common.json_io_io import GA_FORMAT
 from common.video import Video
 from display.tracking import disp_tracking
 from display.individual_activity import disp_individual_activity
@@ -10,13 +10,14 @@ import cv2
 
 
 def display(
-        video_path,
-        out_dir,
-        individual_activity_json_path,
-        group_activity_json_path,
-        field,
-        method=None):
-    print('Prepareing video frames...')
+    video_path,
+    out_dir,
+    individual_activity_json_path,
+    group_activity_json_path,
+    field,
+    method=None,
+):
+    print("Prepareing video frames...")
     if method is None:
         methods = GA_FORMAT.keys()
     else:
@@ -25,12 +26,11 @@ def display(
     # out video file paths
     out_paths = [
         # out_dir + '{}.mp4'.format('tracking'),
-        out_dir + '{}.mp4'.format('individual_activity')
+        out_dir
+        + "{}.mp4".format("individual_activity")
     ]
     for method in methods:
-        out_paths.append(
-            out_dir + '{}.mp4'.format(method)
-        )
+        out_paths.append(out_dir + "{}.mp4".format(method))
 
     # load datas\
     individual_activity_datas = json_io.load(individual_activity_json_path)
@@ -50,11 +50,18 @@ def display(
 
         # フレームごとにデータを取得する
         frame_individual_activity_datas = [
-            data for data in individual_activity_datas if data['frame'] == frame_num]
+            data for data in individual_activity_datas if data["frame"] == frame_num
+        ]
 
         # フレーム番号を表示
-        cv2.putText(frame, 'Frame:{}'.format(frame_num + 1), (10, 50),
-                    cv2.FONT_HERSHEY_PLAIN, 2, (255, 255, 255))
+        cv2.putText(
+            frame,
+            "Frame:{}".format(frame_num + 1),
+            (10, 50),
+            cv2.FONT_HERSHEY_PLAIN,
+            2,
+            (255, 255, 255),
+        )
 
         field_tmp = field.copy()
 
@@ -62,12 +69,14 @@ def display(
         frame = disp_tracking(frame_individual_activity_datas, frame)
         # 向きを表示
         field_tmp = disp_individual_activity(
-            frame_individual_activity_datas, field_tmp, method)
+            frame_individual_activity_datas, field_tmp, method
+        )
 
         for i, method in enumerate(methods):
             group_activity_field = field_tmp.copy()
             group_activity_fields[i] = display_group_activity.disp(
-                method, frame_num, group_activity_datas, group_activity_field)
+                method, frame_num, group_activity_datas, group_activity_field
+            )
 
         # append tracking result
         # frames_lst[0].append(frame)
@@ -76,11 +85,10 @@ def display(
         for i in range(len(methods)):
             # frames_lst[i + 2].append(combine_image(frame,
             #                          group_activity_fields[i]))
-            frames_lst[i + 1].append(
-                combine_image(frame, group_activity_fields[i]))
+            frames_lst[i + 1].append(combine_image(frame, group_activity_fields[i]))
 
     for frames, out_path in zip(frames_lst, out_paths):
-        print('Writing video {} ...'.format(out_path))
+        print("Writing video {} ...".format(out_path))
         video.write(frames, out_path, frames[0].shape[1::-1])
 
 

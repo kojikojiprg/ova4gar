@@ -1,4 +1,4 @@
-from common.json_io import GA_FORMAT
+from common.json_io_io import GA_FORMAT
 from display.heatmap import Heatmap
 import inspect
 import numpy as np
@@ -41,16 +41,16 @@ class DisplayGroupActivity:
 
         # フレームごとにデータを取得する
         frame_indicator_datas = [
-            data for data in indicator_datas if data['frame'] == frame_num]
+            data for data in indicator_datas if data["frame"] == frame_num
+        ]
 
         # 指標を書き込む
-        field = eval('self.disp_{}'.format(key))(
-            frame_indicator_datas, field)
+        field = eval("self.disp_{}".format(key))(frame_indicator_datas, field)
 
         return field
 
     def disp_attention(self, datas, field, th=2):
-        key = inspect.currentframe().f_code.co_name.replace('disp_', '')
+        key = inspect.currentframe().f_code.co_name.replace("disp_", "")
         json_format = GA_FORMAT[key]
 
         for data in datas:
@@ -63,7 +63,7 @@ class DisplayGroupActivity:
         return field
 
     def disp_passing(self, datas, field, persons=None):
-        key = inspect.currentframe().f_code.co_name.replace('disp_', '')
+        key = inspect.currentframe().f_code.co_name.replace("disp_", "")
         json_format = GA_FORMAT[key]
 
         for data in datas:
@@ -71,7 +71,10 @@ class DisplayGroupActivity:
             if persons is None:
                 is_persons = True
             else:
-                is_persons = data[json_format[1]][0] in persons and data[json_format[1]][1] in persons
+                is_persons = (
+                    data[json_format[1]][0] in persons
+                    and data[json_format[1]][1] in persons
+                )
 
             points = data[json_format[2]]
             pred = data[json_format[3]]
@@ -88,6 +91,11 @@ class DisplayGroupActivity:
 
                 # 描画
                 cv2.line(field, p1, p2, color=(255, 165, 0), thickness=1)
-                cv2.ellipse(field, (center, (major, minor), angle), color=(255, 165, 0), thickness=2)
+                cv2.ellipse(
+                    field,
+                    (center, (major, minor), angle),
+                    color=(255, 165, 0),
+                    thickness=2,
+                )
 
         return field

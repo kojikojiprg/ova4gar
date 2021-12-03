@@ -8,7 +8,7 @@ from common.default import (
     POSITION_DEFAULT,
 )
 from common.functions import cos_similarity, mahalanobis, normalize_vector, rotation
-from common.json_io import IA_FORMAT, START_IDX
+from common.json_io_io import IA_FORMAT, START_IDX
 
 
 def calc_ma(que, std_th):

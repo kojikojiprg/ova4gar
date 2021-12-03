@@ -1,11 +1,11 @@
 from common import json_io
-from common.json_io import TRACKING_FORMAT
+from common.json_io_io import TRACKING_FORMAT
 from individual_activity.individual_activity import IndividualActivity
 from tqdm import tqdm
 
 
 def main(tracking_json_path, individual_activity_json_path, homo):
-    print('Running individual activity...')
+    print("Running individual activity...")
     tracking_datas = json_io.load(tracking_json_path)
 
     individual_activitys = []
@@ -19,10 +19,13 @@ def main(tracking_json_path, individual_activity_json_path, homo):
         # individual_activityクラスを新規作成
         if len(individual_activitys) == individual_activity_id:
             individual_activitys.append(
-                IndividualActivity(individual_activity_id, homo))
+                IndividualActivity(individual_activity_id, homo)
+            )
 
         # 指標を計算
-        individual_activitys[individual_activity_id].calc_indicator(frame_num, keypoints)
+        individual_activitys[individual_activity_id].calc_indicator(
+            frame_num, keypoints
+        )
 
         # jsonフォーマットを作成して追加
         data = individual_activitys[individual_activity_id].to_json(frame_num)

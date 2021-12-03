@@ -1,5 +1,5 @@
 import numpy as np
-from common.json_io import IA_FORMAT, START_IDX
+from common.json_io_io import IA_FORMAT, START_IDX
 from common.keypoint import Keypoints, body
 
 from individual_activity.indicator import INDICATOR_DICT, calc_keypoints
