@@ -1,12 +1,12 @@
-from common import json
-from common.json import TRACKING_FORMAT
+from common import json_io
+from common.json_io import TRACKING_FORMAT
 from individual_activity.individual_activity import IndividualActivity
 from tqdm import tqdm
 
 
 def main(tracking_json_path, individual_activity_json_path, homo):
     print('Running individual activity...')
-    tracking_datas = json.load(tracking_json_path)
+    tracking_datas = json_io.load(tracking_json_path)
 
     individual_activitys = []
     individual_activity_datas = []
@@ -30,4 +30,4 @@ def main(tracking_json_path, individual_activity_json_path, homo):
             individual_activity_datas.append(data)
 
     # jsonに書き込み
-    json.dump(individual_activity_datas, individual_activity_json_path)
+    json_io.dump(individual_activity_datas, individual_activity_json_path)

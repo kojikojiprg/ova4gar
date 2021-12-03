@@ -1,4 +1,4 @@
-from common import json
+from common import json_io
 from common.keypoint import Keypoints, KeypointsList
 from tracker.tracker import track
 
@@ -11,11 +11,11 @@ def main(keypoints_path, result_path):
     results = track(keypoints_all_frame)
 
     # jsonに書き込み
-    json.dump(results, result_path)
+    json_io.dump(results, result_path)
 
 
 def load_pose_json(json_path):
-    json_data = json.load(json_path)
+    json_data = json_io.load(json_path)
     datas = []
 
     keypoints_lst = KeypointsList()

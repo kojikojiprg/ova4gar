@@ -1,4 +1,4 @@
-from common.json import IA_FORMAT, START_IDX, GA_FORMAT
+from common.json_io import IA_FORMAT, START_IDX, GA_FORMAT
 import numpy as np
 import cv2
 

@@ -1,4 +1,4 @@
-from common import json
+from common import json_io
 from tqdm import tqdm
 
 from group_activity.group_activity import GroupActivity
@@ -8,7 +8,7 @@ def main(
     individual_activity_json_path, group_activity_json_path, field, method=None, **karg
 ):
     print("Running group activity...")
-    individual_activity_datas = json.load(individual_activity_json_path)
+    individual_activity_datas = json_io.load(individual_activity_json_path)
 
     group_activity = GroupActivity(field, method)
 
@@ -26,4 +26,4 @@ def main(
 
     # jsonフォーマットを生成して書き込み
     group_activity_datas = group_activity.to_json()
-    json.dump(group_activity_datas, group_activity_json_path)
+    json_io.dump(group_activity_datas, group_activity_json_path)

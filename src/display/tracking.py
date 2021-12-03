@@ -1,4 +1,4 @@
-from common.json import IA_FORMAT
+from common.json_io import IA_FORMAT
 import cv2
 
 

@@ -1,11 +1,10 @@
 import glob
 
 import cv2
-import numpy as np
+import json_io
 import matplotlib.pyplot as plt
+import numpy as np
 from tqdm import tqdm
-
-from . import json
 
 
 class Homography:
@@ -35,17 +34,35 @@ class CameraCalibration:
             self.from_json(json_path)
 
     def from_json(self, json_path):
-        data = json.load(json_path)
+        data = json_io.load(json_path)
         self.mtx = np.array(data["mtx"])
         self.dist = np.array(data["dist"])
 
     def to_json(self, json_path):
         data = {"mtx": self.mtx, "dist": self.dist}
-        json.dump(data, json_path)
+        json_io.dump(data, json_path)
 
-    def fit(self, images_folder_path, corner_pattern=(10, 7), square_size=6.8, is_verbose=False):
+    def fit(
+        self,
+        images_folder_path,
+        corner_pattern=(10, 7),
+        square_size=6.8,
+        is_verbose=False,
+    ):
         # termination criteria
-        criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.01)
+        subpix_criteria = (
+            cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER,
+            1000,
+            0.01,
+        )
+        criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 1000, 0.01)
+
+        # calibration flags
+        calibration_flags = (
+            cv2.fisheye.CALIB_RECOMPUTE_EXTRINSIC
+            + cv2.fisheye.CALIB_CHECK_COND
+            + cv2.fisheye.CALIB_FIX_SKEW
+        )
 
         # prepare object points, like (0,0,0), (1,0,0), (2,0,0) ....,(6,5,0)
         objp = np.zeros((np.prod(corner_pattern), 3), np.float32)
@@ -69,7 +86,9 @@ class CameraCalibration:
             if ret:
                 objpoints.append(objp)
 
-                corners2 = cv2.cornerSubPix(gray, corners, (7, 7), (-1, -1), criteria)
+                corners2 = cv2.cornerSubPix(
+                    gray, corners, (3, 3), (-1, -1), subpix_criteria
+                )
                 imgpoints.append(corners2)
 
                 if is_verbose:
@@ -78,8 +97,21 @@ class CameraCalibration:
                     plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
                     plt.show()
 
-        ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(
-            objpoints, imgpoints, gray.shape[::-1], None, None
+        # ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(
+        #     objpoints, imgpoints, gray.shape[::-1], None, None
+        # )
+
+        objpoints = np.expand_dims(np.asarray(objpoints), -2)
+        ret, mtx, dist, _, _ = cv2.fisheye.calibrate(
+            objpoints,
+            imgpoints,
+            gray.shape[::-1],
+            None,
+            None,
+            None,
+            None,
+            calibration_flags,
+            criteria,
         )
 
         self.mtx = mtx

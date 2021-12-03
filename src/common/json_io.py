@@ -1,16 +1,16 @@
-import os
 import json
-import numpy as np
+import os
 
+import numpy as np
 
 # tracking/tracking.py
 # individual_activity/main.py
 TRACKING_FORMAT = [
-    'label',
-    'frame',
-    'keypoints',
-    'vector',
-    'average',
+    "label",
+    "frame",
+    "keypoints",
+    "vector",
+    "average",
 ]
 
 # individual_activity/individual_activity.py
@@ -20,14 +20,14 @@ TRACKING_FORMAT = [
 # display/individual_activity.py
 START_IDX = 4
 IA_FORMAT = [
-    'label',
-    'frame',
-    'tracking_position',
-    'keypoints',
-    'position',
-    'face_vector',
-    'body_vector',
-    'arm_ext',
+    "label",
+    "frame",
+    "tracking_position",
+    "keypoints",
+    "position",
+    "face_vector",
+    "body_vector",
+    "arm_ext",
 ]
 
 
@@ -36,29 +36,29 @@ IA_FORMAT = [
 # display/display.py
 # display/group_activity.py
 ATTENTION_FORMAT = [
-    'frame',
-    'object_label',
-    'point',
-    'person_points',
-    'count',
+    "frame",
+    "object_label",
+    "point",
+    "person_points",
+    "count",
 ]
 
 PASSING_FORMAT = [
-    'frame',
-    'persons',
-    'points',
-    'precdiction',
+    "frame",
+    "persons",
+    "points",
+    "precdiction",
 ]
 
 GA_FORMAT = {
-    'attention': ATTENTION_FORMAT,
-    'passing': PASSING_FORMAT,
+    "attention": ATTENTION_FORMAT,
+    "passing": PASSING_FORMAT,
 }
 
 
 def load(json_path):
     data = {}
-    with open(json_path, 'r') as f:
+    with open(json_path, "r") as f:
         data = json.load(f)
     return data
 
@@ -66,7 +66,7 @@ def load(json_path):
 def dump(data, json_path):
     os.makedirs(os.path.dirname(json_path), exist_ok=True)
 
-    with open(json_path, 'w') as f:
+    with open(json_path, "w") as f:
         json.dump(data, f, cls=MyEncoder)
 
 
