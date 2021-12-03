@@ -1,0 +1,8 @@
+EasyDict==1.7
+pyyaml
+json_tricks
+scikit-image
+tensorboardX
+yacs
+cffi
+munkres
