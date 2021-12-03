@@ -3,7 +3,7 @@ import inspect
 import numpy as np
 from common.default import ATTENTION_DEFAULT
 from common.functions import cos_similarity, normalize_vector
-from common.json_io_io import GA_FORMAT, IA_FORMAT, START_IDX
+from common.json import GA_FORMAT, IA_FORMAT, START_IDX
 from common.object_point import EX0304
 
 # def calc_attention(

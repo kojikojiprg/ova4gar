@@ -1,10 +1,11 @@
 import glob
 
 import cv2
-import json_io
 import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
+
+from . import json
 
 
 class Homography:
@@ -34,13 +35,13 @@ class CameraCalibration:
             self.from_json(json_path)
 
     def from_json(self, json_path):
-        data = json_io.load(json_path)
+        data = json.load(json_path)
         self.mtx = np.array(data["mtx"])
         self.dist = np.array(data["dist"])
 
     def to_json(self, json_path):
         data = {"mtx": self.mtx, "dist": self.dist}
-        json_io.dump(data, json_path)
+        json.dump(data, json_path)
 
     def fit(
         self,

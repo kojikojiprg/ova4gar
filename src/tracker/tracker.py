@@ -1,4 +1,4 @@
-from common.json_io_io import TRACKING_FORMAT
+from common.json import TRACKING_FORMAT
 from tqdm import tqdm
 
 from tracker.person import Person

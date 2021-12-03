@@ -1,5 +1,5 @@
-from common import json_io
-from common.json_io_io import GA_FORMAT
+from common import json
+from common.json import GA_FORMAT
 from common.video import Video
 from display.tracking import disp_tracking
 from display.individual_activity import disp_individual_activity
@@ -33,8 +33,8 @@ def display(
         out_paths.append(out_dir + "{}.mp4".format(method))
 
     # load datas\
-    individual_activity_datas = json_io.load(individual_activity_json_path)
-    group_activity_datas = json_io.load(group_activity_json_path)
+    individual_activity_datas = json.load(individual_activity_json_path)
+    group_activity_datas = json.load(group_activity_json_path)
 
     display_group_activity = DisplayGroupActivity(group_activity_datas)
 

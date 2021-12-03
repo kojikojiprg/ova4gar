@@ -3,7 +3,7 @@ import pickle
 import numpy as np
 from common.default import PASSING_DEFAULT
 from common.functions import cos_similarity, gauss
-from common.json_io_io import IA_FORMAT, START_IDX
+from common.json import IA_FORMAT, START_IDX
 from common.keypoint import body
 from sklearn.svm import SVC
 

@@ -1,4 +1,4 @@
-from common.json_io_io import GA_FORMAT
+from common.json import GA_FORMAT
 from display.heatmap import Heatmap
 import inspect
 import numpy as np

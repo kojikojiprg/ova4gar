@@ -1,7 +1,7 @@
 import os
 
 from common import common
-from common.json_io_io import GA_FORMAT
+from common.json import GA_FORMAT
 
 from group_activity.indicator import INDICATOR_DICT
 from group_activity.passing_detector import PassingDetector
