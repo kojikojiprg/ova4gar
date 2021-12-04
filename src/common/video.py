@@ -3,7 +3,7 @@ import os
 import cv2
 
 
-class Video:
+class Capture:
     def __init__(self, in_path):
         if not os.path.isfile(in_path):
             raise ValueError(f"not exist file {in_path}")

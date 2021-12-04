@@ -1,6 +1,6 @@
 from common import json
 from common.json import GA_FORMAT
-from common.video import Video
+from common.video import Capture
 from display.tracking import disp_tracking
 from display.individual_activity import disp_individual_activity
 from display.group_activity import DisplayGroupActivity
@@ -39,7 +39,7 @@ def display(
     display_group_activity = DisplayGroupActivity(group_activity_datas)
 
     # load video
-    video = Video(video_path)
+    video = Capture(video_path)
     print(video_path)
 
     frames_lst = [[] for _ in range(len(out_paths))]
