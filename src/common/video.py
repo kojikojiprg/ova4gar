@@ -13,6 +13,9 @@ class Capture:
         # video info
         self.fps = int(self._cap.get(cv2.CAP_PROP_FPS))
         self.frame_num = int(self._cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        self.w = self._cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+        self.h = self._cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+        self.hw = (self.h, self.w)
 
     def __del__(self):
         self._cap.release()

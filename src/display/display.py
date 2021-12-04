@@ -1,12 +1,13 @@
+import cv2
+import numpy as np
 from common import json
 from common.json import GA_FORMAT
-from common.video import Capture
-from display.tracking import disp_tracking
-from display.individual_activity import disp_individual_activity
-from display.group_activity import DisplayGroupActivity
+from common.video import Capture, Writer
 from tqdm import tqdm
-import numpy as np
-import cv2
+
+from display.group_activity import DisplayGroupActivity
+from display.individual_activity import disp_individual_activity
+from display.tracking import disp_tracking
 
 
 def display(
@@ -25,28 +26,42 @@ def display(
 
     # out video file paths
     out_paths = [
-        # out_dir + '{}.mp4'.format('tracking'),
         out_dir
         + "{}.mp4".format("individual_activity")
     ]
     for method in methods:
         out_paths.append(out_dir + "{}.mp4".format(method))
 
-    # load datas\
+    # load datas
     individual_activity_datas = json.load(individual_activity_json_path)
     group_activity_datas = json.load(group_activity_json_path)
 
     display_group_activity = DisplayGroupActivity(group_activity_datas)
 
     # load video
-    video = Capture(video_path)
+    capture = Capture(video_path)
     print(video_path)
 
-    frames_lst = [[] for _ in range(len(out_paths))]
+    # frames_lst = [[] for _ in range(len(out_paths))]
+    cmb_img = combine_image(capture.read(), field)
+    writer_lst = []
+    for path in out_paths:
+        if path.endswith("individual_activity.mp4"):
+            size = capture.hw
+        else:
+            size = cmb_img.shape
+        writer = Writer(path, capture.fps, size[1::-1])
+        writer_lst.append(writer)
+
+    # fields image array for plot all group activities
     group_activity_fields = [field.copy() for _ in range(len(methods))]
-    for frame_num in tqdm(range(video.frame_num)):
+
+    # reset capture start position
+    capture.set_pos_frame(0)
+
+    for frame_num in tqdm(range(capture.frame_num)):
         # read frame
-        frame = video.read()
+        frame = capture.read()
 
         # フレームごとにデータを取得する
         frame_individual_activity_datas = [
@@ -60,14 +75,16 @@ def display(
             (10, 50),
             cv2.FONT_HERSHEY_PLAIN,
             2,
-            (255, 255, 255),
+            (0, 0, 0),
         )
 
+        # copy raw field image
         field_tmp = field.copy()
 
-        # トラッキングの結果を表示
+        # draw tracking result
         frame = disp_tracking(frame_individual_activity_datas, frame)
-        # 向きを表示
+
+        # draw individual activity
         field_tmp = disp_individual_activity(
             frame_individual_activity_datas, field_tmp, method
         )
@@ -78,18 +95,12 @@ def display(
                 method, frame_num, group_activity_datas, group_activity_field
             )
 
-        # append tracking result
-        # frames_lst[0].append(frame)
-        # append individual activity result
-        frames_lst[0].append(combine_image(frame, field_tmp))
-        for i in range(len(methods)):
-            # frames_lst[i + 2].append(combine_image(frame,
-            #                          group_activity_fields[i]))
-            frames_lst[i + 1].append(combine_image(frame, group_activity_fields[i]))
+        # write individual activity result
+        writer_lst[0].write(combine_image(frame, field_tmp))
 
-    for frames, out_path in zip(frames_lst, out_paths):
-        print("Writing video {} ...".format(out_path))
-        video.write(frames, out_path, frames[0].shape[1::-1])
+        # write group activity result
+        for i in range(len(methods)):
+            writer_lst[i + 1].write(combine_image(frame, group_activity_fields[i]))
 
 
 def combine_image(frame, field):
@@ -100,4 +111,5 @@ def combine_image(frame, field):
         size[1] = frame.shape[0]
     field = cv2.resize(field, size)
     frame = np.concatenate([frame, field], axis=1)
+
     return frame
