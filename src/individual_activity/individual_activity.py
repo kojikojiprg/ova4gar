@@ -1,4 +1,5 @@
 import numpy as np
+from common.functions import standardize
 from common.json import IA_FORMAT, START_IDX
 from common.keypoint import Keypoints, body
 
@@ -50,7 +51,7 @@ class IndividualActivity:
         else:
             return None
 
-    def get_keypoints_dict(self, window=3) -> dict:
+    def get_keypoints_dict(self, window=3, is_std=False) -> dict:
         # fill nan
         min_frame_num = min(self.keypoints.keys())
         max_frame_num = max(self.keypoints.keys())
@@ -72,9 +73,6 @@ class IndividualActivity:
         # 残ったnanは移動平均で穴埋め
         ma_kps_lst = []
         for i in range(0, len(copy_kps_lst) - window):
-            # if np.any(np.isnan(copy_kps_lst[i:i + window])):
-            #     print(copy_kps_lst[i:i + window])
-            #     print(np.nanmean(copy_kps_lst[i:i + window], axis=0))
             means = np.nanmean(copy_kps_lst[i : i + window], axis=0)
             for kps in copy_kps_lst[i : i + window]:
                 if True in np.isnan(kps):
@@ -87,7 +85,15 @@ class IndividualActivity:
         for i, kps in enumerate(ma_kps_lst):
             ma_kps_dict[min_frame_num + i] = np.array(kps)
 
-        return ma_kps_dict
+        if is_std:
+            # standardize
+            std_kps_dict = {}
+            for frame_num, kps in ma_kps_dict.items():
+                std_kps_dict[frame_num] = np.array(standardize(kps))
+
+            return std_kps_dict
+        else:
+            return ma_kps_dict
 
     def to_json(self, frame_num):
         data = {}
