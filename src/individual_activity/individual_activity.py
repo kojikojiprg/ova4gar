@@ -1,5 +1,4 @@
 import numpy as np
-from common.functions import standardize
 from common.json import IA_FORMAT, START_IDX
 from common.keypoint import Keypoints, body
 
@@ -42,12 +41,6 @@ class IndividualActivity:
         else:
             return None
 
-    def get_indicators(self, key):
-        if key not in IA_FORMAT:
-            raise KeyError
-
-        return self.indicator_dict[key]
-
     def get_keypoints(self, key, frame_num):
         if key not in body:
             raise KeyError
@@ -57,7 +50,7 @@ class IndividualActivity:
         else:
             return None
 
-    def get_keypoints_dict(self, window=3, is_std=False) -> dict:
+    def get_keypoints_dict(self, window=3, norm_coor=None) -> dict:
         # fill nan
         min_frame_num = min(self.keypoints.keys())
         max_frame_num = max(self.keypoints.keys())
@@ -91,13 +84,13 @@ class IndividualActivity:
         for i, kps in enumerate(ma_kps_lst):
             ma_kps_dict[min_frame_num + i] = np.array(kps)
 
-        if is_std:
+        if norm_coor is not None:
             # standardize
-            std_kps_dict = {}
+            norm_kps_dict = {}
             for frame_num, kps in ma_kps_dict.items():
-                std_kps_dict[frame_num] = np.array(standardize(kps))
+                norm_kps_dict[frame_num] = np.array(kps) / norm_coor
 
-            return std_kps_dict
+            return norm_kps_dict
         else:
             return ma_kps_dict
 
