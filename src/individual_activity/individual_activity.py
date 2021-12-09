@@ -33,7 +33,7 @@ class IndividualActivity:
 
             self.indicator_dict[k][frame_num] = indicator
 
-    def get_data(self, key, frame_num):
+    def get_indicator(self, key, frame_num):
         if key not in IA_FORMAT:
             raise KeyError
 
@@ -41,6 +41,12 @@ class IndividualActivity:
             return self.indicator_dict[key][frame_num]
         else:
             return None
+
+    def get_indicators(self, key):
+        if key not in IA_FORMAT:
+            raise KeyError
+
+        return self.indicator_dict[key]
 
     def get_keypoints(self, key, frame_num):
         if key not in body:
