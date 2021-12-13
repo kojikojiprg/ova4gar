@@ -1,13 +1,14 @@
-from common import common, transform
-from tracker import main as tr
-from individual_activity import main as ia
-from group_activity import main as ga
-from display.display import display
 import argparse
 import os
 from glob import glob
+
 import cv2
 
+from common import common, transform
+from display.display import display
+from group_activity import main as ga
+from individual_activity import main as ia
+from tracker import main as tr
 
 # is_tracking = True
 # is_individual_activity = True
