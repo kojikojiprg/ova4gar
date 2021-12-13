@@ -25,8 +25,11 @@ def draw_keypoints(frame, keypoints, scores):
 
     img = frame.copy()
     part_line = {}
+    vis_thresh = 0.4
     # Draw keypoints
     for n in range(len(keypoints)):
+        if scores[n] <= vis_thresh:
+            continue
         cor_x, cor_y = int(keypoints[n, 0]), int(keypoints[n, 1])
         part_line[n] = (cor_x, cor_y)
         cv2.circle(img, (cor_x, cor_y), 3, p_color[n], -1)
