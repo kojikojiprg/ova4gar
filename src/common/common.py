@@ -8,7 +8,7 @@ delimiter = "\\" if pf_is_win else "/"
 
 
 def split_path(path):
-    return path.replace('\\', '/').split('/')
+    return path.replace("\\", "/").split("/")
 
 
 cur_dir = os.getcwd()
