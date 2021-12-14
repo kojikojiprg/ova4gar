@@ -3,11 +3,7 @@ import numpy as np
 
 class ParticleFilter:
     def __init__(
-        self,
-        point,
-        n_particle=300,
-        cov_gaus=np.eye(2) * 50,
-        cov_pred=np.eye(2) * 5
+        self, point, n_particle=300, cov_gaus=np.eye(2) * 50, cov_pred=np.eye(2) * 5
     ):
         self.n_particle = n_particle
         self.cov_gaus = cov_gaus
@@ -15,7 +11,8 @@ class ParticleFilter:
 
         # init particles
         self.particles = np.random.multivariate_normal(
-            point, self.cov_pred, self.n_particle)
+            point, self.cov_pred, self.n_particle
+        )
         self.weights = np.ones(self.n_particle) / self.n_particle
 
     def _resample(self):
@@ -27,7 +24,8 @@ class ParticleFilter:
 
     def _predict(self, vec):
         self.particles += np.random.multivariate_normal(
-            vec, self.cov_pred, self.n_particle)
+            vec, self.cov_pred, self.n_particle
+        )
         self.weights = np.ones(self.n_particle) / self.n_particle
 
     def predict(self, vec):
@@ -47,12 +45,8 @@ class ParticleFilter:
         ) / (np.sqrt((2 * np.pi) ** n * det))
 
     def weighted_average(self):
+        self.weights = self.weights + 1e-10
         return np.average(self.particles.T, weights=self.weights, axis=1)
-        
-        # if np.any(self.weights != 0):
-        #     return np.average(self.particles.T, weights=self.weights, axis=1)
-        # else:
-        #     return np.average(self.particles.T, axis=1)
 
     def filter(self, point):
         # 尤度関数(ガウス分布)からパーティクルの重みを計算
