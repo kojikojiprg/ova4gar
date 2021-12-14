@@ -18,7 +18,8 @@ def display(
     field,
     method=None,
 ):
-    print("Prepareing video frames...")
+    print(video_path)
+    print("Writing video frames...")
     if method is None:
         methods = GA_FORMAT.keys()
     else:
@@ -40,17 +41,13 @@ def display(
 
     # load video
     capture = Capture(video_path)
-    print(video_path)
 
     # frames_lst = [[] for _ in range(len(out_paths))]
     cmb_img = combine_image(capture.read(), field)
+    size = cmb_img.shape[1::-1]
     writer_lst = []
     for path in out_paths:
-        if path.endswith("individual_activity.mp4"):
-            size = capture.hw
-        else:
-            size = cmb_img.shape
-        writer = Writer(path, capture.fps, size[1::-1])
+        writer = Writer(path, capture.fps, size)
         writer_lst.append(writer)
 
     # fields image array for plot all group activities

@@ -34,7 +34,7 @@ class Capture:
 
 
 class Writer:
-    def __init__(self, out_path, fps, size, fmt="h264"):
+    def __init__(self, out_path, fps, size, fmt="mp4v"):
         out_dir = os.path.dirname(out_path)
         if not os.path.exists(out_dir):
             os.makedirs(out_dir, exist_ok=True)
@@ -46,7 +46,11 @@ class Writer:
     def __del__(self):
         self._writer.release()
 
-    def write(self, frames):
+    def write(self, frame):
+        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)  # RGB to BGR
+        self._writer.write(frame)
+
+    def write_each(self, frames):
         for frame in frames:
             frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)  # RGB to BGR
             self._writer.write(frame)
