@@ -31,8 +31,8 @@ def main(
 ):
     video_path = os.path.join(
         common.data_dir,
-        "{0}/{1}/{2}/video/AlphaPose_{3}.mp4".format(
-            room_num, date, name, name.replace("passing/", "")
+        "{0}/{1}/{2}/video/pose_{3}.mp4".format(
+            room_num, date, name, name.replace("attention/", "")
         ),
     )
     out_dir = os.path.join(
@@ -41,7 +41,7 @@ def main(
     field_path = os.path.join(common.data_dir, "{}/field.png".format(room_num))
     keypoints_path = os.path.join(
         common.data_dir,
-        "{0}/{1}/{2}/json/alphapose-results.json".format(room_num, date, name),
+        "{0}/{1}/{2}/json/pose-results.json".format(room_num, date, name),
     )
     tracking_json_path = os.path.join(
         common.data_dir, "{0}/{1}/{2}/json/tracking.json".format(room_num, date, name)
@@ -108,12 +108,12 @@ if __name__ == "__main__":
     is_display = args.display
 
     if is_all:
-        dirs = sorted(glob(f"{common.data_dir}/{room_num}/{date}/passing/*"))
+        dirs = sorted(glob(f"{common.data_dir}/{room_num}/{date}/attention/*"))
         if dirs[-1].endswith("make_csv.csv"):
             dirs = dirs[:-1]  # del make_csv.csv
         print(dirs)
         for name in dirs:
-            name = "passing/" + common.split_path(name)[-1]
+            name = "attention/" + common.split_path(name)[-1]
             main(
                 room_num,
                 date,
