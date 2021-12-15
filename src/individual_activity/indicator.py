@@ -102,7 +102,8 @@ def calc_face_vector(
     ratio=FACE_DEFAULT["ratio"],
     std_th=FACE_DEFAULT["std_th"],
 ):
-    nose = keypoints.get("Nose")
+    leye = keypoints.get("LEye")
+    reye = keypoints.get("REye")
     lear = keypoints.get("LEar")
     rear = keypoints.get("REar")
 
@@ -120,29 +121,21 @@ def calc_face_vector(
         diff = hip - shoulder
         diff = diff.astype(float) * ratio
 
-    nose[:2] += diff
+    leye[:2] += diff
+    reye[:2] += diff
     lear[:2] += diff
     rear[:2] += diff
 
     # ホモグラフィ変換
-    nose_homo = np.append(homo.transform_point(nose[:2]), nose[2])
+    leye_homo = np.append(homo.transform_point(leye[:2]), leye[2])
+    reye_homo = np.append(homo.transform_point(reye[:2]), reye[2])
     lear_homo = np.append(homo.transform_point(lear[:2]), lear[2])
     rear_homo = np.append(homo.transform_point(rear[:2]), rear[2])
 
-    if lear[0] > rear[0]:
-        x1 = rear[0]
-        x2 = lear[0]
-    else:
-        x1 = lear[0]
-        x2 = rear[0]
-
-    if x1 < nose[0] and nose[0] < x2:
-        new_vector = rear_homo - lear_homo
-        new_vector = rotation(new_vector[:2], -np.pi / 2)
-    else:
-        center_ear = (lear_homo + rear_homo) / 2
-        new_vector = nose_homo - center_ear
-        new_vector = new_vector[:2]
+    center_eye = (leye_homo + reye_homo) / 2
+    center_ear = (lear_homo + rear_homo) / 2
+    new_vector = center_eye - center_ear
+    new_vector = new_vector[:2]
 
     face_que.append(new_vector)
     if len(face_que) < size:
@@ -197,7 +190,7 @@ def calc_body_vector(
     return vector, body_que
 
 
-def calc_arm_extention(
+def calc_arm_flexion(
     keypoints, homo, arm_que, size=ARM_DEFAULT["size"], std_th=ARM_DEFAULT["std_th"]
 ):
     def calc(keypoints, lr):
@@ -241,5 +234,5 @@ INDICATOR_DICT = {
     IA_FORMAT[START_IDX + 0]: calc_position,
     IA_FORMAT[START_IDX + 1]: calc_face_vector,
     IA_FORMAT[START_IDX + 2]: calc_body_vector,
-    IA_FORMAT[START_IDX + 3]: calc_arm_extention,
+    IA_FORMAT[START_IDX + 3]: calc_arm_flexion,
 }
