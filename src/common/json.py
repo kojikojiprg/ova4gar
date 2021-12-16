@@ -30,7 +30,6 @@ IA_FORMAT = [
     "arm_ext",
 ]
 
-
 # group_activity/group_activity.py
 # group_activity/indicator.py
 # display/display.py
