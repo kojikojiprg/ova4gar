@@ -102,6 +102,7 @@ def calc_face_vector(
     ratio=FACE_DEFAULT["ratio"],
     std_th=FACE_DEFAULT["std_th"],
 ):
+    nose = keypoints.get("Nose")
     leye = keypoints.get("LEye")
     reye = keypoints.get("REye")
     lear = keypoints.get("LEar")
@@ -121,6 +122,7 @@ def calc_face_vector(
         diff = hip - shoulder
         diff = diff.astype(float) * ratio
 
+    nose[:2] += diff
     leye[:2] += diff
     reye[:2] += diff
     lear[:2] += diff
@@ -132,10 +134,23 @@ def calc_face_vector(
     lear_homo = np.append(homo.transform_point(lear[:2]), lear[2])
     rear_homo = np.append(homo.transform_point(rear[:2]), rear[2])
 
-    center_eye = (leye_homo + reye_homo) / 2
-    center_ear = (lear_homo + rear_homo) / 2
-    new_vector = center_eye - center_ear
-    new_vector = new_vector[:2]
+    if lear[0] > rear[0]:
+        x1 = rear[0]
+        x2 = lear[0]
+    else:
+        x1 = lear[0]
+        x2 = rear[0]
+
+    if x1 < nose[0] and nose[0] < x2:
+        # nose is between ears
+        new_vector = rear_homo - lear_homo
+        new_vector = rotation(new_vector[:2], -np.pi / 2)
+    else:
+        # face is turnning sideways
+        center_eye = (leye_homo + reye_homo) / 2
+        center_ear = (lear_homo + rear_homo) / 2
+        new_vector = center_eye - center_ear
+        new_vector = new_vector[:2]
 
     face_que.append(new_vector)
     if len(face_que) < size:
