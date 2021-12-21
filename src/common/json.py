@@ -1,5 +1,6 @@
 import json
 import os
+from json import JSONEncoder
 
 import numpy as np
 
@@ -69,7 +70,7 @@ def dump(data, json_path):
         json.dump(data, f, cls=MyEncoder)
 
 
-class MyEncoder(json.JSONEncoder):
+class MyEncoder(JSONEncoder):
     def default(self, obj):
         if isinstance(obj, np.integer):
             return int(obj)
