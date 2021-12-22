@@ -1,7 +1,7 @@
 import inspect
 
 import numpy as np
-from common.default import ATTENTION_DEFAULT, PASSING_DEFAULT
+from common.default import ATTENTION_DEFAULT
 
 # from common.functions import cos_similarity, normalize_vector
 from common.json import GA_FORMAT, IA_FORMAT, START_IDX
