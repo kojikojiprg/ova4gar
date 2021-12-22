@@ -89,7 +89,7 @@ class PassingDetector:
 
         queue.append(feature)
 
-        return queue[:self.seq_len]
+        return queue[-self.seq_len:]
 
     def predict(self, features):
         if len(features) < self.seq_len:
