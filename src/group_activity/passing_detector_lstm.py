@@ -10,15 +10,22 @@ from torch import nn
 
 class PassingDetector:
     def __init__(self, config_path, checkpoint_path):
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+
         with open(config_path) as f:
             cfg = yaml.safe_load(f)
         self.model = RNNModel(**cfg)
-        self.model.load_state_dict(torch.load(checkpoint_path))
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.seq_len = cfg['seq_len']
+
+        param = torch.load(checkpoint_path)
+        self.model.load_state_dict(param)
+        self.model.to(self.device)
 
     def extract_feature(
+        self,
         p1,
         p2,
+        queue,
         mu=PASSING_DEFAULT["gauss_mu"],
         sigma=PASSING_DEFAULT["gauss_sig"],
         wrist_mu=PASSING_DEFAULT["wrist_gauss_mu"],
@@ -80,15 +87,19 @@ class PassingDetector:
             -1, 4
         )
 
-        return feature
+        queue.append(feature)
+
+        return queue[:self.seq_len]
 
     def predict(self, features):
-        pred = None
+        if len(features) < self.seq_len:
+            return 0
+
         with torch.no_grad():
-            features = torch.Tensor(features).float().to(self.device)
+            features = torch.Tensor(np.array(features)).float().to(self.device)
             pred = self.model(features)
             pred = pred.max(1)[1]
-            pred = pred.cpu().numpy()
+            pred = pred.cpu().numpy()[-1]
 
         return pred
 

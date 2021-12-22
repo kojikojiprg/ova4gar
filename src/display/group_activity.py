@@ -8,7 +8,7 @@ import cv2
 keys = list(GA_FORMAT.keys())
 HEATMAP_SETTING_DICT = {
     # key: [is_heatmap, heatmap_data_index]
-    keys[0]: [False, None],
+    keys[0]: [True, -1],
     keys[1]: [False, None],
 }
 
@@ -49,20 +49,33 @@ class DisplayGroupActivity:
 
         return field
 
-    def disp_attention(self, datas, field, th=2):
-        key = inspect.currentframe().f_code.co_name.replace("disp_", "")
+    def disp_attention(self, datas, field):
+        key = inspect.currentframe().f_code.co_name.replace('disp_', '')
         json_format = GA_FORMAT[key]
 
         for data in datas:
             point = data[json_format[2]]
-            count = data[json_format[4]]
-            if count >= th:
-                cv2.circle(field, tuple(point), 10, (255, 165, 0), thickness=-1)
-                cv2.circle(field, tuple(point), 45, (255, 165, 0), thickness=3)
+            value = data[json_format[4]]
+
+            color = self.heatmap_dict[key].colormap(value)
+            cv2.circle(field, tuple(point), 1, color, thickness=-1)
 
         return field
 
-    def disp_passing(self, datas, field, persons=None):
+    # def disp_attention(self, datas, field, th=2):
+    #     key = inspect.currentframe().f_code.co_name.replace("disp_", "")
+    #     json_format = GA_FORMAT[key]
+
+    #     for data in datas:
+    #         point = data[json_format[2]]
+    #         count = data[json_format[4]]
+    #         if count >= th:
+    #             cv2.circle(field, tuple(point), 10, (255, 165, 0), thickness=-1)
+    #             cv2.circle(field, tuple(point), 45, (255, 165, 0), thickness=3)
+
+    #     return field
+
+    def disp_passing(self, datas, field, persons=None, alpha=0.2):
         key = inspect.currentframe().f_code.co_name.replace("disp_", "")
         json_format = GA_FORMAT[key]
 
@@ -91,11 +104,13 @@ class DisplayGroupActivity:
 
                 # 描画
                 cv2.line(field, p1, p2, color=(255, 165, 0), thickness=1)
+                copy = field.copy()
                 cv2.ellipse(
-                    field,
+                    copy,
                     (center, (major, minor), angle),
-                    color=(255, 165, 0),
-                    thickness=2,
+                    color=(200, 200, 255),
+                    thickness=-1,
                 )
+                field = cv2.addWeighted(copy, alpha, field, 1 - alpha, 0)
 
         return field
