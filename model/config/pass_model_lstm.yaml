@@ -1,0 +1,15 @@
+batch_size: 4096
+device: cuda:0
+dropouts:
+- 0
+epoch: 50
+hidden_dims:
+- 8
+lr: 0.001
+n_classes: 2
+n_linears: 1
+n_rnns: 3
+rnn_dropout: 0.3
+rnn_hidden_dim: 256
+seq_len: 30
+size: 4
