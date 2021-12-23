@@ -63,7 +63,7 @@ def calc_attention(
                     if norm <= length:
                         pixcel_datas[y, x] += 1
                     else:
-                        pixcel_datas[y, x] += gauss(norm, 1, length, sigma)
+                        pixcel_datas[y, x] += gauss(norm, mu=length, sigma=sigma)
 
             if sum_data is not None:
                 # sum all pixel data
