@@ -1,15 +1,17 @@
-from common.json import GA_FORMAT
-from display.heatmap import Heatmap
 import inspect
-import numpy as np
-import cv2
 
+import cv2
+import numpy as np
+from common.default import ATTENTION_DEFAULT
+from common.json import GA_FORMAT
+
+from display.heatmap import Heatmap
 
 keys = list(GA_FORMAT.keys())
 HEATMAP_SETTING_DICT = {
-    # key: [is_heatmap, heatmap_data_index]
-    keys[0]: [True, -1],
-    keys[1]: [False, None],
+    # key: [is_heatmap, heatmap_data_index, min, max]
+    keys[0]: (True, -1, 1, ATTENTION_DEFAULT["seq_len"]),
+    keys[1]: (False, None, None, None),
 }
 
 
@@ -23,11 +25,19 @@ class DisplayGroupActivity:
             if HEATMAP_SETTING_DICT[key][0]:
                 # ヒートマップを作成する場合
                 distribution = []
-                data_keys = GA_FORMAT[key]
-                for data in datas:
-                    append_data = data[data_keys[HEATMAP_SETTING_DICT[key][1]]]
-                    if append_data is not None:
-                        distribution.append(append_data)
+                if HEATMAP_SETTING_DICT[key][2] is None:
+                    # ヒートマップをデータから作成
+                    data_keys = GA_FORMAT[key]
+                    for data in datas:
+                        append_data = data[data_keys[HEATMAP_SETTING_DICT[key][1]]]
+                        if append_data is not None:
+                            distribution.append(append_data)
+                else:
+                    # ヒートマップをminとmaxから作成
+                    distribution = [
+                        HEATMAP_SETTING_DICT[key][2],
+                        HEATMAP_SETTING_DICT[key][3],
+                    ]
 
                 if len(distribution) > 0:
                     self.heatmap_dict[key] = Heatmap(distribution)
@@ -50,7 +60,7 @@ class DisplayGroupActivity:
         return field
 
     def disp_attention(self, datas, field, alpha=0.2, max_radius=30):
-        key = inspect.currentframe().f_code.co_name.replace('disp_', '')
+        key = inspect.currentframe().f_code.co_name.replace("disp_", "")
         json_format = GA_FORMAT[key]
 
         for data in datas:

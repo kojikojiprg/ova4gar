@@ -2,7 +2,7 @@ import numpy as np
 
 
 class Heatmap(list):
-    def __init__(self, distribution, hip2ankle=50):
+    def __init__(self, distribution):
         super().__init__([])
         self._calc_args(distribution)
 
@@ -14,6 +14,11 @@ class Heatmap(list):
         self.xmid = half + self.xmin
 
     def colormap(self, x):
+        if x <= self.xmin:
+            x = self.xmin
+        if self.xmax <= x:
+            x = self.xmax
+
         if x <= self.xmid:
             r = 0
             g = self.inclination * (x - self.xmin)

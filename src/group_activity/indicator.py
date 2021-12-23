@@ -17,7 +17,7 @@ def calc_attention(
     angle_range=ATTENTION_DEFAULT["angle"],
     division=ATTENTION_DEFAULT["division"],
     length=ATTENTION_DEFAULT["length"],
-    seq_len=30,
+    seq_len=ATTENTION_DEFAULT["seq_len"],
 ):
     key = inspect.currentframe().f_code.co_name.replace("calc_", "")
     json_format = GA_FORMAT[key]
