@@ -20,6 +20,9 @@ from tracker import main as tr
 # name = 'pass2'
 
 
+METHOD = 'attention'
+
+
 def main(
     room_num,
     date,
@@ -32,7 +35,7 @@ def main(
     video_path = os.path.join(
         common.data_dir,
         "{0}/{1}/{2}/video/pose_{3}.mp4".format(
-            room_num, date, name, name.replace("attention/", "")
+            room_num, date, name, common.split_path(name)[-1]
         ),
     )
     out_dir = os.path.join(
@@ -67,10 +70,9 @@ def main(
     if is_individual_activity:
         ia.main(tracking_json_path, individual_activity_json_path, homo)
 
-    method = "attention"
     if is_group_activity:
         ga.main(
-            individual_activity_json_path, group_activity_json_path, field_raw, method
+            individual_activity_json_path, group_activity_json_path, field_raw, METHOD
         )
 
     if is_display:
@@ -80,7 +82,7 @@ def main(
             individual_activity_json_path,
             group_activity_json_path,
             field_raw,
-            method,
+            METHOD,
         )
 
 
@@ -108,12 +110,12 @@ if __name__ == "__main__":
     is_display = args.display
 
     if is_all:
-        dirs = sorted(glob(f"{common.data_dir}/{room_num}/{date}/attention/*"))
+        dirs = sorted(glob(f"{common.data_dir}/{room_num}/{date}/{METHOD}/*"))
         if dirs[-1].endswith("make_csv.csv"):
             dirs = dirs[:-1]  # del make_csv.csv
         print(dirs)
         for name in dirs:
-            name = "attention/" + common.split_path(name)[-1]
+            name = f"{METHOD}/" + common.split_path(name)[-1]
             main(
                 room_num,
                 date,
