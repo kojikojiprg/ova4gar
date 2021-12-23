@@ -1,13 +1,13 @@
-from common import common, utils
-from common.transform import Homography
-from display import video
 import cv2
+
+from common import common, utils, video
+from common.transform import Homography
 
 if __name__ == "__main__":
     # file path
     room_num = "08"
-    video_path = common.root + "/video_raw/08_05_Survey_20210915_070700_01.mp4"
-    field_path = common.data_dir + "{}/field.png".format(room_num)
+    video_path = common.root + f"/video/{room_num}/20210915/01.mp4"
+    field_path = common.data_dir + "/{}/field.png".format(room_num)
     print(video_path)
     print(field_path)
 
