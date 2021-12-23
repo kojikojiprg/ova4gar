@@ -19,8 +19,8 @@ if __name__ == "__main__":
     field = cv2.imread(field_path)
     utils.show_img(field)
 
-    p_video = common.homo[room_num][0]
-    p_field = common.homo[room_num][1]
+    p_video = transform.homo[room_num][0]
+    p_field = transform.homo[room_num][1]
     homo = Homography(p_video, p_field, field.shape)
     frame = homo.transform_image(frame)
     utils.show_img(frame)

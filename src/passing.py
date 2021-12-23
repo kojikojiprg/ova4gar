@@ -20,7 +20,7 @@ from tracker import main as tr
 # name = 'pass2'
 
 
-METHOD = 'passing'
+METHOD = "passing"
 
 
 def main(
@@ -60,8 +60,8 @@ def main(
 
     # homography
     field_raw = cv2.imread(field_path)
-    p_video = common.homo[room_num][0]
-    p_field = common.homo[room_num][1]
+    p_video = transform.homo[room_num][0]
+    p_field = transform.homo[room_num][1]
     homo = transform.Homography(p_video, p_field, field_raw.shape)
 
     if is_tracking:
