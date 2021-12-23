@@ -6,7 +6,8 @@ from common.transform import Homography
 if __name__ == "__main__":
     # file path
     room_num = "08"
-    video_path = common.root + f"/video/{room_num}/20210915/01.mp4"
+    date = "20210915"
+    video_path = common.root + f"/video/{room_num}/{date}/01.mp4"
     field_path = common.data_dir + "/{}/field.png".format(room_num)
     print(video_path)
     print(field_path)
