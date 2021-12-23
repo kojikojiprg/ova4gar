@@ -7,7 +7,6 @@ from tqdm import tqdm
 
 from . import json
 
-
 homo = {
     "02": [
         np.float32([[426, 553], [494, 510], [773, 638], [718, 692]]),
