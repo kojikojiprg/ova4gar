@@ -49,7 +49,7 @@ class DisplayGroupActivity:
 
         return field
 
-    def disp_attention(self, datas, field):
+    def disp_attention(self, datas, field, alpha=0.2, max_radius=30):
         key = inspect.currentframe().f_code.co_name.replace('disp_', '')
         json_format = GA_FORMAT[key]
 
@@ -58,7 +58,17 @@ class DisplayGroupActivity:
             value = data[json_format[4]]
 
             color = self.heatmap_dict[key].colormap(value)
-            cv2.circle(field, tuple(point), 1, color, thickness=-1)
+
+            # calc radius of circle
+            max_value = self.heatmap_dict[key].xmax
+            radius = int(value / max_value * max_radius)
+            if radius == 0:
+                radius = 1
+
+            copy = field.copy()
+            cv2.circle(copy, tuple(point), radius, color, thickness=-1)
+
+            field = cv2.addWeighted(copy, alpha, field, 1 - alpha, 0)
 
         return field
 

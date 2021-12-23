@@ -12,11 +12,14 @@ class GroupActivity:
         self.field = field
         self.method = method
         self.indicator_dict = {k: [] for k in INDICATOR_DICT.keys()}
-        self.queue_dict = {k: {} for k in INDICATOR_DICT.keys()}
+        self.queue_dict = {
+            "attention": [],
+            "passing": {},
+        }
 
         self.pass_clf = PassingDetector(
             os.path.join(common.model_dir, "config/pass_model_lstm.yaml"),
-            os.path.join(common.model_dir, "checkpoint/pass_model_lstm.pth")
+            os.path.join(common.model_dir, "checkpoint/pass_model_lstm.pth"),
         )
 
     def calc_indicator(self, frame_num, individual_activity_datas):
@@ -26,12 +29,24 @@ class GroupActivity:
 
             if key == list(GA_FORMAT.keys())[0]:
                 # key == attention
-                value, queue = func(frame_num, individual_activity_datas, self.queue_dict[key], self.field)
+                value, queue = func(
+                    frame_num,
+                    individual_activity_datas,
+                    self.queue_dict[key],
+                    self.field,
+                )
             elif key == list(GA_FORMAT.keys())[1]:
                 # key == passing
-                value, queue = func(frame_num, individual_activity_datas, self.queue_dict[key], self.pass_clf)
+                value, queue = func(
+                    frame_num,
+                    individual_activity_datas,
+                    self.queue_dict[key],
+                    self.pass_clf,
+                )
             else:
-                value, queue = func(frame_num, individual_activity_datas, self.queue_dict[key])
+                value, queue = func(
+                    frame_num, individual_activity_datas, self.queue_dict[key]
+                )
 
             self.indicator_dict[key] += value
             self.queue_dict[key] = queue

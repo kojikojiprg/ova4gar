@@ -17,12 +17,23 @@ def calc_attention(
     angle_range=ATTENTION_DEFAULT["angle"],
     division=ATTENTION_DEFAULT["division"],
     length=ATTENTION_DEFAULT["length"],
+    seq_len=30,
 ):
     key = inspect.currentframe().f_code.co_name.replace("calc_", "")
     json_format = GA_FORMAT[key]
 
     angle_range = np.deg2rad(angle_range)
 
+    # pop queue
+    queue = queue[-seq_len:]
+
+    # sum queue data
+    if len(queue) > 0:
+        sum_data = np.sum(queue, axis=0)
+    else:
+        sum_data = None
+
+    datas = []
     pixcel_datas = np.zeros((field.shape[1], field.shape[0]))
     for y in range(0, field.shape[1], division):
         for x in range(0, field.shape[0], division):
@@ -33,9 +44,11 @@ def calc_attention(
                 if pos is None or face_vector is None:
                     continue
 
+                # calc angle between position and point
                 diff = point - np.array(pos)
                 shita = np.arctan2(diff[1], diff[0])
 
+                # calc face angle
                 face_shita = np.arctan2(face_vector[1], face_vector[0])
 
                 if (
@@ -45,19 +58,25 @@ def calc_attention(
                 ):
                     pixcel_datas[y, x] += 1
 
-    datas = []
-    for y, row in enumerate(pixcel_datas):
-        for x, data in enumerate(row):
-            if data > 0:
+            if sum_data is not None:
+                # sum all pixel data
+                value = sum_data[y, x] + pixcel_datas[y, x]
+            else:
+                value = pixcel_datas[y, x]
+
+            if value > 0:
                 datas.append(
                     {
                         json_format[0]: frame_num,
                         json_format[2]: [y, x],
-                        json_format[4]: data,
+                        json_format[4]: value,
                     }
                 )
 
-    return datas
+    # push queue
+    queue.append(pixcel_datas)
+
+    return datas, queue
 
 
 # def calc_attention(

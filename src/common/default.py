@@ -26,8 +26,9 @@ KEYPOINTS_DEFAULT = {
 
 # GROUP INDICATORS
 ATTENTION_DEFAULT = {
-    # 'angle': 10,        # 視野角
-    # 'division': 5,      # 計算するピクセル幅
+    'angle': 10,        # 視野角
+    'division': 20,      # 計算するピクセル幅
+    'length': 300,      # 視野の長さ
     "angle_th": 10,
     "count_th": 2,
 }
