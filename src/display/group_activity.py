@@ -10,7 +10,7 @@ from display.heatmap import Heatmap
 keys = list(GA_FORMAT.keys())
 HEATMAP_SETTING_DICT = {
     # key: [is_heatmap, heatmap_data_index, min, max]
-    keys[0]: (True, -1, 1, ATTENTION_DEFAULT["seq_len"]),
+    keys[0]: (True, -1, 1, ATTENTION_DEFAULT["seq_len"] * 2),
     keys[1]: (False, None, None, None),
 }
 
@@ -59,7 +59,7 @@ class DisplayGroupActivity:
 
         return field
 
-    def disp_attention(self, datas, field, alpha=0.2, max_radius=30):
+    def disp_attention(self, datas, field, alpha=0.2, max_radius=10):
         key = inspect.currentframe().f_code.co_name.replace("disp_", "")
         json_format = GA_FORMAT[key]
 

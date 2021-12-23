@@ -4,6 +4,7 @@ import numpy as np
 from common.default import ATTENTION_DEFAULT
 
 # from common.functions import cos_similarity, normalize_vector
+from common.functions import gauss
 from common.json import GA_FORMAT, IA_FORMAT, START_IDX
 
 # from common.object_point import EX0304
@@ -17,6 +18,7 @@ def calc_attention(
     angle_range=ATTENTION_DEFAULT["angle"],
     division=ATTENTION_DEFAULT["division"],
     length=ATTENTION_DEFAULT["length"],
+    sigma=ATTENTION_DEFAULT["sigma"],
     seq_len=ATTENTION_DEFAULT["seq_len"],
 ):
     key = inspect.currentframe().f_code.co_name.replace("calc_", "")
@@ -54,9 +56,14 @@ def calc_attention(
                 if (
                     face_shita - angle_range <= shita
                     and shita <= face_shita + angle_range
-                    and np.linalg.norm(diff) <= length
                 ):
-                    pixcel_datas[y, x] += 1
+                    # calc norm between position and point
+                    norm = np.linalg.norm(diff)
+
+                    if norm <= length:
+                        pixcel_datas[y, x] += 1
+                    else:
+                        pixcel_datas[y, x] += gauss(norm, 1, length, sigma)
 
             if sum_data is not None:
                 # sum all pixel data
@@ -64,7 +71,7 @@ def calc_attention(
             else:
                 value = pixcel_datas[y, x]
 
-            if value > 0:
+            if value >= 1:
                 datas.append(
                     {
                         json_format[0]: frame_num,
