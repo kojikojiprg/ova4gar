@@ -1,7 +1,7 @@
 import cv2
 
 
-def draw_keypoints(frame, keypoints, scores):
+def draw_keypoints(frame, keypoints, scores, vis_thresh=0.2):
     l_pair = [
         (0, 1), (0, 2), (1, 3), (2, 4),  # Head
         (5, 6), (5, 7), (7, 9), (6, 8), (8, 10),
@@ -25,7 +25,6 @@ def draw_keypoints(frame, keypoints, scores):
 
     img = frame.copy()
     part_line = {}
-    vis_thresh = 0.4
     # Draw keypoints
     for n in range(len(keypoints)):
         if scores[n] <= vis_thresh:
