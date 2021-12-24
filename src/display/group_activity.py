@@ -59,10 +59,11 @@ class DisplayGroupActivity:
 
         return field
 
-    def disp_attention(self, datas, field, alpha=0.2, max_radius=10):
+    def disp_attention(self, datas, field, alpha=0.2, max_radius=15):
         key = inspect.currentframe().f_code.co_name.replace("disp_", "")
         json_format = GA_FORMAT[key]
 
+        copy = field.copy()
         for data in datas:
             point = data[json_format[2]]
             value = data[json_format[4]]
@@ -75,10 +76,9 @@ class DisplayGroupActivity:
             if radius == 0:
                 radius = 1
 
-            copy = field.copy()
             cv2.circle(copy, tuple(point), radius, color, thickness=-1)
 
-            field = cv2.addWeighted(copy, alpha, field, 1 - alpha, 0)
+        field = cv2.addWeighted(copy, alpha, field, 1 - alpha, 0)
 
         return field
 
