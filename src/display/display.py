@@ -47,9 +47,6 @@ def display(
         writer = Writer(path, capture.fps, size)
         writer_lst.append(writer)
 
-    # fields image array for plot all group activities
-    group_activity_fields = [field.copy() for _ in range(len(methods))]
-
     # reset capture start position
     capture.set_pos_frame(0)
 
@@ -81,11 +78,12 @@ def display(
         # draw individual activity
         field_tmp = disp_individual_activity(frame_individual_activity_datas, field_tmp)
 
-        for i, method in enumerate(methods):
+        group_activity_fields = []
+        for method in methods:
             group_activity_field = field_tmp.copy()
-            group_activity_fields[i] = display_group_activity.disp(
+            group_activity_fields.append(display_group_activity.disp(
                 method, frame_num, group_activity_datas, group_activity_field
-            )
+            ))
 
         # write individual activity result
         writer_lst[0].write(combine_image(frame, field_tmp))
