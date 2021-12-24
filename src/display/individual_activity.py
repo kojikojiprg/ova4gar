@@ -1,7 +1,6 @@
-from common.json import IA_FORMAT, START_IDX, GA_FORMAT
-import numpy as np
 import cv2
-
+import numpy as np
+from common.json import IA_FORMAT, START_IDX
 
 LABEL_SETTING = [
     # size, color, thickness
@@ -17,13 +16,9 @@ VECTOR_SETTING_LIST = {
 }
 
 
-def disp_individual_activity(individual_activity_datas, field, method=None):
-    if method == list(GA_FORMAT.keys())[0]:
-        # attention
-        field = disp_body_face(individual_activity_datas, field)
-    else:
-        field = disp_body_face(individual_activity_datas, field)
-        # field = disp_arm_extention(individual_activity_datas, field)
+def disp_individual_activity(individual_activity_datas, field):
+    field = disp_body_face(individual_activity_datas, field)
+    # field = disp_arm_extention(individual_activity_datas, field)
     field = disp_label(individual_activity_datas, field)
 
     return field

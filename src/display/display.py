@@ -26,10 +26,7 @@ def display(
         methods = [method]
 
     # out video file paths
-    out_paths = [
-        out_dir
-        + "{}.mp4".format("individual_activity")
-    ]
+    out_paths = [out_dir + "{}.mp4".format("individual_activity")]
     for method in methods:
         out_paths.append(out_dir + "{}.mp4".format(method))
 
@@ -82,9 +79,7 @@ def display(
         frame = disp_tracking(frame_individual_activity_datas, frame)
 
         # draw individual activity
-        field_tmp = disp_individual_activity(
-            frame_individual_activity_datas, field_tmp, method
-        )
+        field_tmp = disp_individual_activity(frame_individual_activity_datas, field_tmp)
 
         for i, method in enumerate(methods):
             group_activity_field = field_tmp.copy()
