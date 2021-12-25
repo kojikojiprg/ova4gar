@@ -11,11 +11,11 @@ lr: 0.001
 lr_rate: 0.99
 n_classes: 2
 n_linears: 2
-n_rnns: 1
+n_rnns: 2
 pos_weight:
 - 1.0
 - 10.0
-rnn_dropout: 0
+rnn_dropout: 0.1
 rnn_hidden_dim: 256
 seq_len: 30
 size: 4
