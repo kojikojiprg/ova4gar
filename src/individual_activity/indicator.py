@@ -36,30 +36,89 @@ def calc_ma(que, std_th):
     return val
 
 
-def calc_keypoints(
+def calc_new_keypoints(
+    frame_num,
+    pre_frame_num,
     keypoints,
-    que_dict,
-    size=KEYPOINTS_DEFAULT["size"],
+    que,
+    que_size=KEYPOINTS_DEFAULT["size"],
     std_th=KEYPOINTS_DEFAULT["std_th"],
 ):
-    new_keypoints = []
-    for key, point in zip(kp.body, keypoints):
-        if point[2] < kp.THRESHOLD_CONFIDENCE:
-            new_point = [np.nan, np.nan]
+    # if confidnce score < THRESHOLD then [np.nan, np.nan, np.nan]
+    keypoints = np.array(keypoints)
+    mask = np.where(keypoints.T[2] < kp.THRESHOLD_CONFIDENCE)
+    nan_array = np.full(keypoints.shape, np.nan)
+    keypoints[mask] = nan_array[mask]
+
+    # delete confidence scores
+    # keypoints = np.delete(keypoints, 2, 1)
+
+    if frame_num - pre_frame_num >= que_size:
+        que = []
+    que.append(keypoints)
+
+    # calc mean of que
+    if len(que) < que_size:
+        new_keypoints = np.nanmean(que, axis=0)
+    else:
+        que = que[-que_size:]
+
+        new_keypoints = []
+        tmp_que = np.transpose(que, (1, 0, 2))
+        for i in range(len(keypoints)):
+            new_keypoints.append(calc_ma(tmp_que[i], std_th))
+        new_keypoints = np.array(new_keypoints)
+
+    return new_keypoints, que
+
+
+def fill_nan_keypoints(
+    frame_num,
+    pre_frame_num,
+    keypoints_dict,
+    que,
+    que_size=KEYPOINTS_DEFAULT["size"],
+    window=KEYPOINTS_DEFAULT["window"],
+):
+    assert que_size > window, f"que_size:{que_size} > window:{window} is expected."
+    if len(que) < 2:
+        return keypoints_dict, que
+
+    copy_kps_lst = []
+    pre = np.array(keypoints_dict[pre_frame_num])
+    for i in range(pre_frame_num, frame_num + 1):
+        if i in keypoints_dict:
+            # append current keypoints
+            kps = np.array(keypoints_dict[i])
+            copy_kps_lst.append(kps)
+            pre = kps.copy()
         else:
-            new_point = point[:2]
+            # copy and append pre keypoints
+            copy_kps_lst.append(pre)
 
-        que_dict[key].append(new_point)
+    # fill nan each keypoint
+    ma_kps_lst = []
+    for i in range(0, len(copy_kps_lst) - window + 1):
+        # calc means of all keypoints
+        means = np.nanmean(copy_kps_lst[i : i + window], axis=0)
 
-        if len(que_dict[key]) < size:
-            point = np.nanmean(que_dict[key], axis=0)
-        else:
-            que_dict[key] = que_dict[key][-size:]
-            point = calc_ma(que_dict[key], std_th)
+        for kps in copy_kps_lst[i : i + window]:
+            if True in np.isnan(kps):
+                # fill nan if nan points are included
+                kps = np.where(np.isnan(kps), means, kps).copy()
+            ma_kps_lst.append(kps)
 
-        new_keypoints.append(point.tolist())
+    ma_kps_dict = {}
+    for i, kps in enumerate(ma_kps_lst):
+        ma_kps_dict[pre_frame_num + i] = kps
+    keypoints_dict.update(ma_kps_dict)
 
-    return new_keypoints, que_dict
+    if len(que) < len(ma_kps_lst):
+        que = ma_kps_lst
+    else:
+        que = ma_kps_lst[-que_size:]
+
+    return keypoints_dict, que
 
 
 def calc_position(

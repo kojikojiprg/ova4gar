@@ -22,6 +22,7 @@ ARM_DEFAULT = {
 KEYPOINTS_DEFAULT = {
     "size": 10,
     "std_th": 1,  # 外れ値に対する分散の閾値
+    "window": 3,  # nanを穴埋めするときの移動平均の長さ
 }
 
 # GROUP INDICATORS
