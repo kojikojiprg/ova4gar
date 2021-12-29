@@ -14,8 +14,8 @@ n_linears: 2
 n_rnns: 2
 pos_weight:
 - 1.0
-- 10.0
+- 2.0
 rnn_dropout: 0.1
 rnn_hidden_dim: 256
-seq_len: 30
+seq_len: 16
 size: 4
