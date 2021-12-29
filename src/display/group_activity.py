@@ -2,7 +2,6 @@ import inspect
 
 import cv2
 import numpy as np
-from common.default import ATTENTION_DEFAULT
 from common.json import GA_FORMAT
 
 from display.heatmap import Heatmap
