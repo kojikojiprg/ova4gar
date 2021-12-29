@@ -18,7 +18,6 @@ def display(
     field,
     method=None,
 ):
-    print(video_path)
     print("Writing video frames...")
     if method is None:
         methods = GA_FORMAT.keys()
@@ -29,6 +28,7 @@ def display(
     out_paths = [out_dir + "{}.mp4".format("individual_activity")]
     for method in methods:
         out_paths.append(out_dir + "{}.mp4".format(method))
+    print(out_paths)
 
     # load datas
     individual_activity_datas = json.load(individual_activity_json_path)

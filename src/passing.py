@@ -64,6 +64,7 @@ def main(
     p_field = transform.homo[room_num][1]
     homo = transform.Homography(p_video, p_field, field_raw.shape)
 
+    print(video_path)
     if is_tracking:
         tr.main(keypoints_path, tracking_json_path)
 
