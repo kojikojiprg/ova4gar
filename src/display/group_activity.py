@@ -10,7 +10,7 @@ from display.heatmap import Heatmap
 keys = list(GA_FORMAT.keys())
 HEATMAP_SETTING_DICT = {
     # key: [is_heatmap, heatmap_data_index, min, max]
-    keys[0]: (True, -1, 1, ATTENTION_DEFAULT["seq_len"] * 2),
+    keys[0]: (True, None, 0, 2),
     keys[1]: (False, None, None, None),
 }
 
@@ -32,6 +32,7 @@ class DisplayGroupActivity:
                         append_data = data[data_keys[HEATMAP_SETTING_DICT[key][1]]]
                         if append_data is not None:
                             distribution.append(append_data)
+                    print(f'max of {key}: ', np.max(distribution))
                 else:
                     # ヒートマップをminとmaxから作成
                     distribution = [
