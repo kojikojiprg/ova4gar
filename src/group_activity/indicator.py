@@ -26,9 +26,6 @@ def calc_attention(
 
     angle_range = np.deg2rad(angle_range)
 
-    # pop queue
-    queue = queue[-seq_len:]
-
     # sum queue data
     if len(queue) > 0:
         sum_data = np.sum(queue, axis=0)
@@ -36,10 +33,11 @@ def calc_attention(
         sum_data = None
 
     datas = []
-    pixcel_datas = np.zeros((field.shape[1], field.shape[0]))
+    pixcel_datas = np.zeros((field.shape[1], field.shape[0]), dtype=np.float32)
     for y in range(0, field.shape[1], division):
         for x in range(0, field.shape[0], division):
-            point = np.array([y, x])
+            point = np.array([y, x])  # the coordination of each pixel
+            value = 0.0  # value of each pixel
             for data in individual_activity_datas:
                 pos = data[IA_FORMAT[START_IDX + 0]]
                 face_vector = data[IA_FORMAT[START_IDX + 1]]
@@ -59,29 +57,31 @@ def calc_attention(
                 ):
                     # calc norm between position and point
                     norm = np.linalg.norm(diff)
-
                     if norm <= length:
-                        pixcel_datas[y, x] += 1
+                        value += 1.
                     else:
-                        pixcel_datas[y, x] += gauss(norm, mu=length, sigma=sigma)
+                        value += gauss(norm, mu=length, sigma=sigma)
 
-            if sum_data is not None:
-                # sum all pixel data
-                value = sum_data[y, x] + pixcel_datas[y, x]
-            else:
-                value = pixcel_datas[y, x]
+                pixcel_datas[y, x] = value  # save every frame value
 
-            if value >= 1:
-                datas.append(
-                    {
-                        json_format[0]: frame_num,
-                        json_format[2]: [y, x],
-                        json_format[4]: value,
-                    }
-                )
+                if value >= 1 / seq_len:
+                    total = value
+                    if sum_data is not None:
+                        # sum all pixel data in queue
+                        total += sum_data[y, x]
+                    total /= seq_len
 
-    # push queue
+                    datas.append(
+                        {
+                            json_format[0]: frame_num,
+                            json_format[2]: [y, x],
+                            json_format[4]: total,
+                        }
+                    )
+
+    # push and pop queue
     queue.append(pixcel_datas)
+    queue = queue[-seq_len:]
 
     return datas, queue
 
@@ -134,7 +134,9 @@ def calc_attention(
 #     return datas
 
 
-def calc_passing(frame_num, individual_activity_datas, queue_dict, model):
+def calc_passing(
+    frame_num, individual_activity_datas, queue_dict, model, pass_length=5
+):
     key = inspect.currentframe().f_code.co_name.replace("calc_", "")
     json_format = GA_FORMAT[key]
 
@@ -149,17 +151,21 @@ def calc_passing(frame_num, individual_activity_datas, queue_dict, model):
             # get queue
             feature_key = f"{p1_id}_{p2_id}"
             if feature_key not in queue_dict:
-                queue_dict[feature_key] = []
+                queue_dict[feature_key] = {"features": [], "duration": 0}
             queue = queue_dict[feature_key]
 
             # push and pop queue
-            queue = model.extract_feature(p1, p2, queue)
-            queue_dict[feature_key] = queue
+            queue["features"] = model.extract_feature(p1, p2, queue["features"])
 
             # predict
-            pred = model.predict(queue)
+            pred, queue["duration"] = model.predict(
+                queue["feature"], queue["duration"], pass_length
+            )
 
-            if pred is not None:
+            # update queue
+            queue_dict[feature_key] = queue
+
+            if pred == 1:
                 datas.append(
                     {
                         json_format[0]: frame_num,
