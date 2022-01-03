@@ -7,6 +7,8 @@ from common.json import IA_FORMAT, START_IDX
 from common.keypoint import body
 from torch import nn
 
+import matplotlib.pyplot as plt
+
 
 class PassingDetector:
     def __init__(self, config_path, checkpoint_path):
@@ -20,6 +22,12 @@ class PassingDetector:
         param = torch.load(checkpoint_path)
         self.model.load_state_dict(param)
         self.model.to(self.device)
+
+    def train(self):
+        self.model.train()
+
+    def eval(self):
+        self.model.eval()
 
     def extract_feature(
         self,
@@ -83,25 +91,42 @@ class PassingDetector:
 
         wrist_distance = gauss(min_norm, mu=wrist_mu, sigma=wrist_sig)
 
-        feature = np.array([distance, body_direction, arm_ave, wrist_distance]).reshape(
-            -1, 4
-        )
+        feature = [distance, body_direction, arm_ave, wrist_distance]
 
         queue.append(feature)
 
         return queue[-self.seq_len:]
 
-    def predict(self, features):
+    def predict(self, features, pass_duration, length=5):
         if len(features) < self.seq_len:
-            return 0
+            return 0, pass_duration
+        columns = ['distance', 'body direction', 'arm average', 'wrist distance']
+        plt.figure(figsize=(10, 1.5))
+        for i, x in enumerate(np.array(features).T):
+            plt.plot(x, alpha=0.4, label=columns[i])
+        plt.ylim((-0.05, 1.05))
+        plt.yticks([0, 1])
+        plt.legend(bbox_to_anchor=(1.01, 1), loc='upper left', borderaxespad=0)
+        plt.subplots_adjust(left=0.04, right=1, bottom=0.1, top=1)
+        plt.show()
 
         with torch.no_grad():
-            features = torch.Tensor(np.array(features)).float().to(self.device)
+            features = torch.Tensor(np.array([features])).float().to(self.device)
             pred = self.model(features)
             pred = pred.max(1)[1]
-            pred = pred.cpu().numpy()[-1]
+            pred = pred.cpu().numpy()[0]
 
-        return pred
+        if pred == 1:
+            pass_duration += 1
+
+        else:
+            pass_duration = 0
+
+        # return (
+        #     1 if pass_duration > length else 0,
+        #     pass_duration
+        # )
+        return pred, pass_duration
 
 
 class RNNModel(nn.Module):
