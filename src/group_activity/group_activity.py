@@ -21,6 +21,7 @@ class GroupActivity:
             os.path.join(common.model_dir, "config/pass_model_lstm.yaml"),
             os.path.join(common.model_dir, "checkpoint/pass_model_lstm.pth"),
         )
+        self.pass_clf.eval()
 
     def calc_indicator(self, frame_num, individual_activity_datas):
         for key, func in INDICATOR_DICT.items():
