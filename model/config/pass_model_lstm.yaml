@@ -7,7 +7,7 @@ hidden_dims:
 - 8
 n_classes: 2
 n_linears: 2
-n_rnns: 2
+n_rnns: 1
 rnn_dropout: 0.1
 rnn_hidden_dim: 512
 seq_len: 30
