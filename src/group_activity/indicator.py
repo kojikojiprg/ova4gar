@@ -58,7 +58,7 @@ def calc_attention(
                     # calc norm between position and point
                     norm = np.linalg.norm(diff)
                     if norm <= length:
-                        value += 1.
+                        value += 1.0
                     else:
                         value += gauss(norm, mu=length, sigma=sigma)
 
@@ -159,7 +159,7 @@ def calc_passing(
 
             # predict
             pred, queue["duration"] = model.predict(
-                queue["feature"], queue["duration"], pass_length
+                queue["features"], queue["duration"], pass_length
             )
 
             # update queue
