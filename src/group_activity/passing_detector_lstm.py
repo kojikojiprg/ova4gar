@@ -7,8 +7,6 @@ from common.json import IA_FORMAT, START_IDX
 from common.keypoint import body
 from torch import nn
 
-import matplotlib.pyplot as plt
-
 
 class PassingDetector:
     def __init__(self, config_path, checkpoint_path):
@@ -17,7 +15,7 @@ class PassingDetector:
         with open(config_path) as f:
             cfg = yaml.safe_load(f)
         self.model = RNNModel(**cfg)
-        self.seq_len = cfg['seq_len']
+        self.seq_len = cfg["seq_len"]
 
         param = torch.load(checkpoint_path)
         self.model.load_state_dict(param)
@@ -47,8 +45,8 @@ class PassingDetector:
         p2_body = p2[IA_FORMAT[START_IDX + 2]]
         p1_arm = p1[IA_FORMAT[START_IDX + 3]]
         p2_arm = p2[IA_FORMAT[START_IDX + 3]]
-        p1_wrist = (p1_kps[body["LWrist"]], p1_kps[body["RWrist"]])
-        p2_wrist = (p2_kps[body["LWrist"]], p2_kps[body["RWrist"]])
+        p1_wrist = (p1_kps[body["LWrist"]][:2], p1_kps[body["RWrist"]][:2])
+        p2_wrist = (p2_kps[body["LWrist"]][:2], p2_kps[body["RWrist"]][:2])
 
         if (
             p1_pos is None
@@ -62,19 +60,20 @@ class PassingDetector:
         ):
             return None
 
+        p1_pos = np.array(p1_pos)
+        p2_pos = np.array(p2_pos)
+
         # calc distance
-        norm = np.linalg.norm(np.array(p1_pos) - np.array(p2_pos), ord=2)
+        norm = np.linalg.norm(p1_pos - p2_pos, ord=2)
         distance = gauss(norm, mu=mu, sigma=sigma)
 
         # calc vector of each other
-        p1_pos = np.array(p1_pos)
-        p2_pos = np.array(p2_pos)
         p1p2 = p2_pos - p1_pos
         p2p1 = p1_pos - p2_pos
 
         p1p2_sim = cos_similarity(p1_body, p1p2)
         p2p1_sim = cos_similarity(p2_body, p2p1)
-        body_direction = np.average([p1p2_sim, p2p1_sim])
+        body_direction = (np.average([p1p2_sim, p2p1_sim]) + 1) / 2
 
         # calc arm average
         arm_ave = np.average([p1_arm, p2_arm])
@@ -95,20 +94,11 @@ class PassingDetector:
 
         queue.append(feature)
 
-        return queue[-self.seq_len:]
+        return queue[-self.seq_len :]
 
     def predict(self, features, pass_duration, length=5):
         if len(features) < self.seq_len:
             return 0, pass_duration
-        columns = ['distance', 'body direction', 'arm average', 'wrist distance']
-        plt.figure(figsize=(10, 1.5))
-        for i, x in enumerate(np.array(features).T):
-            plt.plot(x, alpha=0.4, label=columns[i])
-        plt.ylim((-0.05, 1.05))
-        plt.yticks([0, 1])
-        plt.legend(bbox_to_anchor=(1.01, 1), loc='upper left', borderaxespad=0)
-        plt.subplots_adjust(left=0.04, right=1, bottom=0.1, top=1)
-        plt.show()
 
         with torch.no_grad():
             features = torch.Tensor(np.array([features])).float().to(self.device)
