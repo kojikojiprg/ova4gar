@@ -60,7 +60,7 @@ class IndividualActivity:
             raise KeyError
 
         if frame_num in self.keypoints:
-            return self.keypoints[frame_num][body[key]]
+            return self.keypoints[frame_num][body[key]][:2]
         else:
             return None
 
