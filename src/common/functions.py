@@ -41,8 +41,7 @@ def softmax(x):
 
 def normalize_vector(vec):
     vec = vec.astype(np.float64)
-    vec += 1e-10
-    vec /= np.linalg.norm(vec)
+    vec /= np.linalg.norm(vec) + 1e-10
     return vec
 
 
