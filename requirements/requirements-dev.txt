@@ -1,9 +1,0 @@
-jupyter
-jupyterlab
-jupyterlab-vim
-ipympl
-rope
-flake8
-black
-isort
-mypy
