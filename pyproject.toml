@@ -2,33 +2,13 @@
 name = "research"
 version = "0.1.0"
 description = ""
-authors = ["kojikojiprg <kojikoji.prg@gmail.com>"]
+authors = ["Koji Yokoyama"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-numpy = "^1.18.4"
-pandas = "^1.0.4"
-matplotlib = "^3.2.1"
-opencv-python = "^4.2.0"
-scipy = "^1.5.0"
-scikit-learn = "^1.0.1"
-seaborn = "^0.11.1"
-tqdm = "^4.62.3"
-torch = {url = "https://download.pytorch.org/whl/cu113/torch-1.10.0%2Bcu113-cp39-cp39-win_amd64.whl"}
-PyYAML = "^6.0"
-types-PyYAML = "^6.0.1"
 
 [tool.poetry.dev-dependencies]
-jupyter = "^1.0.0"
-jupyterlab = "^3.0.15"
-jupyterlab-vim = "^0.14.2"
-ipympl = "^0.7.0"
-rope = "^0.17.0"
-flake8 = "^3.8.2"
-black = "^21.9b0"
-isort = "^5.9.3"
-mypy = "^0.910"
 
 [build-system]
-requires = ["poetry>=0.12"]
-build-backend = "poetry.masonry.api"
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
