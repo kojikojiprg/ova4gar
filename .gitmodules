@@ -1,3 +1,6 @@
 [submodule "submodules/hrnet"]
 	path = submodules/hrnet
 	url = https://github.com/HRNet/HigherHRNet-Human-Pose-Estimation.git
+[submodule "submodules/cocoapi"]
+	path = submodules/cocoapi
+	url = https://github.com/cocodataset/cocoapi.git
