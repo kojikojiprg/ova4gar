@@ -9,7 +9,7 @@ poetry install
 
 2, Update submodules
 ```
-git submodule update
+git submodule update --init
 ```
 
 3. Install [COCOAPI](https://github.com/cocodataset/cocoapi)
