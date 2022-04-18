@@ -3,11 +3,11 @@
 .vscode
 
 __pycache__
-data*
-video
-video_raw
-json
-out
+data/*
+video/
+video_raw/
+json/
+out/
 
 *.zip
 *.mp4
