@@ -4,7 +4,7 @@ import cv2
 
 
 class Capture:
-    def __init__(self, in_path):
+    def __init__(self, in_path: str):
         if not os.path.isfile(in_path):
             raise ValueError(f"not exist file {in_path}")
 
@@ -21,7 +21,13 @@ class Capture:
         self._cap.release()
         cv2.destroyAllWindows()
 
-    def set_pos_frame(self, begin_sec):
+    def __len__(self):
+        return int(self._cap.get(cv2.CAP_PROP_FRAME_COUNT))
+
+    def set_pos_frame_count(self, idx: int):
+        self._cap.set(cv2.CAP_PROP_POS_FRAMES, idx)
+
+    def set_pos_frame_time(self, begin_sec: int):
         self._cap.set(cv2.CAP_PROP_POS_FRAMES, begin_sec * self.fps)
 
     def read(self):
