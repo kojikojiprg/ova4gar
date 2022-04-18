@@ -6,7 +6,7 @@ sys.path.append("src")
 from utils.video import Capture
 
 
-class Dataset(torch.utils.data.Dataset):
+class TestDataset(torch.utils.data.Dataset):
     def __init__(self, video_path: str):
         self.cap = Capture(video_path)
         assert (
@@ -21,8 +21,8 @@ class Dataset(torch.utils.data.Dataset):
         return self.cap.read()
 
 
-def make_dataloader(video_path: str):
-    dataset = Dataset(video_path)
+def make_test_dataloader(video_path: str):
+    dataset = TestDataset(video_path)
 
     data_loader = torch.utils.data.DataLoader(
         dataset, batch_size=1, shuffle=False, num_workers=0, pin_memory=False
