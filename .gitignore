@@ -8,6 +8,7 @@ video/
 video_raw/
 json/
 out/
+models/*
 
 *.zip
 *.mp4
