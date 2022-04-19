@@ -13,8 +13,8 @@ from tqdm import tqdm
 
 from .dataset import make_test_dataloader
 
-# sys.path.append("./submodules/")
 sys.path.append("./submodules/hrnet/lib/")
+import models
 from config import cfg, check_config, update_config
 from core.group import HeatmapParser
 from core.inference import aggregate_results, get_multi_stage_outputs
@@ -63,7 +63,12 @@ class HRNetExtractor:
             )
             model.load_state_dict(torch.load(self.cfg.TEST.MODEL_FILE), strict=True)
 
-        self.model = torch.nn.DataParallel(model, device_ids=self.cfg.GPUS).cuda()
+        if torch.cuda.is_available():
+            self.model = torch.nn.DataParallel(model, device_ids=self.cfg.GPUS)
+            self.model.cuda()
+        else:
+            self.model.cpu()
+
         self.model.eval()
 
     def predict(self, video_path: str, data_dir: str):
@@ -114,9 +119,9 @@ class HRNetExtractor:
                         self.cfg,
                         self.model,
                         image_resized,
-                        self.cfg.TEST.FLIP_TEST,
-                        self.cfg.TEST.PROJECT2IMAGE,
-                        base_size,
+                        with_flip=False,
+                        project2image=self.cfg.TEST.PROJECT2IMAGE,
+                        size_projected=base_size,
                     )
 
                     final_heatmaps, tags_list = aggregate_results(
