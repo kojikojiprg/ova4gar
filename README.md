@@ -4,7 +4,7 @@
 # Installation
 1. Install python requirements.
 ```
-poetry install
+pip install -r requirements.txt
 ```
 
 2, Update submodules.
