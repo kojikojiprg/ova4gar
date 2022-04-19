@@ -31,13 +31,13 @@ def main():
     hrnet_cfg_path = (
         "./submodules/hrnet/experiments/coco/higher_hrnet/w32_512_adam_lr1e-3.yaml"
     )
-    opts = [
+    hrnet_opts = [
         "TEST.MODEL_FILE",
         "models/hrnet/pose_higher_hrnet_w32_512.pth",
         "TEST.FLIP_TEST",
         "False",
     ]
-    extractor = HRNetExtractor(hrnet_cfg_path, opts, logger)
+    extractor = HRNetExtractor(hrnet_cfg_path, hrnet_opts, logger)
     extractor.predict(video_path, data_dir)
 
 
