@@ -680,7 +680,7 @@ PyYAML = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.9"
-content-hash = "fcc7ea40ab5cce87116955369c9a6a2374d3c51d41e5850a31991c083ea1cbb3"
+content-hash = "4b9e6f8cefbddced26b7a5ef305a5e3c8be15364781ed437f378f64f5855e8e2"
 
 [metadata.files]
 black = [
