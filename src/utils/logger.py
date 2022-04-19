@@ -17,4 +17,4 @@ def setup_logger(log_dir: str):
     console = logging.StreamHandler()
     logging.getLogger("").addHandler(console)
 
-    return logger, time_str
+    return logger
