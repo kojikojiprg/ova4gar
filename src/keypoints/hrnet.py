@@ -94,7 +94,7 @@ class HRNetExtractor:
         all_preds = []
         all_scores = []
 
-        pbar = tqdm(total=len(test_dataset)) if self.cfg.TEST.LOG_PROGRESS else None
+        pbar = tqdm(total=len(test_dataset))
         for images in data_loader:
             assert 1 == images.size(0), "Test batch size should be 1"
 
