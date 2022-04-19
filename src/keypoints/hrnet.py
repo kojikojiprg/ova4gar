@@ -1,5 +1,8 @@
+from __future__ import absolute_import, division, print_function
+
 import pprint
 import sys
+from logging import Logger
 from types import SimpleNamespace
 from typing import Any
 
@@ -8,31 +11,32 @@ import torch
 import torchvision
 from tqdm import tqdm
 
-from dataset import make_test_dataloader
+from .dataset import make_test_dataloader
 
-sys.path.append("./submodules/")
-from hrnet.lib.config import cfg, check_config, update_config
-from hrnet.lib.core.group import HeatmapParser
-from hrnet.lib.core.inference import aggregate_results, get_multi_stage_outputs
-from hrnet.lib.fp16_utils.fp16util import network_to_half
-from hrnet.lib.utils.transforms import (
+# sys.path.append("./submodules/")
+sys.path.append("./submodules/hrnet/lib/")
+from config import cfg, check_config, update_config
+from core.group import HeatmapParser
+from core.inference import aggregate_results, get_multi_stage_outputs
+from fp16_utils.fp16util import network_to_half
+from utils.transforms import (
     get_final_preds,
     get_multi_scale_size,
     resize_align_multi_scale,
 )
-from hrnet.lib.utils.utils import get_model_summary
-from hrnet.lib.utils.vis import add_joints
+from utils.utils import get_model_summary
+from utils.vis import add_joints
 
 
 class HRNetExtractor:
-    def __init__(self, cfg_path: str, logger, opts=None):
+    def __init__(self, cfg_path: str, opts: list, logger: Logger):
         # update config
         args = SimpleNamespace(**{"cfg": cfg_path, "opts": opts})
         self.cfg = cfg
         update_config(self.cfg, args)
         check_config(self.cfg)
 
-        self.logger = logger
+        self.logger: Logger = logger
         self.logger.info(pprint.pformat(args))
         self.logger.info(self.cfg)
 
