@@ -14,6 +14,7 @@ from tqdm import tqdm
 
 sys.path.append("./src/")
 from utils.video import Capture, Writer
+
 from .dataset import make_test_dataloader
 
 sys.path.append("./submodules/hrnet/lib/")
@@ -105,7 +106,9 @@ class HRNetExtractor:
         pbar = tqdm(total=len(test_dataset))
         for idx, (rets, images) in enumerate(data_loader):
             if not rets[0]:
-                f"Couldn't read frame number {idx}."
+                self.logger.info(
+                    f"=> couldn't read frame number {idx} on video {video_path}."
+                )
                 break
 
             assert 1 == images.size(0), "Test batch size should be 1"
