@@ -4,7 +4,7 @@
 # Installation
 1. Install python requirements.
 ```
-pip install -r requirements.txt
+pip install -r requirements.txt --extra-index-url https://download.pytorch.org/whl/cu115
 ```
 
 2, Update submodules.
