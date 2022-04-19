@@ -141,8 +141,7 @@ class HRNetExtractor:
                     [final_heatmaps.size(3), final_heatmaps.size(2)],
                 )
 
-            if self.cfg.TEST.LOG_PROGRESS:
-                pbar.update()
+            pbar.update()
 
             # add keypoints to image
             for person in final_results:
