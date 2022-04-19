@@ -14,12 +14,13 @@ git submodule update --init
 
 3. Install [COCOAPI](https://github.com/cocodataset/cocoapi)
 ```
-cd submodule/cocoapi/PythonAPI
-
-# Install into global site-packages
+cd ./submodules/cocoapi/PythonAPI
 make install
+```
 
-# Alternatively, if you do not have permissions or prefer
-# not to install the COCO API into global site-packages
-python3 setup.py install --user
+4. Install [CrowdPose](https://github.com/Jeff-sjtu/CrowdPose.git)
+```
+cd ../../../  # go back root of the project
+cd ./submodules/crowdpose/crowdpose-api/PythonAPI
+sh install.sh
 ```
