@@ -10,19 +10,27 @@ class Capture:
 
         self._cap = cv2.VideoCapture(in_path)
 
-        # video info
         self.fps = int(self._cap.get(cv2.CAP_PROP_FPS))
-        self.frame_num = int(self._cap.get(cv2.CAP_PROP_FRAME_COUNT))
-        self.w = self._cap.get(cv2.CAP_PROP_FRAME_WIDTH)
-        self.h = self._cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
-        self.hw = (self.h, self.w)
+        self.size = (
+            int(self._cap.get(cv2.CAP_PROP_FRAME_WIDTH)),
+            int(self._cap.get(cv2.CAP_PROP_FRAME_HEIGHT)),
+        )
 
     def __del__(self):
         self._cap.release()
-        cv2.destroyAllWindows()
 
-    def __len__(self):
-        return int(self._cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    @property
+    def frame_count(self):
+        # cv2.CAP_PROP_FRAME_COUNT is not correct.
+        count = 0
+        ret, frame = self._cap.read()
+        while ret:
+            ret, frame = self._cap.read()
+            count += 1
+
+        del ret, frame  # release memory
+        self.set_pos_frame_count(0)  # initialize
+        return count
 
     @property
     def is_opened(self):

@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 
+import os
 import pprint
 import sys
 from logging import Logger
@@ -11,6 +12,8 @@ import torch
 import torchvision
 from tqdm import tqdm
 
+sys.path.append("./src/")
+from utils.video import Capture, Writer
 from .dataset import make_test_dataloader
 
 sys.path.append("./submodules/hrnet/lib/")
@@ -19,12 +22,8 @@ from config import cfg, check_config, update_config
 from core.group import HeatmapParser
 from core.inference import aggregate_results, get_multi_stage_outputs
 from fp16_utils.fp16util import network_to_half
-from utils.transforms import (
-    get_final_preds,
-    get_multi_scale_size,
-    resize_align_multi_scale,
-)
-from utils.utils import get_model_summary
+from utils.transforms import (get_final_preds, get_multi_scale_size,
+                              resize_align_multi_scale)
 from utils.vis import add_joints
 
 
@@ -38,7 +37,6 @@ class HRNetExtractor:
 
         self.logger: Logger = logger
         self.logger.info(pprint.pformat(args))
-        self.logger.info(self.cfg)
 
         # cudnn related setting
         torch.backends.cudnn.benchmark = self.cfg.CUDNN.BENCHMARK
@@ -48,11 +46,6 @@ class HRNetExtractor:
         model = eval("models." + self.cfg.MODEL.NAME + ".get_pose_net")(
             self.cfg, is_train=False
         )
-
-        dump_input = torch.rand(
-            (1, 3, self.cfg.DATASET.INPUT_SIZE, self.cfg.DATASET.INPUT_SIZE)
-        )
-        self.logger.info(get_model_summary(model, dump_input, verbose=self.cfg.VERBOSE))
 
         if self.cfg.FP16.ENABLED:
             model = network_to_half(model)
@@ -71,8 +64,18 @@ class HRNetExtractor:
 
         self.model.eval()
 
+    def __del__(self):
+        del self.model, self.logger, self.cfg
+
     def predict(self, video_path: str, data_dir: str):
-        data_loader, test_dataset = make_test_dataloader(video_path)
+        video_capture = Capture(video_path)
+        assert video_capture.is_opened, f"{video_path} does not exist or is wrong file type."
+
+        out_path = os.path.join(data_dir, "video", "hrnet.mp4")
+        video_writer = Writer(out_path, video_capture.fps, video_capture.size)
+        self.logger.info(f"Writing video into {out_path}")
+
+        data_loader, test_dataset = make_test_dataloader(video_capture)
 
         if self.cfg.MODEL.NAME == "pose_hourglass":
             transforms = torchvision.transforms.Compose(
@@ -141,45 +144,22 @@ class HRNetExtractor:
                     [final_heatmaps.size(3), final_heatmaps.size(2)],
                 )
 
-            pbar.update()
-
-            # add keypoints to image
-            for person in final_results:
-                color = np.random.randint(0, 255, size=3).tolist()
-                add_joints(image, person, color)
-            # save_debug_images(self.cfg, image_resized, None, None, outputs, prefix)
+            self.write_video(video_writer, image, final_results)
 
             all_preds.append(final_results)
             all_scores.append(scores)
 
-        if self.cfg.TEST.LOG_PROGRESS:
-            pbar.close()
+            pbar.update()
 
-        name_values, _ = test_dataset.evaluate(
-            self.cfg, all_preds, all_scores, data_dir
-        )
+        pbar.close()
 
-        if isinstance(name_values, list):
-            for name_value in name_values:
-                self._print_name_value(name_value, self.cfg.MODEL.NAME)
-        else:
-            self._print_name_value(name_values, self.cfg.MODEL.NAME)
+        # release memory
+        del video_capture, video_writer, data_loader, test_dataset, all_preds, all_scores
 
-    def _print_name_value(self, name_value, full_arch_name):
-        names = name_value.keys()
-        values = name_value.values()
-        num_values = len(name_value)
-        self.logger.info(
-            "| Arch " + " ".join(["| {}".format(name) for name in names]) + " |"
-        )
-        self.logger.info("|---" * (num_values + 1) + "|")
+    def write_video(self, writer: Writer, image, results):
+        # add keypoints to image
+        for person in results:
+            color = np.random.randint(0, 255, size=3).tolist()
+            image = add_joints(image, person, color)
 
-        if len(full_arch_name) > 15:
-            full_arch_name = full_arch_name[:8] + "..."
-        self.logger.info(
-            "| "
-            + full_arch_name
-            + " "
-            + " ".join(["| {:.3f}".format(value) for value in values])
-            + " |"
-        )
+        writer.write(image)
