@@ -4,3 +4,6 @@
 [submodule "submodules/cocoapi"]
 	path = submodules/cocoapi
 	url = https://github.com/cocodataset/cocoapi.git
+[submodule "submodules/crowdpose"]
+	path = submodules/crowdpose
+	url = https://github.com/Jeff-sjtu/CrowdPose.git
