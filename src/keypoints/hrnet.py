@@ -22,8 +22,11 @@ from config import cfg, check_config, update_config
 from core.group import HeatmapParser
 from core.inference import aggregate_results, get_multi_stage_outputs
 from fp16_utils.fp16util import network_to_half
-from utils.transforms import (get_final_preds, get_multi_scale_size,
-                              resize_align_multi_scale)
+from utils.transforms import (
+    get_final_preds,
+    get_multi_scale_size,
+    resize_align_multi_scale,
+)
 from utils.vis import add_joints
 
 
@@ -69,11 +72,13 @@ class HRNetExtractor:
 
     def predict(self, video_path: str, data_dir: str):
         video_capture = Capture(video_path)
-        assert video_capture.is_opened, f"{video_path} does not exist or is wrong file type."
+        assert (
+            video_capture.is_opened
+        ), f"{video_path} does not exist or is wrong file type."
 
         out_path = os.path.join(data_dir, "video", "hrnet.mp4")
         video_writer = Writer(out_path, video_capture.fps, video_capture.size)
-        self.logger.info(f"Writing video into {out_path}")
+        self.logger.info(f"=> writing video into {out_path}")
 
         data_loader, test_dataset = make_test_dataloader(video_capture)
 
@@ -98,7 +103,11 @@ class HRNetExtractor:
         all_scores = []
 
         pbar = tqdm(total=len(test_dataset))
-        for images in data_loader:
+        for idx, (rets, images) in enumerate(data_loader):
+            if not rets[0]:
+                f"Couldn't read frame number {idx}."
+                break
+
             assert 1 == images.size(0), "Test batch size should be 1"
 
             image = images[0].cpu().numpy()
@@ -154,7 +163,14 @@ class HRNetExtractor:
         pbar.close()
 
         # release memory
-        del video_capture, video_writer, data_loader, test_dataset, all_preds, all_scores
+        del (
+            video_capture,
+            video_writer,
+            data_loader,
+            test_dataset,
+            all_preds,
+            all_scores,
+        )
 
     def write_video(self, writer: Writer, image, results):
         # add keypoints to image

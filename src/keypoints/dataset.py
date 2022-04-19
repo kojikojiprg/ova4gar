@@ -14,8 +14,7 @@ class TestDataset(torch.utils.data.Dataset):
         return self.cap.frame_count
 
     def __getitem__(self, idx):
-        self.cap.set_pos_frame_count(idx)
-        return self.cap.read()
+        return self.cap.read(idx)
 
 
 def make_test_dataloader(video_cap: Capture):
