@@ -10,7 +10,7 @@ class TestDataset(torch.utils.data.Dataset):
     def __init__(self, video_path: str):
         self.cap = Capture(video_path)
         assert (
-            self.cap.isOpened()
+            self.cap.is_opened
         ), f"{video_path} does not exist or is wrong file type."
 
     def __len__(self):

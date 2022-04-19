@@ -24,6 +24,10 @@ class Capture:
     def __len__(self):
         return int(self._cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
+    @property
+    def is_opened(self):
+        return self._cap.isOpened()
+
     def set_pos_frame_count(self, idx: int):
         self._cap.set(cv2.CAP_PROP_POS_FRAMES, idx)
 
