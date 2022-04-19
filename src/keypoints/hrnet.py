@@ -119,9 +119,9 @@ class HRNetExtractor:
                         self.cfg,
                         self.model,
                         image_resized,
-                        with_flip=False,
-                        project2image=self.cfg.TEST.PROJECT2IMAGE,
-                        size_projected=base_size,
+                        self.cfg.TEST.FLIP_TEST,
+                        self.cfg.TEST.PROJECT2IMAGE,
+                        base_size,
                     )
 
                     final_heatmaps, tags_list = aggregate_results(
