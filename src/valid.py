@@ -33,9 +33,7 @@ def main():
     )
     opts = [
         "TEST.MODEL_FILE",
-        "models/pytorch/pose_coco/pose_higher_hrnet_w32_512.pth",
-        "TEST.FLIP_TEST",
-        "False",
+        "models/hrnet/pose_higher_hrnet_w32_512.pth",
     ]
     extractor = HRNetExtractor(hrnet_cfg_path, opts, logger)
     extractor.predict(video_path, data_dir)
