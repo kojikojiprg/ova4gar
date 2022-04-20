@@ -13,8 +13,8 @@ import torchvision
 from tqdm import tqdm
 
 sys.path.append("./src/")
-from utils.video import Capture, Writer
 from utils.json_handler import dump
+from utils.video import Capture, Writer
 
 from .dataset import make_test_dataloader
 
@@ -103,15 +103,15 @@ class HRNetExtractor:
         self.logger.info(f"=> writing video into {out_path} while processing.")
 
         # prepair json data list
-        json_path = os.path.join(data_dir, "video", "keypoints.json")
+        json_path = os.path.join(data_dir, "json", "keypoints.json")
         json_data = []
 
         data_loader, test_dataset = make_test_dataloader(video_capture)
         pbar = tqdm(total=len(test_dataset))
-        for idx, (rets, images) in enumerate(data_loader):
+        for frame_num, (rets, images) in enumerate(data_loader):
             if not rets[0]:
                 self.logger.info(
-                    f"=> couldn't read frame number {idx} on video {video_path}."
+                    f"=> couldn't read frame number {frame_num} on video {video_path}."
                 )
                 break
 
@@ -163,11 +163,13 @@ class HRNetExtractor:
             self._write_video(video_writer, image, final_results)  # write video
 
             # append result
-            data = {
-                "frame": idx,
-                "keypoints": final_results[:][:3]
-            }
-            json_data.append(data)
+            for idx, kps in enumerate(final_results):
+                data = {
+                    "frame": frame_num + 1,
+                    "person": idx + 1,
+                    "keypoints": np.array(kps)[:, :3],
+                }
+                json_data.append(data)
 
             pbar.update()
 
@@ -177,14 +179,7 @@ class HRNetExtractor:
         self._write_json(json_data, json_path)
 
         # release memory
-        del (
-            video_capture,
-            video_writer,
-            data_loader,
-            test_dataset,
-            json_data,
-            data
-        )
+        del (video_capture, video_writer, data_loader, test_dataset, json_data, data)
 
     def _write_video(self, writer: Writer, image, results):
         # add keypoints to image
@@ -195,5 +190,5 @@ class HRNetExtractor:
         writer.write(image)
 
     def _write_json(self, json_data, json_path):
-        os.makedirs(json_path, exist_ok=True)
+        os.makedirs(os.path.dirname(json_path), exist_ok=True)
         dump(json_data, json_path)
