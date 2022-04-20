@@ -9,12 +9,13 @@ from utils.video import Capture
 class TestDataset(torch.utils.data.Dataset):
     def __init__(self, video_cap: Capture):
         self.cap = video_cap
+        self.cap.set_pos_frame_count(0)
 
     def __len__(self):
         return self.cap.frame_count
 
     def __getitem__(self, idx):
-        return self.cap.read(idx)
+        return self.cap.read()
 
 
 def make_test_dataloader(video_cap: Capture):
