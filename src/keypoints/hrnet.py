@@ -14,6 +14,7 @@ from tqdm import tqdm
 
 sys.path.append("./src/")
 from utils.video import Capture, Writer
+from utils.json_handler import dump
 
 from .dataset import make_test_dataloader
 
@@ -68,21 +69,12 @@ class HRNetExtractor:
 
         self.model.eval()
 
+        self.parser = HeatmapParser(self.cfg)
+
     def __del__(self):
-        del self.model, self.logger, self.cfg
+        del self.model, self.logger, self.cfg, self.parser
 
     def predict(self, video_path: str, data_dir: str):
-        video_capture = Capture(video_path)
-        assert (
-            video_capture.is_opened
-        ), f"{video_path} does not exist or is wrong file type."
-
-        out_path = os.path.join(data_dir, "video", "hrnet.mp4")
-        video_writer = Writer(out_path, video_capture.fps, video_capture.size)
-        self.logger.info(f"=> writing video into {out_path}")
-
-        data_loader, test_dataset = make_test_dataloader(video_capture)
-
         if self.cfg.MODEL.NAME == "pose_hourglass":
             transforms = torchvision.transforms.Compose(
                 [
@@ -99,10 +91,22 @@ class HRNetExtractor:
                 ]
             )
 
-        parser = HeatmapParser(self.cfg)
-        all_preds = []
-        all_scores = []
+        # create video capture
+        video_capture = Capture(video_path)
+        assert (
+            video_capture.is_opened
+        ), f"{video_path} does not exist or is wrong file type."
 
+        # create video writer
+        out_path = os.path.join(data_dir, "video", "hrnet.mp4")
+        video_writer = Writer(out_path, video_capture.fps, video_capture.size)
+        self.logger.info(f"=> writing video into {out_path} while processing.")
+
+        # prepair json data list
+        json_path = os.path.join(data_dir, "video", "keypoints.json")
+        json_data = []
+
+        data_loader, test_dataset = make_test_dataloader(video_capture)
         pbar = tqdm(total=len(test_dataset))
         for idx, (rets, images) in enumerate(data_loader):
             if not rets[0]:
@@ -145,7 +149,7 @@ class HRNetExtractor:
 
                 final_heatmaps = final_heatmaps / float(len(self.cfg.TEST.SCALE_FACTOR))
                 tags = torch.cat(tags_list, dim=4)
-                grouped, scores = parser.parse(
+                grouped, scores = self.parser.parse(
                     final_heatmaps, tags, self.cfg.TEST.ADJUST, self.cfg.TEST.REFINE
                 )
 
@@ -156,14 +160,21 @@ class HRNetExtractor:
                     [final_heatmaps.size(3), final_heatmaps.size(2)],
                 )
 
-            self.write_video(video_writer, image, final_results)
+            self._write_video(video_writer, image, final_results)  # write video
 
-            all_preds.append(final_results)
-            all_scores.append(scores)
+            # append result
+            data = {
+                "frame": idx,
+                "keypoints": final_results[:][:3]
+            }
+            json_data.append(data)
 
             pbar.update()
 
         pbar.close()
+
+        self.logger.info(f" => Writing json file into {json_path}.")
+        self._write_json(json_data, json_path)
 
         # release memory
         del (
@@ -171,14 +182,18 @@ class HRNetExtractor:
             video_writer,
             data_loader,
             test_dataset,
-            all_preds,
-            all_scores,
+            json_data,
+            data
         )
 
-    def write_video(self, writer: Writer, image, results):
+    def _write_video(self, writer: Writer, image, results):
         # add keypoints to image
         for person in results:
             color = np.random.randint(0, 255, size=3).tolist()
             image = add_joints(image, person, color)
 
         writer.write(image)
+
+    def _write_json(self, json_data, json_path):
+        os.makedirs(json_path, exist_ok=True)
+        dump(json_data, json_path)
