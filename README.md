@@ -18,16 +18,16 @@ Note: You can delete COCOAPI after you installed.
 git clone https://github.com/cocodataset/cocoapi.git submodules/cocoapi
 cd ./submodules/cocoapi/PythonAPI
 make install
+cd ../../../  # go back root of the project
 ```
 
 4. Install [CrowdPose](https://github.com/Jeff-sjtu/CrowdPose.git) into Python packages.  
 Note: You can also delete CrowdPose after you installed.
 ```
-cd ../../../  # go back root of the project
-
 git clone https://github.com/Jeff-sjtu/CrowdPose.git submodules/crowdpose
 cd ./submodules/crowdpose/crowdpose-api/PythonAPI
 sh install.sh
+cd ../../../../  # go back root of the project
 ```
 
 5. Download pretrained models from [Higher-HRNet model zoo](https://drive.google.com/drive/folders/1bdXVmYrSynPLSk5lptvgyQ8fhziobD50).
