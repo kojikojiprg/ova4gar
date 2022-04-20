@@ -175,7 +175,7 @@ class HRNetExtractor:
 
         pbar.close()
 
-        self.logger.info(f" => Writing json file into {json_path}.")
+        self.logger.info(f" => writing json file into {json_path}.")
         self._write_json(json_data, json_path)
 
         # release memory
