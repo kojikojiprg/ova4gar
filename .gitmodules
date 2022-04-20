@@ -1,6 +1,8 @@
 [submodule "submodules/hrnet"]
 	path = submodules/hrnet
 	url = https://github.com/HRNet/HigherHRNet-Human-Pose-Estimation.git
+	ignore = dirty
 [submodule "submodules/unitrack"]
 	path = submodules/unitrack
 	url = https://github.com/Zhongdao/UniTrack.git
+	ignore = dirty
