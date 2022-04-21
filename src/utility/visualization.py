@@ -1,14 +1,16 @@
+from typing import List
 import cv2
 import numpy as np
+from numpy.typing import NDArray
 
 
-def get_color(idx):
+def get_color(idx: int):
     idx = idx * 17
     color = ((37 * idx) % 255, (17 * idx) % 255, (29 * idx) % 255)
     return color
 
 
-def draw_skeleton(img, t_id, kp):
+def draw_skeleton(img: NDArray, t_id: int, kp: List[list]):
     skeleton = [
         [16, 14],
         [14, 12],
@@ -33,6 +35,7 @@ def draw_skeleton(img, t_id, kp):
 
     color = get_color(t_id)
 
+    # draw skeleton's stems
     for i, j in skeleton:
         if (
             kp[i - 1][0] >= 0
@@ -46,14 +49,19 @@ def draw_skeleton(img, t_id, kp):
         ):
             st = (int(kp[i - 1][0]), int(kp[i - 1][1]))
             ed = (int(kp[j - 1][0]), int(kp[j - 1][1]))
-            cv2.line(img, st, ed, color, max(1, int(img.shape[1] / 150.0)))
+            img = cv2.line(img, st, ed, color, max(1, int(img.shape[1] / 150.0)))
+
+    # draw keypoints
     for j in range(len(kp)):
         if kp[j][0] >= 0 and kp[j][1] >= 0:
             pt = (int(kp[j][0]), int(kp[j][1]))
             if len(kp[j]) <= 2 or (len(kp[j]) > 2 and kp[j][2] > 1.1):
-                cv2.circle(img, pt, 2, tuple((0, 0, 255)), 2)
+                img = cv2.circle(img, pt, 2, tuple((0, 0, 255)), 2)
             elif len(kp[j]) <= 2 or (len(kp[j]) > 2 and kp[j][2] > 0.1):
-                cv2.circle(img, pt, 2, tuple((255, 0, 0)), 2)
+                img = cv2.circle(img, pt, 2, tuple((255, 0, 0)), 2)
 
+    # draw track id
     pt = np.mean([kp[5], kp[6], kp[11], kp[12]], axis=0).astype(int)[:2]
-    cv2.putText(img, str(t_id), tuple(pt), cv2.FONT_HERSHEY_COMPLEX, 0.5, (255, 255, 0))
+    img = cv2.putText(img, str(t_id), tuple(pt), cv2.FONT_HERSHEY_COMPLEX, 0.5, (255, 255, 0))
+
+    return img
