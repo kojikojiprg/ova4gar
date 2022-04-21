@@ -1,4 +1,3 @@
-import sys
 from types import SimpleNamespace
 
 import cv2
@@ -6,7 +5,6 @@ import numpy as np
 import yaml
 from torchvision.transforms import transforms as T
 
-sys.path.append("./submodules/unitrack/")
 from data.video import letterbox
 from tracker.mot.pose import PoseAssociationTracker
 

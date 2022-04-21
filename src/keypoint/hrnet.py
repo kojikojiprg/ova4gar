@@ -8,7 +8,6 @@ import torch
 import torchvision
 from numpy.typing import NDArray
 
-sys.path.append("./submodules/hrnet/lib/")
 import models
 from config import cfg, check_config, update_config
 from core.group import HeatmapParser
