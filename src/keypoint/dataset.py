@@ -1,5 +1,5 @@
 import torch
-from utils.video import Capture
+from utility.video import Capture
 
 
 class TestDataset(torch.utils.data.Dataset):

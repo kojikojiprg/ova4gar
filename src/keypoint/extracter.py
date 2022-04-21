@@ -1,14 +1,12 @@
 import os
-import sys
 from logging import Logger
 
 import numpy as np
 from tqdm import tqdm
 
-sys.path.append("./src/")
-from utils.json_handler import dump
-from utils.video import Capture, Writer
-from utils.visualization import draw_skeleton
+from utility.json_handler import dump
+from utility.video import Capture, Writer
+from utility.visualization import draw_skeleton
 
 from .dataset import make_test_dataloader
 from .hrnet import HRNetDetecter

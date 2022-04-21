@@ -2,7 +2,7 @@ import argparse
 import os
 
 from keypoint.extracter import Extractor
-from utils.logger import setup_logger
+from utility.logger import setup_logger
 
 
 def parser():
