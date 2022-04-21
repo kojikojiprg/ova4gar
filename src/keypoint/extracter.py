@@ -15,14 +15,14 @@ from .unitrack import UniTrackTracker
 
 class Extractor:
     def __init__(self, hrnet_cfg_path: str, hrnet_opts: list, unitrack_opts, logger: Logger):
-        self.detector = HRNetDetecter(hrnet_cfg_path, hrnet_opts, logger)
-        self.tracker = UniTrackTracker(unitrack_opts)
         self.logger = logger
+        self.detector = HRNetDetecter(hrnet_cfg_path, hrnet_opts, logger)
+        self.tracker = UniTrackTracker(unitrack_opts, logger)
 
     def __del__(self):
-        del self.detector, self.logger
+        del self.detector, self.tracker, self.logger
 
-    def extract(self, video_path: str, data_dir: str):
+    def predict(self, video_path: str, data_dir: str):
         # create video capture
         video_capture = Capture(video_path)
         assert (
@@ -69,7 +69,7 @@ class Extractor:
 
         pbar.close()
 
-        self.logger.info(f" => writing json file into {json_path}.")
+        self.logger.info(f"=> writing json file into {json_path}.")
         self._write_json(json_data, json_path)
 
         # release memory
