@@ -1,7 +1,7 @@
 import argparse
 import os
 
-from keypoints.hrnet import HRNetExtractor
+from keypoint.extracter import Extractor
 from utils.logger import setup_logger
 
 
@@ -37,7 +37,8 @@ def main():
         "TEST.FLIP_TEST",
         "False",
     ]
-    extractor = HRNetExtractor(hrnet_cfg_path, hrnet_opts, logger)
+    unitrack_cfg_path = "./submodules/unitrack/config/crw_resnet_s3.yaml"
+    extractor = Extractor(hrnet_cfg_path, hrnet_opts, unitrack_cfg_path, logger)
     extractor.predict(video_path, data_dir)
 
 
