@@ -1,9 +1,9 @@
 import pprint
-from distutils.log import Log
 from logging import Logger
 from types import SimpleNamespace
 from typing import Dict, List
 
+import numpy as np
 import yaml
 from numpy.typing import NDArray
 from torchvision.transforms import transforms as T
@@ -22,11 +22,9 @@ class UniTrackTracker:
             setattr(opts, k, v)
         for k, v in common_args["posetrack"].items():
             setattr(opts, k, v)
-        # opts.img_size = img_size
         opts.resume = model_path
 
         self.logger = logger
-        self.logger.info(f"=> unitrack config: {pprint.pformat(opts)}")
 
         self.logger.info(f"=> loading unitrack model from {opts.resume}")
         self.tracker = PoseAssociationTracker(opts)
@@ -38,16 +36,22 @@ class UniTrackTracker:
     def __del__(self):
         del self.tracker, self.transforms
 
-    def update(self, img: NDArray, img0: NDArray, kps: List[list]):
-        img = img / 255.0
-        img = self.transforms(img)
+    def update(self, img: NDArray, kps: List[list]):
+        # Normalize RGB
+        process_img = img[:, :, ::-1]
+        process_img = np.ascontiguousarray(process_img, dtype=np.float32)
+
+        process_img = process_img / 255.0
+        process_img = self.transforms(process_img)
 
         obs = [self._cvt_kp2ob(kp) for kp in kps]
 
-        tracks = self.tracker.update(img, img0, obs)
+        tracks = self.tracker.update(process_img, img, obs)
         for t in tracks:
             if not isinstance(t.pose[0], list):
                 t.pose = self._cvt_ob2kp(t.pose)
+            else:
+                tracks.remove(t)  # remove not updated track
 
         return tracks
 
