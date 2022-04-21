@@ -49,7 +49,7 @@ def draw_skeleton(img: NDArray, t_id: int, kp: List[list]):
         ):
             st = (int(kp[i - 1][0]), int(kp[i - 1][1]))
             ed = (int(kp[j - 1][0]), int(kp[j - 1][1]))
-            img = cv2.line(img, st, ed, color, max(1, int(img.shape[1] / 150.0)))
+            img = cv2.line(img, st, ed, color, max(1, int(img.shape[1] / 300.0)))
 
     # draw keypoints
     for j in range(len(kp)):
