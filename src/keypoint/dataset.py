@@ -1,8 +1,4 @@
-import sys
-
 import torch
-
-sys.path.append("src")
 from utils.video import Capture
 
 
