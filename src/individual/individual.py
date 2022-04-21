@@ -8,7 +8,7 @@ from individual_activity.indicator import (
 )
 
 
-class IndividualActivity:
+class Individual:
     def __init__(self, activity_id, homo):
         self.id = activity_id
         self.keypoints = {}
