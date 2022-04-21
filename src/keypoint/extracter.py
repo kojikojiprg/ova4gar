@@ -1,9 +1,11 @@
 import os
 from logging import Logger
+from typing import Any, Dict, List
 
 import numpy as np
+from numpy.typing import NDArray
 from tqdm import tqdm
-
+from tracker.mot.basetrack import STrack  # from unitrack
 from utility.json_handler import dump
 from utility.video import Capture, Writer
 from utility.visualization import draw_skeleton
@@ -14,7 +16,9 @@ from .unitrack import UniTrackTracker
 
 
 class Extractor:
-    def __init__(self, hrnet_cfg_path: str, hrnet_opts: list, unitrack_opts, logger: Logger):
+    def __init__(
+        self, hrnet_cfg_path: str, hrnet_opts: list, unitrack_opts, logger: Logger
+    ):
         self.logger = logger
         self.detector = HRNetDetecter(hrnet_cfg_path, hrnet_opts, logger)
         self.tracker = UniTrackTracker(unitrack_opts, logger)
@@ -41,16 +45,15 @@ class Extractor:
         data_loader, test_dataset = make_test_dataloader(video_capture)
         pbar = tqdm(total=len(test_dataset))
         for frame_num, (imgs, img_raws) in enumerate(data_loader):
-
             assert 1 == imgs.size(0), "Test batch size should be 1"
             img = imgs[0].cpu().numpy()
             img_raw = img_raws[0].cpu().numpy()
 
             # do keypoints detection and tracking
-            keypoints = self.detector.predict(img_raw)
-            tracks = self.tracker.update(img, img_raw, keypoints)
+            kps = self.detector.predict(img_raw)
+            tracks = self.tracker.update(img, img_raw, kps)
 
-            self._write_video(video_writer, img, tracks)  # write video
+            self._write_video(video_writer, img_raw, tracks)  # write video
 
             # append result
             for t in tracks:
@@ -62,7 +65,7 @@ class Extractor:
                 json_data.append(data)
                 del data  # release memory
 
-            del imgs, img_raws, img, img_raw, keypoints, tracks  # release memory
+            del imgs, img_raws, img, img_raw, kps, tracks  # release memory
 
             pbar.update()
 
@@ -74,14 +77,13 @@ class Extractor:
         # release memory
         del (video_capture, video_writer, data_loader, test_dataset, json_data)
 
-    def _write_video(self, writer: Writer, image, tracks):
+    def _write_video(self, writer: Writer, image: NDArray, tracks: List[STrack]):
         # add keypoints to image
         for t in tracks:
-            draw_skeleton(image, t.track_id, t.pose)
+            image = draw_skeleton(image, t.track_id, t.pose)
 
-        image = image.astype(np.uint8)
         writer.write(image)
 
-    def _write_json(self, json_data, json_path):
+    def _write_json(self, json_data: List[Dict[str, Any]], json_path: str):
         os.makedirs(os.path.dirname(json_path), exist_ok=True)
         dump(json_data, json_path)
