@@ -34,3 +34,10 @@ And store the model into ```./models/hrnet/```.
 
 6. Download pretrained models from [UniTrack model zoo](https://github.com/Zhongdao/UniTrack/blob/main/docs/MODELZOO.md), CRW recommended.  
 And store the model into ```./models/unitrack/```.
+
+7. Delete specific Python code in UniTrack.
+```
+cd ./submodules/unitrack/utils
+sed -i '/jaccard_similarity_score/d' mask.py  # sklearn >= 0.23 changed this function name
+cd ../../../  # go back root of the project
+```
