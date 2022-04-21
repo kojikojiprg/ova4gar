@@ -1,3 +1,4 @@
+import pprint
 from types import SimpleNamespace
 
 import cv2
@@ -10,17 +11,23 @@ from tracker.mot.pose import PoseAssociationTracker
 
 
 class UniTrackTracker:
-    def __init__(self, cfg_path, img_size=[640, 480], conf_thres=0.65):
+    def __init__(self, cfg_path, logger, img_size=[640, 480], conf_thres=0.65):
         # set config
         opts = SimpleNamespace(**{})
         with open(cfg_path) as f:
-            common_args = yaml.load(f)
+            common_args = yaml.safe_load(f)
         for k, v in common_args["common"].items():
+            setattr(opts, k, v)
+        for k, v in common_args["posetrack"].items():
             setattr(opts, k, v)
         opts.img_size = img_size
         opts.conf_thres = conf_thres
-        opts.resume = "./models/unitrack/crw.pth"
+        opts.resume = "models/unitrack/crw.pth"
 
+        self.logger = logger
+        self.logger.info(f"=> unitrack config: {pprint.pformat(opts)}")
+
+        self.logger.info(f"=> loading unitrack model from {opts.resume}")
         self.tracker = PoseAssociationTracker(opts)
 
         self.transforms = T.Compose(
