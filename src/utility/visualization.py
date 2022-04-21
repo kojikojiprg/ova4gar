@@ -55,5 +55,5 @@ def draw_skeleton(img, t_id, kp):
             elif len(kp[j]) <= 2 or (len(kp[j]) > 2 and kp[j][2] > 0.1):
                 cv2.circle(img, pt, 2, tuple((255, 0, 0)), 2)
 
-    pt = np.mean([kp[5], kp[6], kp[11], kp[12]], axis=0).astype(int)
+    pt = np.mean([kp[5], kp[6], kp[11], kp[12]], axis=0).astype(int)[:2]
     cv2.putText(img, str(t_id), tuple(pt), cv2.FONT_HERSHEY_COMPLEX, 0.5, (255, 255, 0))
