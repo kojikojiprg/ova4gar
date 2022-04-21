@@ -1,5 +1,4 @@
 import pprint
-import sys
 from logging import Logger
 from types import SimpleNamespace
 from typing import Any
@@ -29,7 +28,7 @@ class HRNetDetecter:
         check_config(self.cfg)
 
         self.logger: Logger = logger
-        self.logger.info(pprint.pformat(args))
+        self.logger.info(f"=> hrnet config: {pprint.pformat(args)}")
 
         # cudnn related setting
         torch.backends.cudnn.benchmark = self.cfg.CUDNN.BENCHMARK
@@ -45,7 +44,7 @@ class HRNetDetecter:
 
         if self.cfg.TEST.MODEL_FILE:
             self.logger.info(
-                "=> loading model from {}".format(self.cfg.TEST.MODEL_FILE)
+                "=> loading hrnet model from {}".format(self.cfg.TEST.MODEL_FILE)
             )
             model.load_state_dict(torch.load(self.cfg.TEST.MODEL_FILE), strict=True)
 
