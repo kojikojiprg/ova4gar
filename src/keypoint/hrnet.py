@@ -11,11 +11,8 @@ from core.group import HeatmapParser  # from hrnet
 from core.inference import aggregate_results, get_multi_stage_outputs  # from hrnet
 from fp16_utils.fp16util import network_to_half  # from hrnet
 from numpy.typing import NDArray
-from utils.transforms import (
-    get_final_preds,  # from hrnet
-    get_multi_scale_size,
-    resize_align_multi_scale,
-)
+from utils.transforms import get_final_preds  # from hrnet
+from utils.transforms import get_multi_scale_size, resize_align_multi_scale
 
 
 class HRNetDetecter:
@@ -78,32 +75,32 @@ class HRNetDetecter:
     def predict(self, image: NDArray):
         # size at scale 1.0
         base_size, center, scale = get_multi_scale_size(
-            image, self.cfg.DATASET.INPUT_SIZE, 1.0, min(self.cfg.TEST.SCALE_FACTOR)
+            image, self.cfg.DATASET.INPUT_SIZE, 1.0, 1.0
         )
 
         with torch.no_grad():
             final_heatmaps: Any = None
             tags_list: list = []
-            for s in sorted(self.cfg.TEST.SCALE_FACTOR, reverse=True):
-                input_size = self.cfg.DATASET.INPUT_SIZE
-                image_resized, center, scale = resize_align_multi_scale(
-                    image, input_size, s, min(self.cfg.TEST.SCALE_FACTOR)
-                )
-                image_resized = self.transforms(image_resized)
-                image_resized = image_resized.unsqueeze(0).cuda()
+            input_size = self.cfg.DATASET.INPUT_SIZE
 
-                outputs, heatmaps, tags = get_multi_stage_outputs(
-                    self.cfg,
-                    self.model,
-                    image_resized,
-                    self.cfg.TEST.FLIP_TEST,
-                    self.cfg.TEST.PROJECT2IMAGE,
-                    base_size,
-                )
+            image_resized, center, scale = resize_align_multi_scale(
+                image, input_size, 1, 1
+            )
+            image_resized = self.transforms(image_resized)
+            image_resized = image_resized.unsqueeze(0).cuda()
 
-                final_heatmaps, tags_list = aggregate_results(
-                    self.cfg, s, final_heatmaps, tags_list, heatmaps, tags
-                )
+            _, heatmaps, tags = get_multi_stage_outputs(
+                self.cfg,
+                self.model,
+                image_resized,
+                self.cfg.TEST.FLIP_TEST,
+                self.cfg.TEST.PROJECT2IMAGE,
+                base_size,
+            )
+
+            final_heatmaps, tags_list = aggregate_results(
+                self.cfg, 1, final_heatmaps, tags_list, heatmaps, tags
+            )
 
             final_heatmaps = final_heatmaps / float(len(self.cfg.TEST.SCALE_FACTOR))
             tags = torch.cat(tags_list, dim=4)
