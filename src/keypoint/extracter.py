@@ -40,21 +40,17 @@ class Extractor:
 
         data_loader, test_dataset = make_test_dataloader(video_capture)
         pbar = tqdm(total=len(test_dataset))
-        for frame_num, (rets, images) in enumerate(data_loader):
-            if not rets[0]:
-                self.logger.info(
-                    f"=> couldn't read frame number {frame_num} on video {video_path}."
-                )
-                break
+        for frame_num, (imgs, img_raws) in enumerate(data_loader):
 
-            assert 1 == images.size(0), "Test batch size should be 1"
-            image = images[0].cpu().numpy()
+            assert 1 == imgs.size(0), "Test batch size should be 1"
+            img = imgs[0].cpu().numpy()
+            img_raw = img_raws[0].cpu().numpy()
 
             # do keypoints detection and tracking
-            keypoints = self.detector.predict(image)
-            tracks = self.tracker.update(image, keypoints)
+            keypoints = self.detector.predict(img_raw)
+            tracks = self.tracker.update(img, img_raw, keypoints)
 
-            self._write_video(video_writer, image, tracks)  # write video
+            self._write_video(video_writer, img, tracks)  # write video
 
             # append result
             for t in tracks:
@@ -64,6 +60,9 @@ class Extractor:
                     "keypoints": np.array(t.pose),
                 }
                 json_data.append(data)
+                del data  # release memory
+
+            del imgs, img_raws, img, img_raw, keypoints, tracks  # release memory
 
             pbar.update()
 
@@ -73,13 +72,14 @@ class Extractor:
         self._write_json(json_data, json_path)
 
         # release memory
-        del (video_capture, video_writer, data_loader, test_dataset, json_data, data)
+        del (video_capture, video_writer, data_loader, test_dataset, json_data)
 
     def _write_video(self, writer: Writer, image, tracks):
         # add keypoints to image
         for t in tracks:
-            draw_skeleton(image, t.t_id, t.pose)
+            draw_skeleton(image, t.track_id, t.pose)
 
+        image = image.astype(np.uint8)
         writer.write(image)
 
     def _write_json(self, json_data, json_path):
