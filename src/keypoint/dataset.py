@@ -1,42 +1,18 @@
-import cv2
-import numpy as np
 import torch
-from data.video import letterbox  # from unitrack
-from utility.video import Capture  # from this project
+from utility.video import Capture
 
 
 class TestDataset(torch.utils.data.Dataset):
-    def __init__(self, video_cap: Capture, img_size=[640, 480]):
+    def __init__(self, video_cap: Capture):
         self.cap = video_cap
         self.cap.set_pos_frame_count(0)
-        vw, vh = self.cap.size
-
-        self.width = img_size[0]
-        self.height = img_size[1]
-        self.w, self.h = self._get_size(vw, vh, self.width, self.height)
 
     def __len__(self):
         return self.cap.frame_count
 
     def __getitem__(self, idx):
-        ret, img0 = self.cap.read()
-
-        img = cv2.resize(img0, (self.w, self.h))
-
-        # Padded resize
-        img, _, _, _ = letterbox(img, height=self.height, width=self.width)
-
-        # Normalize RGB
-        img = img[:, :, ::-1]
-        img = np.ascontiguousarray(img, dtype=np.float32)
-
-        return img, img0
-
-    @staticmethod
-    def _get_size(vw, vh, dw, dh):
-        wa, ha = float(dw) / vw, float(dh) / vh
-        a = min(wa, ha)
-        return int(vw * a), int(vh * a)
+        ret, img = self.cap.read()
+        return img
 
 
 def make_test_dataloader(video_cap: Capture):

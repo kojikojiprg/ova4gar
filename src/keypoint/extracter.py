@@ -44,16 +44,15 @@ class Extractor:
 
         data_loader, test_dataset = make_test_dataloader(video_capture)
         pbar = tqdm(total=len(test_dataset))
-        for frame_num, (imgs, img_raws) in enumerate(data_loader):
+        for frame_num, imgs in enumerate(data_loader):
             assert 1 == imgs.size(0), "Test batch size should be 1"
             img = imgs[0].cpu().numpy()
-            img_raw = img_raws[0].cpu().numpy()
 
             # do keypoints detection and tracking
-            kps = self.detector.predict(img_raw)
-            tracks = self.tracker.update(img, img_raw, kps)
+            kps = self.detector.predict(img)
+            tracks = self.tracker.update(img, kps)
 
-            self._write_video(video_writer, img_raw, tracks)  # write video
+            self._write_video(video_writer, img, tracks)  # write video
 
             # append result
             for t in tracks:
@@ -65,7 +64,7 @@ class Extractor:
                 json_data.append(data)
                 del data  # release memory
 
-            del imgs, img_raws, img, img_raw, kps, tracks  # release memory
+            del imgs, img, kps, tracks  # release memory
 
             pbar.update()
 
