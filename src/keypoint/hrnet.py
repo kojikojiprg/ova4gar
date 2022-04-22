@@ -74,7 +74,7 @@ class HRNetDetecter:
         # release memory
         del self.model, self.logger, self.cfg, self.transforms, self.parser
 
-    def predict(self, image: NDArray, th_min_score: float = 0.5):
+    def predict(self, image: NDArray):
         base_size, center, scale = get_multi_scale_size(
             image, self.cfg.DATASET.INPUT_SIZE, 1.0, min(self.cfg.TEST.SCALE_FACTOR)
         )
@@ -122,12 +122,20 @@ class HRNetDetecter:
     def _get_unique(grouped):
         kps = np.array(grouped)[:, :, :3]
         unique_kps = np.empty((0, 17, 3))
-        for kp in kps:
+
+        for i in range(len(kps)):
             found_overlap = False
-            for i in range(17):
-                if kp[i, :2] in unique_kps[:, i, :2]:
-                    found_overlap = True
+
+            for j in range(len(unique_kps)):
+                found_overlap = True in (kps[i, :, :2] == unique_kps[j, :, :2])
+                if found_overlap:
+                    if np.mean(kps[i, :, 2]) > np.mean(unique_kps[j, :, 2]):
+                        # select one has more confidence score
+                        unique_kps[j] = kps[i]
                     break
+
             if not found_overlap:
-                unique_kps = np.append(unique_kps, [kp], axis=0)
+                # if there aren't overlapped
+                unique_kps = np.append(unique_kps, [kps[i]], axis=0)
+
         return unique_kps
