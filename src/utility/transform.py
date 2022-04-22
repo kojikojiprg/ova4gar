@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
 
-from . import json
+import json_handler
 
 homo = {
     "02": [
@@ -58,13 +58,13 @@ class CameraCalibration:
             self.from_json(json_path)
 
     def from_json(self, json_path):
-        data = json.load(json_path)
+        data = json_handler.load(json_path)
         self.mtx = np.array(data["mtx"])
         self.dist = np.array(data["dist"])
 
     def to_json(self, json_path):
         data = {"mtx": self.mtx, "dist": self.dist}
-        json.dump(data, json_path)
+        json_handler.dump(data, json_path)
 
     def fit(
         self,
