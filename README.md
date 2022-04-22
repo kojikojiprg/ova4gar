@@ -32,7 +32,7 @@ cd ../../  # go back root of the project
 5. Download pretrained models from [Higher-HRNet model zoo](https://drive.google.com/drive/folders/1bdXVmYrSynPLSk5lptvgyQ8fhziobD50).  
 And store the model into ```./models/hrnet/```.
 
-6. Download pretrained models from [UniTrack model zoo](https://github.com/Zhongdao/UniTrack/blob/main/docs/MODELZOO.md), CRW recommended.  
+6. Download pretrained models from [UniTrack model zoo](https://github.com/Zhongdao/UniTrack/blob/main/docs/MODELZOO.md), BarlowTwins recommended.  
 And store the model into ```./models/unitrack/```.
 
 7. Delete specific Python code in UniTrack.
