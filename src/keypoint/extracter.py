@@ -34,17 +34,17 @@ class Extractor:
         ), f"{video_path} does not exist or is wrong file type."
 
         # create video writer
-        out_path = os.path.join(data_dir, "video", "hrnet.mp4")
+        out_path = os.path.join(data_dir, "video", "tracking.mp4")
         video_writer = Writer(out_path, video_capture.fps, video_capture.size)
-        self.logger.info(f"=> writing video into {out_path} while processing.")
 
         # prepair json data list
         json_path = os.path.join(data_dir, "json", "keypoints.json")
         json_data = []
 
-        data_loader, test_dataset = make_test_dataloader(video_capture)
-        pbar = tqdm(total=len(test_dataset))
-        for frame_num, imgs in enumerate(data_loader):
+        self.logger.info(f"=> loading video from {video_path}.")
+        data_loader = make_test_dataloader(video_capture)
+        self.logger.info(f"=> writing video into {out_path} while processing.")
+        for frame_num, imgs in enumerate(tqdm(data_loader)):
             assert 1 == imgs.size(0), "Test batch size should be 1"
             img = imgs[0].cpu().numpy()
 
@@ -66,15 +66,11 @@ class Extractor:
 
             del imgs, img, kps, tracks  # release memory
 
-            pbar.update()
-
-        pbar.close()
-
         self.logger.info(f"=> writing json file into {json_path}.")
         self._write_json(json_data, json_path)
 
         # release memory
-        del (video_capture, video_writer, data_loader, test_dataset, json_data)
+        del (video_capture, video_writer, data_loader, json_data)
 
     def _write_video(self, writer: Writer, image: NDArray, tracks: List[STrack]):
         # add keypoints to image

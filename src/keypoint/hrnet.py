@@ -1,9 +1,11 @@
 import pprint
+from enum import unique
 from logging import Logger
 from types import SimpleNamespace
 from typing import Any
 
 import models  # from hrnet
+import numpy as np
 import torch
 import torchvision
 from config import cfg, check_config, update_config  # from hrnet
@@ -72,35 +74,34 @@ class HRNetDetecter:
         # release memory
         del self.model, self.logger, self.cfg, self.transforms, self.parser
 
-    def predict(self, image: NDArray):
-        # size at scale 1.0
+    def predict(self, image: NDArray, th_min_score: float = 0.5):
         base_size, center, scale = get_multi_scale_size(
-            image, self.cfg.DATASET.INPUT_SIZE, 1.0, 1.0
+            image, self.cfg.DATASET.INPUT_SIZE, 1.0, min(self.cfg.TEST.SCALE_FACTOR)
         )
 
         with torch.no_grad():
             final_heatmaps: Any = None
             tags_list: list = []
-            input_size = self.cfg.DATASET.INPUT_SIZE
+            for s in sorted(self.cfg.TEST.SCALE_FACTOR, reverse=True):
+                input_size = self.cfg.DATASET.INPUT_SIZE
+                image_resized, center, scale = resize_align_multi_scale(
+                    image, input_size, s, min(self.cfg.TEST.SCALE_FACTOR)
+                )
+                image_resized = self.transforms(image_resized)
+                image_resized = image_resized.unsqueeze(0).cuda()
 
-            image_resized, center, scale = resize_align_multi_scale(
-                image, input_size, 1, 1
-            )
-            image_resized = self.transforms(image_resized)
-            image_resized = image_resized.unsqueeze(0).cuda()
+                outputs, heatmaps, tags = get_multi_stage_outputs(
+                    self.cfg,
+                    self.model,
+                    image_resized,
+                    self.cfg.TEST.FLIP_TEST,
+                    self.cfg.TEST.PROJECT2IMAGE,
+                    base_size,
+                )
 
-            _, heatmaps, tags = get_multi_stage_outputs(
-                self.cfg,
-                self.model,
-                image_resized,
-                self.cfg.TEST.FLIP_TEST,
-                self.cfg.TEST.PROJECT2IMAGE,
-                base_size,
-            )
-
-            final_heatmaps, tags_list = aggregate_results(
-                self.cfg, 1, final_heatmaps, tags_list, heatmaps, tags
-            )
+                final_heatmaps, tags_list = aggregate_results(
+                    self.cfg, s, final_heatmaps, tags_list, heatmaps, tags
+                )
 
             final_heatmaps = final_heatmaps / float(len(self.cfg.TEST.SCALE_FACTOR))
             tags = torch.cat(tags_list, dim=4)
@@ -108,11 +109,25 @@ class HRNetDetecter:
                 final_heatmaps, tags, self.cfg.TEST.ADJUST, self.cfg.TEST.REFINE
             )
 
-            pred = get_final_preds(
-                grouped,
-                center,
-                scale,
-                [final_heatmaps.size(3), final_heatmaps.size(2)],
-            )
+        grouped = get_final_preds(
+            grouped,
+            center,
+            scale,
+            [final_heatmaps.size(3), final_heatmaps.size(2)],
+        )
+        kps = self._get_unique(grouped)
+        return kps
 
-        return pred
+    @staticmethod
+    def _get_unique(grouped):
+        kps = np.array(grouped)[:, :, :3]
+        unique_kps = np.empty((0, 17, 3))
+        for kp in kps:
+            found_overlap = False
+            for i in range(17):
+                if kp[i, :2] in unique_kps[:, i, :2]:
+                    found_overlap = True
+                    break
+            if not found_overlap:
+                unique_kps = np.append(unique_kps, [kp], axis=0)
+        return unique_kps
