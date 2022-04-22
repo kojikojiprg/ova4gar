@@ -1,4 +1,5 @@
 from typing import List
+
 import cv2
 import numpy as np
 from numpy.typing import NDArray
@@ -42,14 +43,11 @@ def draw_skeleton(img: NDArray, t_id: int, kp: List[list]):
             and kp[i - 1][1] >= 0
             and kp[j - 1][0] >= 0
             and kp[j - 1][1] >= 0
-            and (
-                len(kp[i - 1]) <= 2
-                or (len(kp[i - 1]) > 2 and kp[i - 1][2] > 0.1 and kp[j - 1][2] > 0.1)
-            )
+            and (kp[i - 1][2] > 0.1 and kp[j - 1][2] > 0.1)
         ):
             st = (int(kp[i - 1][0]), int(kp[i - 1][1]))
             ed = (int(kp[j - 1][0]), int(kp[j - 1][1]))
-            img = cv2.line(img, st, ed, color, max(1, int(img.shape[1] / 300.0)))
+            img = cv2.line(img, st, ed, color, max(1, int(img.shape[1] / 300)))
 
     # draw keypoints
     for j in range(len(kp)):
@@ -62,6 +60,14 @@ def draw_skeleton(img: NDArray, t_id: int, kp: List[list]):
 
     # draw track id
     pt = np.mean([kp[5], kp[6], kp[11], kp[12]], axis=0).astype(int)[:2]
-    img = cv2.putText(img, str(t_id), tuple(pt), cv2.FONT_HERSHEY_COMPLEX, 0.5, (255, 255, 0))
+    img = cv2.putText(
+        img,
+        str(t_id),
+        tuple(pt),
+        cv2.FONT_HERSHEY_PLAIN,
+        max(1, int(img.shape[1] / 500)),
+        (255, 255, 0),
+        max(1, int(img.shape[1] / 500)),
+    )
 
     return img
