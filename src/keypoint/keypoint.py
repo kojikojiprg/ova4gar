@@ -37,7 +37,10 @@ class Keypoints(list):
         else:
             return self[body[body_name]].copy()
 
-    def get_middle(self, name, th_conf):
+    def get_middle(self, name, th_conf=None):
+        if th_conf is None:
+            th_conf = 0.0
+
         R = self.get("R" + name)
         L = self.get("L" + name)
         if R[2] < th_conf and L[2] < th_conf:
