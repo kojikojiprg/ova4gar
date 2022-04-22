@@ -24,9 +24,9 @@ def analyze(data_dir: str, homo: np.typing.NDArray):
         ind.calc_indicator(frame_num, keypoints)
 
         # jsonフォーマットを作成して追加
-        data = ind.to_json(frame_num)
-        if data is not None:
-            json_data.append(data)
+        output = ind.to_json(frame_num)
+        if output is not None:
+            json_data.append(output)
 
     # jsonに書き込み
     json_path = os.path.join(data_dir, "json", "individual.json")
