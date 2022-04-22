@@ -20,8 +20,6 @@ body = {
     "RAnkle": 16,
 }
 
-THRESHOLD_CONFIDENCE = 0.0
-
 
 class Keypoints(list):
     def __init__(self, keypoints):
@@ -39,7 +37,7 @@ class Keypoints(list):
         else:
             return self[body[body_name]].copy()
 
-    def get_middle(self, name, th_conf=THRESHOLD_CONFIDENCE):
+    def get_middle(self, name, th_conf):
         R = self.get("R" + name)
         L = self.get("L" + name)
         if R[2] < th_conf and L[2] < th_conf:
