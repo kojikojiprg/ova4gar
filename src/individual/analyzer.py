@@ -1,33 +1,58 @@
 import os
+from types import SimpleNamespace
+from typing import Any, Dict, List
 import numpy as np
-from utility import json_handler, video
+from utility import json_handler
 from individual.individual import Individual
 from tqdm import tqdm
+import yaml
 
 
-def analyze(data_dir: str, homo: np.typing.NDArray):
-    kps_json_path = os.path.join(data_dir, "json", "keipoints.json")
-    keypoints_data = json_handler.load(kps_json_path)
+class Analyzer:
+    def __init__(self, cfg_path: str):
+        # load config
+        with open(cfg_path) as f:
+            args = yaml.safe_load(f)
 
-    individuals = {}
-    json_data = []
-    for data in tqdm(keypoints_data):
-        # trackingのデータを取得
-        frame_num = data["frame"]
-        pid = data["person"]
-        keypoints = data["keypoints"]
+        # read default values
+        defaults: Dict[str, Dict[str, Any]] = {
+            "indicator": {},
+            "keypoint": {}
+        }
+        for indicator_key, item in args["indicator"].items():
+            defaults["indicator"][indicator_key] = {}
+            for key, val in item['default'].items():
+                defaults[indicator_key][key] = val
+        for key, val in args["keypoints"].items():
+            defaults["keypoint"][key] = val
+        self.defaults = SimpleNamespace(**defaults)
 
-        if pid not in individuals:
-            individuals[pid] = Individual(pid, homo)
-        ind = individuals[pid]
+    def analyze(self, data_dir: str, homo: np.typing.NDArray):
+        kps_json_path = os.path.join(data_dir, "json", "keipoints.json")
+        keypoints_data = json_handler.load(kps_json_path)
 
-        ind.calc_indicator(frame_num, keypoints)
+        individuals = {}
+        json_data = []
+        for data in tqdm(keypoints_data):
+            frame_num = data["frame"]
+            pid = data["person"]
+            keypoints = data["keypoints"]
 
-        # jsonフォーマットを作成して追加
-        output = ind.to_json(frame_num)
-        if output is not None:
-            json_data.append(output)
+            # obtain individual
+            if pid not in individuals:
+                individuals[pid] = Individual(pid, homo, self.defaults)
+            ind = individuals[pid]
 
-    # jsonに書き込み
-    json_path = os.path.join(data_dir, "json", "individual.json")
-    json_handler.dump(json_data, json_path)
+            # calc indicators of individual
+            ind.calc_indicator(frame_num, keypoints)
+
+            # create and append json data
+            output = ind.to_json(frame_num)
+            if output is not None:
+                json_data.append(output)
+
+        # write json
+        json_path = os.path.join(data_dir, "json", "individual.json")
+        json_handler.dump(json_data, json_path)
+
+        del keypoints_data, individuals, json_data  # release memory

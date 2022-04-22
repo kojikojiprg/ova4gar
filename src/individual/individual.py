@@ -1,78 +1,73 @@
-from common.json import IA_FORMAT, START_IDX
-from common.keypoint import Keypoints, body
+from ctypes import Union
+from types import SimpleNamespace
+from typing import Any, Dict
 
-from individual_activity.indicator import (
-    INDICATOR_DICT,
-    calc_new_keypoints,
-    fill_nan_keypoints,
-)
+import numpy as np
+from keypoint.keypoint import Keypoints, body
+from utility.transform import Homography
+
+from individual_que import KeypointQue, Que
 
 
 class Individual:
-    def __init__(self, activity_id, homo):
-        self.id = activity_id
-        self.keypoints = {}
-        self.keypoints_que = []
-        self.tracking_points = {}
-        self.indicator_dict = {k: {} for k in INDICATOR_DICT.keys()}
-        self.que_dict = {k: [] for k in INDICATOR_DICT.keys()}
-        self.homo = homo
+    def __init__(self, pid: int, homo: Homography, defaults: SimpleNamespace):
+        self.id = pid
 
-    def calc_indicator(self, frame_num, keypoints):
+        self._defs = defaults.indicator.__dict__
+        self._keys = list(self._defs.keys())
+        self._funcs = {k: eval(k) for k in self._keys}
+        self._homo: np.ndarray = homo
+        self._pre_frame_num: int = 0
+
+        self._kps_dict: Dict[int, Keypoints] = {}
+        self._kps_que: KeypointQue = KeypointQue(defaults.keypoints)
+        self._idc_dict: Dict[str, Any] = {k: {} for k in self._keys}
+        self._idc_que: Dict[str, Que] = {k: Que(self._defs[k]) for k in self._keys}
+
+    def calc_indicator(self, frame_num: int, kps: Any):
         # calc keypoints
-        if keypoints is None:
+        if kps is None:
             return
-        keypoints = Keypoints(keypoints)
-        pre_frame_num = 0
-        if len(self.keypoints) > 0:
-            pre_frame_num = list(self.keypoints.keys())[-1]
-
-        self.keypoints[frame_num], self.keypoints_que = calc_new_keypoints(
-            frame_num, pre_frame_num, keypoints, self.keypoints_que
+        kps = Keypoints(kps)
+        kps, self._kps_dict = self._kps_que.put_pop_kps(
+            frame_num, self._pre_frame_num, kps, self._kps_dict
         )
-        self.keypoints, self.keypoints_que = fill_nan_keypoints(
-            frame_num, pre_frame_num, self.keypoints, self.keypoints_que
-        )
-        keypoints = Keypoints(self.keypoints[frame_num])
-
-        # calc tracking points
-        self.tracking_points[frame_num] = keypoints.get_middle("Hip")
 
         # calc indicators
-        for k in self.indicator_dict.keys():
-            indicator, self.que_dict[k] = INDICATOR_DICT[k](
-                keypoints, self.homo, self.que_dict[k]
-            )
+        for k in self._keys:
+            val = self._funcs[k](kps, self._homo, self._idc_que[k], **self._defs[k])
 
-            self.indicator_dict[k][frame_num] = indicator
+            self._idc_dict[k][frame_num] = val
 
-    def get_indicator(self, key, frame_num):
-        if key not in IA_FORMAT:
+        # update pre frame num
+        self._pre_frame_num = frame_num
+
+    def get_indicator(self, key: str, frame_num: int) -> Any:
+        if key not in self._keys:
             raise KeyError
 
-        if frame_num in self.indicator_dict[key]:
-            return self.indicator_dict[key][frame_num]
+        if frame_num in self._idc_dict[key]:
+            return self._idc_dict[key][frame_num]
         else:
             return None
 
-    def get_keypoints(self, key, frame_num):
+    def get_keypoints(self, key: str, frame_num: int) -> Any:
         if key not in body:
             raise KeyError
 
-        if frame_num in self.keypoints:
-            return self.keypoints[frame_num][body[key]][:2]
+        if frame_num in self._kps_dict:
+            return self._kps_dict[frame_num][body[key]][:2]
         else:
             return None
 
-    def to_json(self, frame_num):
-        data = {}
-        data[IA_FORMAT[0]] = self.id
-        data[IA_FORMAT[1]] = frame_num
-        data[IA_FORMAT[2]] = self.tracking_points[frame_num]
-        data[IA_FORMAT[3]] = self.keypoints[frame_num]
+    def to_json(self, frame_num: int) -> Dict[str, Any]:
+        data: Dict[str, Any] = {}
+        data["frame"] = frame_num
+        data["id"] = self.id
+        data["keypoints"] = self._kps_dict[frame_num]
 
-        for k in IA_FORMAT[START_IDX:]:
-            indicator = self.indicator_dict[k][frame_num]
+        for k in self._keys:
+            indicator = self._idc_dict[k][frame_num]
             if indicator is not None:
                 data[k] = indicator.tolist()
             else:
