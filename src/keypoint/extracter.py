@@ -17,10 +17,10 @@ from .unitrack import UniTrackTracker
 
 class Extractor:
     def __init__(
-        self, hrnet_cfg_path: str, hrnet_opts: list, unitrack_opts, logger: Logger
+        self, hrnet_cfg_path: str, unitrack_opts, logger: Logger
     ):
         self.logger = logger
-        self.detector = HRNetDetecter(hrnet_cfg_path, hrnet_opts, logger)
+        self.detector = HRNetDetecter(hrnet_cfg_path, logger)
         self.tracker = UniTrackTracker(unitrack_opts, logger)
 
     def __del__(self):

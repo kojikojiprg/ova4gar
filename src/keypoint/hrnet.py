@@ -18,7 +18,7 @@ from utils.transforms import get_multi_scale_size, resize_align_multi_scale
 
 
 class HRNetDetecter:
-    def __init__(self, cfg_path: str, opts: list, logger: Logger):
+    def __init__(self, cfg_path: str, logger: Logger, opts: list = []):
         # update config
         args = SimpleNamespace(**{"cfg": cfg_path, "opts": opts})
         self.cfg = cfg

@@ -28,17 +28,9 @@ def main():
     logger = setup_logger(log_dir)
 
     # extract keypoints
-    hrnet_cfg_path = (
-        "submodules/hrnet/experiments/coco/higher_hrnet/w32_512_adam_lr1e-3.yaml"
-    )
-    hrnet_opts = [
-        "TEST.MODEL_FILE",
-        "models/hrnet/pose_higher_hrnet_w32_512.pth",
-        "TEST.FLIP_TEST",
-        "False",
-    ]
-    unitrack_cfg_path = "submodules/unitrack/config/crw_resnet18_s3.yaml"
-    extractor = Extractor(hrnet_cfg_path, hrnet_opts, unitrack_cfg_path, logger)
+    hrnet_cfg_path = "config/higher-hrnet/w48_640_adam_lr1e-3.yaml"
+    unitrack_cfg_path = "config/unitrack/barlowtwins.yaml"
+    extractor = Extractor(hrnet_cfg_path, unitrack_cfg_path, logger)
     extractor.predict(video_path, data_dir)
 
 
