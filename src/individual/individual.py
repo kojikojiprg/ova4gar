@@ -1,5 +1,3 @@
-from ctypes import Union
-from types import SimpleNamespace
 from typing import Any, Dict
 
 import numpy as np
@@ -10,17 +8,17 @@ from individual_que import KeypointQue, Que
 
 
 class Individual:
-    def __init__(self, pid: int, homo: Homography, defaults: SimpleNamespace):
+    def __init__(self, pid: int, homo: Homography, defaults: dict):
         self.id = pid
 
-        self._defs = defaults.indicator.__dict__
+        self._defs = defaults["indicator"]
         self._keys = list(self._defs.keys())
         self._funcs = {k: eval(k) for k in self._keys}
         self._homo: np.ndarray = homo
         self._pre_frame_num: int = 0
 
         self._kps_dict: Dict[int, Keypoints] = {}
-        self._kps_que: KeypointQue = KeypointQue(defaults.keypoints)
+        self._kps_que: KeypointQue = KeypointQue(defaults["keypoints"])
         self._idc_dict: Dict[str, Any] = {k: {} for k in self._keys}
         self._idc_que: Dict[str, Que] = {k: Que(self._defs[k]) for k in self._keys}
 

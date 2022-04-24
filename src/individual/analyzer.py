@@ -1,11 +1,13 @@
 import os
 from types import SimpleNamespace
-from typing import Any, Dict, List
-import numpy as np
-from utility import json_handler
-from individual.individual import Individual
-from tqdm import tqdm
+from typing import Any, Dict
+
 import yaml
+from tqdm import tqdm
+from utility import json_handler
+from utility.transform import Homography
+
+from individual.individual import Individual
 
 
 class Analyzer:
@@ -15,19 +17,15 @@ class Analyzer:
             args = yaml.safe_load(f)
 
         # read default values
-        defaults: Dict[str, Dict[str, Any]] = {
-            "indicator": {},
-            "keypoint": {}
-        }
+        self.defaults: Dict[str, Dict[str, Any]] = {"indicator": {}, "keypoint": {}}
         for indicator_key, item in args["indicator"].items():
-            defaults["indicator"][indicator_key] = {}
-            for key, val in item['default'].items():
-                defaults[indicator_key][key] = val
+            self.defaults["indicator"][indicator_key] = {}
+            for key, val in item["default"].items():
+                self.defaults[indicator_key][key] = val
         for key, val in args["keypoints"].items():
-            defaults["keypoint"][key] = val
-        self.defaults = SimpleNamespace(**defaults)
+            self.defaults["keypoint"][key] = val
 
-    def analyze(self, data_dir: str, homo: np.typing.NDArray):
+    def analyze(self, data_dir: str, homo: Homography):
         kps_json_path = os.path.join(data_dir, "json", "keipoints.json")
         keypoints_data = json_handler.load(kps_json_path)
 
