@@ -1,0 +1,48 @@
+homography:
+  surgery:
+    02: [
+      [[426, 553], [494, 510], [773, 638], [718, 692]],
+      [[336, 320], [400, 320], [400, 514], [336, 514]],
+    ]
+    05: [
+      [[378, 264], [910, 357], [926, 609], [91, 444]],
+      [[3, 90], [581, 90], [581, 400], [3, 400]],
+    ]
+    08: [
+      [[737, 517], [799, 537], [583, 698], [509, 656]],
+      [[336, 320], [400, 320], [400, 514], [336, 514]],
+    ]
+    09: [
+      [[738, 277], [801, 300], [567, 462], [497, 430]],
+      [[336, 320], [400, 320], [400, 514], [336, 514]],
+    ]
+
+individual:
+  indicator:
+    position:
+      default:
+        th_ankle: 0.5  # threshold of ankle confidence score
+        ratio: 1.2
+        que_size: 30
+        th_std: 1  # threshold of outlier
+    face:
+      default:
+        ratio: 2.7  # eres position / difference between shoulder and hip
+        que_size: 20
+        th_std: 1
+    body:
+      default:
+        ratio: 2.2  # shoulder position / difference between shoulder and hip
+        que_size: 20
+        th_std: 1
+    arm:
+      default:
+        que_size: 5
+        th_std: 1
+
+  keypoint:
+    default:
+      size: 10
+      th_std: 1
+      window: 3  # the moving average length for filling nan
+      th_conf: 0.0  # threshold of confidence score
