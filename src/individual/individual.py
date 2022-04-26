@@ -1,10 +1,11 @@
 from typing import Any, Dict
 
 import numpy as np
-from keypoint.keypoint import Keypoints, body
+from keypoint.keypoint import PARTS, Keypoints
 from utility.transform import Homography
 
-from individual_que import KeypointQue, Que
+from individual.indicator import arm, body, face, position
+from individual.individual_que import KeypointQue, Que
 
 
 class Individual:
@@ -50,11 +51,11 @@ class Individual:
             return None
 
     def get_keypoints(self, key: str, frame_num: int) -> Any:
-        if key not in body:
+        if key not in PARTS:
             raise KeyError
 
         if frame_num in self._kps_dict:
-            return self._kps_dict[frame_num][body[key]][:2]
+            return self._kps_dict[frame_num][PARTS[key]][:2]
         else:
             return None
 
