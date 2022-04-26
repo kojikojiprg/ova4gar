@@ -1,6 +1,6 @@
 import numpy as np
 
-body = {
+PARTS = {
     "Nose": 0,
     "LEye": 1,
     "REye": 2,
@@ -33,9 +33,9 @@ class Keypoints(list):
 
     def get(self, body_name, ignore_confidence=False):
         if ignore_confidence:
-            return self[body[body_name]][:2].copy()
+            return self[PARTS[body_name]][:2].copy()
         else:
-            return self[body[body_name]].copy()
+            return self[PARTS[body_name]].copy()
 
     def get_middle(self, name, th_conf=None):
         if th_conf is None:
