@@ -2,11 +2,12 @@ import argparse
 import os
 
 import cv2
+import numpy as np
 import yaml
 
-from keypoint.extracter import Extractor
-from individual.individual_analyzer import IndividualAnalyzer
 from group.group_analyzer import GroupAnalyzer
+from individual.individual_analyzer import IndividualAnalyzer
+from keypoint.extracter import Extractor
 from utility.logger import setup_logger
 from utility.transform import Homography
 
@@ -18,10 +19,39 @@ def parser():
         "data_dir", type=str, help="Path of data directory where results are saved."
     )
     parser.add_argument(
-        "-c", "--cfg_path", type=str, default="config/config.yaml", help="Config file path."
+        "-c",
+        "--cfg_path",
+        type=str,
+        default="config/config.yaml",
+        help="Config file path.",
     )
     parser.add_argument(
-        "-rn", "--room_num", type=str, default="02", help="The room number of operating room"
+        "-rn",
+        "--room_num",
+        type=str,
+        default="02",
+        help="The room number of operating room",
+    )
+    parser.add_argument(
+        "-wk",
+        "--without_keypoint",
+        default=False,
+        action="store_true",
+        help="Without keypoint extraction.",
+    )
+    parser.add_argument(
+        "-wi",
+        "--without_individual",
+        default=False,
+        action="store_true",
+        help="Without idividual analyzation.",
+    )
+    parser.add_argument(
+        "-wg",
+        "--without_group",
+        default=False,
+        action="store_true",
+        help="Without group analyzation.",
     )
     return parser.parse_args()
 
@@ -32,6 +62,9 @@ def main():
     data_dir = args.data_dir
     cfg_path = args.cfg_path
     room_num = args.room_num
+    without_keypoint = args.without_keypoint
+    without_individual = args.without_individual
+    without_group = args.without_group
 
     # create data dir
     os.makedirs(data_dir, exist_ok=True)
@@ -40,7 +73,7 @@ def main():
         cfg = yaml.safe_load(f)
 
     # homography
-    homo_cfg = cfg["homography"]
+    homo_cfg = cfg["homography"]["surgery"]
     field_raw = cv2.imread(homo_cfg["field_path"])
 
     p_video = homo_cfg[room_num]["video"]
@@ -53,16 +86,19 @@ def main():
     logger = setup_logger(log_dir)
 
     # extract keypoints
-    extractor = Extractor(cfg, logger)
-    extractor.predict(video_path, data_dir)
+    if not without_keypoint:
+        extractor = Extractor(cfg, logger)
+        extractor.predict(video_path, data_dir)
 
     # individual actitivy
-    individual_anlyzer: IndividualAnalyzer = IndividualAnalyzer(cfg, logger)
-    individual_anlyzer.analyze(data_dir, homo)
+    if not without_individual:
+        individual_anlyzer: IndividualAnalyzer = IndividualAnalyzer(cfg, logger)
+        individual_anlyzer.analyze(data_dir, homo)
 
     # group actitivy
-    group_anlyzer: GroupAnalyzer = GroupAnalyzer(cfg, logger)
-    group_anlyzer.analyze(data_dir, field_raw)
+    if not without_group:
+        group_anlyzer: GroupAnalyzer = GroupAnalyzer(cfg, logger)
+        group_anlyzer.analyze(data_dir, field_raw)
 
 
 if __name__ == "__main__":
