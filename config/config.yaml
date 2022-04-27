@@ -42,7 +42,7 @@ individual:
         th_std: 1
   keypoint:
     default:
-      size: 10
+      que_size: 10
       th_std: 1
       window: 3  # the moving average length for filling nan
       th_conf: 0.0  # threshold of confidence score
