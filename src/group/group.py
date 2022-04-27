@@ -1,49 +1,58 @@
-import os
+from typing import Any, Dict, List
 
-from group.indicator import INDICATOR_DICT
+import numpy as np
+from individual.individual import Individual
+
+from group.indicator import attention, passing
 from group.passing_detector import PassingDetector
 
 
 class Group:
-    def __init__(self, field):
-        self.field = field
-        self.indicator_dict = {k: [] for k in INDICATOR_DICT.keys()}
-        self.queue_dict = {
+    def __init__(self, field: np.typing.NDArray, **cfg):
+        self._field = field
+
+        self._keys = list(cfg["indicator"].keys())
+        self._funcs = {k: eval(k) for k in self._keys}
+        self._defs: Dict[str, Any] = {}
+        for ind_key, item in cfg["indicator"].items():
+            self._defs[ind_key] = {}
+            for key, val in item["default"].items():
+                self._defs[ind_key][key] = val
+
+        self._pass_clf = PassingDetector(
+            cfg["indicator"]["passing"]["cfg_path"], **self._defs["passing"]
+        )
+        self._pass_clf.eval()
+
+        self._idc_dict: Dict[str, Any] = {k: [] for k in self._keys}
+        self._idc_que: Dict[str, Any] = {
             "attention": [],
             "passing": {},
         }
 
-        self.pass_clf = PassingDetector(
-            os.path.join(common.model_dir, ""),
-            os.path.join(common.model_dir, "checkpoint/pass_model_lstm.pth"),
-        )
-        self.pass_clf.eval()
-
-    def calc_indicator(self, frame_num, individual_activity_datas):
-        for key, func in INDICATOR_DICT.items():
-            if key == list(GA_FORMAT.keys())[0]:
-                # key == attention
-                value, queue = func(
-                    frame_num,
-                    individual_activity_datas,
-                    self.queue_dict[key],
-                    self.field,
-                )
-            elif key == list(GA_FORMAT.keys())[1]:
+    def calc_indicator(self, frame_num: int, individuals: List[Individual]):
+        for key, func in self._keys:
+            if key == self._keys[0]:
                 # key == passing
                 value, queue = func(
                     frame_num,
-                    individual_activity_datas,
-                    self.queue_dict[key],
-                    self.pass_clf,
+                    individuals,
+                    self._idc_que[key],
+                    self._pass_clf,
+                )
+            elif key == self._keys[1]:
+                # key == attention
+                value, queue = func(
+                    frame_num,
+                    individuals,
+                    self._idc_que[key],
+                    self._field,
                 )
             else:
-                value, queue = func(
-                    frame_num, individual_activity_datas, self.queue_dict[key]
-                )
+                raise ValueError
 
-            self.indicator_dict[key] += value
-            self.queue_dict[key] = queue
+            self._idc_dict[key] += value
+            self._idc_que[key] = queue
 
     def to_json(self):
-        return self.indicator_dict
+        return self._idc_dict
