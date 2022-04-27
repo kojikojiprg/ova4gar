@@ -33,27 +33,27 @@ class Group:
         }
 
     def calc_indicator(self, frame_num: int, individuals: List[Individual]):
-        for key, func in self._keys:
-            if key == self._keys[0]:
-                # key == passing
+        for key, func in self._funcs.items():
+            if key == "passing":
                 value, queue = func(
                     frame_num,
                     individuals,
                     self._idc_que[key],
                     self._pass_clf,
                 )
-            elif key == self._keys[1]:
-                # key == attention
+            elif key == "attention":
                 value, queue = func(
                     frame_num,
                     individuals,
                     self._idc_que[key],
                     self._field,
+                    self._defs["attention"]
                 )
             else:
                 raise KeyError
 
-            self._idc_dict[key] += value
+            if value is not None:
+                self._idc_dict[key] += value
             self._idc_que[key] = queue
 
     def to_json(self):
