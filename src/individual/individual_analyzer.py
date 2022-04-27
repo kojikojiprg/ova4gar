@@ -1,4 +1,5 @@
 import os
+from email.policy import default
 from logging import Logger
 from typing import Any, Dict
 
@@ -13,17 +14,20 @@ class IndividualAnalyzer:
     def __init__(self, cfg: dict, logger: Logger):
         # load config
         cfg = cfg["individual"]
-
-        # read default values
-        self._defaults: Dict[str, Dict[str, Any]] = {"indicator": {}, "keypoint": {}}
-        for indicator_key, item in cfg["indicator"].items():
-            self._defaults["indicator"][indicator_key] = {}
-            for key, val in item["default"].items():
-                self._defaults["indicator"][indicator_key][key] = val
-        for key, val in cfg["keypoint"]["default"].items():
-            self._defaults["keypoint"][key] = val
+        self._defaults: Dict[str, Dict[str, Any]] = self.load_default(cfg)
 
         self._logger = logger
+
+    @staticmethod
+    def load_default(cfg: dict):
+        defaults: Dict[str, Dict[str, Any]] = {"indicator": {}, "keypoint": {}}
+        for indicator_key, item in cfg["indicator"].items():
+            defaults["indicator"][indicator_key] = {}
+            for key, val in item["default"].items():
+                defaults["indicator"][indicator_key][key] = val
+        for key, val in cfg["keypoint"]["default"].items():
+            defaults["keypoint"][key] = val
+        return defaults
 
     def analyze(self, data_dir: str, homo: Homography):
         kps_json_path = os.path.join(data_dir, "json", "keypoints.json")
@@ -39,11 +43,11 @@ class IndividualAnalyzer:
 
             # obtain individual
             if pid not in individuals:
-                individuals[pid] = Individual(pid, homo, self._defaults)
+                individuals[pid] = Individual(pid, self._defaults)
             ind = individuals[pid]
 
             # calc indicators of individual
-            ind.calc_indicator(frame_num, keypoints)
+            ind.calc_indicator(frame_num, keypoints, homo)
 
             # create and append json data
             output = ind.to_json(frame_num)

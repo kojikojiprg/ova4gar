@@ -9,13 +9,12 @@ from individual.individual_que import KeypointQue, Que
 
 
 class Individual:
-    def __init__(self, pid: int, homo: Homography, defaults: dict):
+    def __init__(self, pid: int, defaults: dict):
         self.id = pid
 
         self._defs = defaults["indicator"]
         self._keys = list(self._defs.keys())
         self._funcs = {k: eval(k) for k in self._keys}
-        self._homo: np.ndarray = homo
         self._pre_frame_num: int = 0
 
         self._kps_dict: Dict[int, Keypoints] = {}
@@ -23,7 +22,7 @@ class Individual:
         self._idc_dict: Dict[str, Any] = {k: {} for k in self._keys}
         self._idc_que: Dict[str, Que] = {k: Que(self._defs[k]) for k in self._keys}
 
-    def calc_indicator(self, frame_num: int, kps: Any):
+    def calc_indicator(self, frame_num: int, kps: Any, homo: Homography):
         # calc keypoints
         if kps is None:
             return
@@ -34,7 +33,7 @@ class Individual:
 
         # calc indicators
         for k in self._keys:
-            val = self._funcs[k](kps, self._homo, self._idc_que[k], **self._defs[k])
+            val = self._funcs[k](kps, homo, self._idc_que[k], self._defs[k])
 
             self._idc_dict[k][frame_num] = val
 
@@ -50,14 +49,21 @@ class Individual:
         else:
             return None
 
-    def get_keypoints(self, key: str, frame_num: int) -> Any:
+    def get_keypoints(
+        self, key: str, frame_num: int, ignore_confidence: bool = True
+    ) -> Any:
         if key not in PARTS:
             raise KeyError
 
         if frame_num in self._kps_dict:
-            return self._kps_dict[frame_num][PARTS[key]][:2]
+            return self._kps_dict[frame_num].get(
+                key, ignore_confidence=ignore_confidence
+            )
         else:
             return None
+
+    def exists_on_frame(self, frame_num: int):
+        return frame_num in self._idc_dict["position"]
 
     def to_json(self, frame_num: int) -> Dict[str, Any]:
         data: Dict[str, Any] = {}
@@ -73,3 +79,10 @@ class Individual:
                 data[k] = None
 
         return data
+
+    def from_json(self, json_data: Dict[str, Any], frame_num: int):
+        for k, v in json_data.items():
+            if k in self._keys:
+                self._idc_dict[k][frame_num] = v
+            elif k == "keypoints":
+                self._kps_dict[frame_num] = Keypoints(v)
