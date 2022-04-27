@@ -1,10 +1,6 @@
 device: cuda:0
-dropouts:
-- 0.1
-- 0
-hidden_dims:
-- 128
-- 8
+dropouts: [0.1, 0]
+hidden_dims: [128, 8]
 n_classes: 2
 n_linears: 2
 n_rnns: 1
