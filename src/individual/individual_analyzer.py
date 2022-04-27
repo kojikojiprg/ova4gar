@@ -19,14 +19,14 @@ class IndividualAnalyzer:
         for indicator_key, item in cfg["indicator"].items():
             self._defaults["indicator"][indicator_key] = {}
             for key, val in item["default"].items():
-                self._defaults[indicator_key][key] = val
-        for key, val in cfg["keypoints"].items():
+                self._defaults["indicator"][indicator_key][key] = val
+        for key, val in cfg["keypoint"]["default"].items():
             self._defaults["keypoint"][key] = val
 
         self._logger = logger
 
     def analyze(self, data_dir: str, homo: Homography):
-        kps_json_path = os.path.join(data_dir, "json", "keipoints.json")
+        kps_json_path = os.path.join(data_dir, "json", "keypoints.json")
         self._logger.info(f"=> load keypoint data from {kps_json_path}")
         keypoints_data = json_handler.load(kps_json_path)
 
@@ -34,7 +34,7 @@ class IndividualAnalyzer:
         json_data = []
         for data in tqdm(keypoints_data):
             frame_num = data["frame"]
-            pid = data["person"]
+            pid = data["id"]
             keypoints = data["keypoints"]
 
             # obtain individual
