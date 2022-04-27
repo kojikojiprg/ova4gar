@@ -1,22 +1,25 @@
 import glob
+from typing import Any, Tuple
 
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
 
-import json_handler
+from utility import json_handler
 
 
 class Homography:
-    def __init__(self, p_src, p_dst, dst_size):
+    def __init__(self, p_src: Any, p_dst: Any, dst_size: Tuple[int, int]):
+        p_src = np.array(p_src, dtype=np.float32)
+        p_dst = np.array(p_dst, dtype=np.float32)
         self.M = cv2.getPerspectiveTransform(p_src, p_dst)
         self.size = dst_size[1::-1]
 
-    def transform_image(self, src):
+    def transform_image(self, src: np.typing.NDArray):
         return cv2.warpPerspective(src, self.M, self.size)
 
-    def transform_point(self, point):
+    def transform_point(self, point: np.typing.NDArray):
         point = np.append(point, 1)
         result = np.dot(self.M, point)
         return np.array(
