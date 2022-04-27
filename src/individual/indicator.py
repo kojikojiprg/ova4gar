@@ -3,15 +3,15 @@ from keypoint.keypoint import Keypoints
 from utility.functions import cos_similarity, normalize_vector, rotation
 from utility.transform import Homography
 
-from individual_que import Que
+from individual.individual_que import Que
 
 
 def position(kps: Keypoints, homo: Homography, que: Que, **defs):
     # read default
-    ankle_th = defs["ankle_th"]
+    th_ankle = defs["th_ankle"]
     ratio = defs["ratio"]
 
-    new_pos = kps.get_middle("Ankle", th_conf=ankle_th)
+    new_pos = kps.get_middle("Ankle", th_conf=th_ankle)
     if new_pos is None:
         shoulder = kps.get_middle("Shoulder")
         hip = kps.get_middle("Hip")
