@@ -10,8 +10,8 @@ from utility.functions import mahalanobis
 class Que:
     def __init__(self, default):
         self._default = default
-        self._size = default.size
-        self._th_std = default.th_std
+        self._size = default["que_size"]
+        self._th_std = default["th_std"]
         self._que: list = []
 
     def put_pop(self, new_item: Any) -> Any:
@@ -53,20 +53,20 @@ class Que:
 class KeypointQue(Que):
     def __init__(self, default):
         super().__init__(default)
-        self._window = default.window
-        self._th_conf = default.th_conf
+        self._window = default["window"]
+        self._th_conf = default["th_conf"]
         assert (
             self._size > self._window
         ), f"que_size:{self._size} > window:{self._window} is expected."
 
     def put_pop_kps(
         self,
-        frame_num,
-        pre_frame_num,
-        new_kps,
+        frame_num: int,
+        pre_frame_num: int,
+        new_kps: Keypoints,
         kps_dict: Dict[int, Keypoints],
     ) -> Tuple[Dict[int, Keypoints], Keypoints]:
-        # if confidnce score < THRESHOLD then [np.nan, np.nan, np.nan]
+        # if confidnce score < th_conf then [np.nan, np.nan, np.nan]
         new_kps = np.array(new_kps)
         mask = np.where(new_kps.T[2] < self._th_conf)
         nan_array = np.full(new_kps.shape, np.nan)
@@ -74,46 +74,46 @@ class KeypointQue(Que):
 
         # append keypoints dict
         kps_dict[frame_num] = Keypoints(new_kps)
-
-        if frame_num - pre_frame_num >= self._size:
-            self._que = []
+        if pre_frame_num == 0:
+            # when initial frame
+            return Keypoints(new_kps), kps_dict
 
         # fill copied keypoints for blank
         pre = np.array(kps_dict[pre_frame_num])
-        for i in range(pre_frame_num, frame_num + 1):
+        for i in range(pre_frame_num + 1, frame_num):
             if i in kps_dict:
                 # append current keypoints
                 kps = np.array(kps_dict[i])
                 pre = kps.copy()
             else:
-                # copy and append pre keypoints
+                # copy and append pre keypoints for filling blank
                 kps_dict[i] = pre.copy()
 
-        # fill nan each keypoint
-        for i in range(0, len(self._size) - self._window + 1):
-            # calc means of all keypoints
-            copies = [
-                kps_dict[j]
-                for j in range(pre_frame_num + i, pre_frame_num + i + self._window)
-            ]
-            kps_means = np.nanmean(copies, axis=0)
-
+        if len(kps_dict) <= self._window:
+            kps_lst = list(kps_dict.values())
+            kps_means = np.nanmean(kps_lst, axis=0)
             self._que.append(kps_means)
-            if len(self._que) >= self._size:
-                self._que = self._que[-self._size :]
+        else:
+            # fill nan each keypoint
+            for i in range(pre_frame_num, frame_num + 1 - self._window):
+                # calc means of all keypoints
+                kps_window = [
+                    kps_dict[i + j] for j in range(self._window)
+                ]
+                kps_means = np.nanmean(kps_window, axis=0)
 
-        # update keypoints data
-        for i, kps in enumerate(self._que):
-            kps_dict[pre_frame_num + i] = kps
+                self._que.append(kps_means)
+                if len(self._que) >= self._size:
+                    self._que = self._que[-self._size :]
 
         # calc mean of que
         if len(self._que) < self._size:
-            new_kps = np.nanmean(self._que, axis=0)
+            ret_kps = np.nanmean(self._que, axis=0)
         else:
-            new_kps = []
+            ret_kps = []
             tmp_que = np.transpose(self._que, (1, 0, 2))
             for i in range(len(new_kps)):
-                new_kps.append(self._moving_average(tmp_que[i], self._th_std))
-            new_kps = Keypoints(new_kps)
+                ret_kps.append(self._moving_average(tmp_que[i], self._th_std))
 
-        return new_kps, kps_dict
+        ret_kps = Keypoints(ret_kps)
+        return ret_kps, kps_dict
