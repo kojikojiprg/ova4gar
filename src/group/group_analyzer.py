@@ -10,18 +10,13 @@ from group.group import Group
 
 class GroupAnalyzer:
     def __init__(self, **cfg):
-        cfg = cfg["group"]
-        self.defaults: Dict[str, Any] = {}
-        for indicator_key, item in cfg["indicator"].items():
-            self.defaults[indicator_key] = {}
-            for key, val in item["default"].items():
-                self.defaults[indicator_key][key] = val
+        self.cfg = cfg["group"]
 
     def analyze(self, data_dir: str, field: np.typing.NDArray, **karg):
         ind_json_path = os.path.join(data_dir, "json", "individual.json")
         individuals = json_handler.load(ind_json_path)
 
-        group = Group(field, method)
+        group = Group(field, **self.cfg)
 
         last_frame_num = individuals[-1]["frame"] + 1
         for frame_num in tqdm(range(last_frame_num)):
