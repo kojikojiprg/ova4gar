@@ -16,12 +16,10 @@ from .unitrack import UniTrackTracker
 
 
 class Extractor:
-    def __init__(
-        self, hrnet_cfg_path: str, unitrack_opts, logger: Logger
-    ):
+    def __init__(self, cfg: dict, logger: Logger):
         self.logger = logger
-        self.detector = HRNetDetecter(hrnet_cfg_path, logger)
-        self.tracker = UniTrackTracker(unitrack_opts, logger)
+        self.detector = HRNetDetecter(cfg["keypoint"]["hrnet_cfg_path"], logger)
+        self.tracker = UniTrackTracker(cfg["keypoint"]["unitrack_cfg_path"], logger)
 
     def __del__(self):
         del self.detector, self.tracker, self.logger
