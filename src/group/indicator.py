@@ -7,12 +7,57 @@ from utility.functions import gauss
 from group.passing_detector import PassingDetector
 
 
+def passing(
+    frame_num: int,
+    individuals: List[Individual],
+    queue_dict: Dict[str, list],
+    model: PassingDetector,
+):
+    datas = []
+    for i in range(len(individuals) - 1):
+        for j in range(i + 1, len(individuals)):
+            ind1 = individuals[i]
+            ind2 = individuals[j]
+
+            # get queue
+            pair_key = f"{ind1.id}_{ind2.id}"
+            if pair_key not in queue_dict:
+                queue_dict[pair_key] = []
+            queue = queue_dict[pair_key]
+
+            # push and pop queue
+            queue = model.extract_feature(ind1, ind2, queue, frame_num)
+            if queue is None:
+                return None, queue_dict
+
+            # predict
+            pred = model.predict(queue)
+
+            # update queue
+            queue_dict[pair_key] = queue
+
+            if pred == 1:
+                datas.append(
+                    {
+                        "frame": frame_num,
+                        "persons": [ind1.id, ind2.id],
+                        "points": [
+                            ind1.get_indicator("position", frame_num),
+                            ind2.get_indicator("position", frame_num),
+                        ],
+                        "pred": pred,
+                    }
+                )
+
+    return datas, queue_dict
+
+
 def attention(
     frame_num,
     individuals: List[Individual],
-    queue,
-    field,
-    **defs,
+    queue: list,
+    field: np.typing.NDArray,
+    defs: dict,
 ):
     angle_range = defs["angle"]
     division = defs["division"]
@@ -80,48 +125,3 @@ def attention(
     queue = queue[-seq_len:]
 
     return datas, queue
-
-
-def passing(
-    frame_num: int,
-    individuals: List[Individual],
-    queue_dict: Dict[str, list],
-    model: PassingDetector,
-):
-    datas = []
-    for i in range(len(individuals) - 1):
-        for j in range(i + 1, len(individuals)):
-            p1 = individuals[i]
-            p2 = individuals[j]
-            p1_id = p1["label"]
-            p2_id = p2["label"]
-
-            # get queue
-            pair_key = f"{p1_id}_{p2_id}"
-            if pair_key not in queue_dict:
-                queue_dict[pair_key] = []
-            queue = queue_dict[pair_key]
-
-            # push and pop queue
-            queue = model.extract_feature(p1, p2, queue)
-
-            # predict
-            pred = model.predict(queue)
-
-            # update queue
-            queue_dict[pair_key] = queue
-
-            if pred == 1:
-                datas.append(
-                    {
-                        "frame": frame_num,
-                        "persons": [p1.id, p2.id],
-                        "points": [
-                            p1.get_indicator("position", frame_num),
-                            p2.get_indicator("position", frame_num),
-                        ],
-                        "pred": pred,
-                    }
-                )
-
-    return datas, queue_dict
