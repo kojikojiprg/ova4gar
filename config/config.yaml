@@ -51,8 +51,7 @@ group:
         gauss_sig: 100  # 距離に対するガウス分布の分散
         wrist_gauss_mu: 100  # 手首の距離に対するガウス分布の平均
         wrist_gauss_sig: 80  # 手首の距離に対するガウス分布の分散
-      model_path: "config/passing/pass_model_lstm.yaml"
-      checkpoint_path: "config/passing/pass_checkpoint.pth"
+      cfg_path: "config/passing/pass_model_lstm.yaml"
     attention:
       default:
         angle: 10  # 視野角
