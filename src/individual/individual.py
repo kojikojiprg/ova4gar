@@ -19,7 +19,7 @@ class Individual:
         self._pre_frame_num: int = 0
 
         self._kps_dict: Dict[int, Keypoints] = {}
-        self._kps_que: KeypointQue = KeypointQue(defaults["keypoints"])
+        self._kps_que: KeypointQue = KeypointQue(defaults["keypoint"])
         self._idc_dict: Dict[str, Any] = {k: {} for k in self._keys}
         self._idc_que: Dict[str, Que] = {k: Que(self._defs[k]) for k in self._keys}
 
