@@ -43,6 +43,7 @@ def main():
     # homography
     homo_cfg = cfg["homography"]
     field_raw = cv2.imread(homo_cfg["field_path"])
+
     p_video = homo_cfg[room_num]["video"]
     p_field = homo_cfg[room_num]["field"]
     homo = Homography(p_video, p_field, field_raw.shape)
