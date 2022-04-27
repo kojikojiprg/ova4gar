@@ -1,5 +1,4 @@
 import argparse
-import imp
 import os
 
 import cv2
