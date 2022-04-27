@@ -3,7 +3,7 @@ from types import SimpleNamespace
 import numpy as np
 import torch
 import yaml
-from keypoint.keypoint import PARTS, Keypoints
+from keypoint.keypoint import Keypoints
 from torch import nn
 from utility.functions import cos_similarity, gauss
 
