@@ -1,21 +1,23 @@
+from types import SimpleNamespace
+
 import numpy as np
 import torch
 import yaml
-from utility.functions import cos_similarity, gauss
-from keypoint.keypoint import body
+from keypoint.keypoint import PARTS, Keypoints
 from torch import nn
+from utility.functions import cos_similarity, gauss
 
 
 class PassingDetector:
-    def __init__(self, config_path, checkpoint_path):
+    def __init__(self, config_path):
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
 
         with open(config_path) as f:
             cfg = yaml.safe_load(f)
-        self.model = RNNModel(**cfg)
+        self.model = LSTMModel(**cfg)
         self.seq_len = cfg["seq_len"]
 
-        param = torch.load(checkpoint_path)
+        param = torch.load(cfg["pretrained_path"])
         self.model.load_state_dict(param)
         self.model.to(self.device)
 
@@ -25,101 +27,78 @@ class PassingDetector:
     def eval(self):
         self.model.eval()
 
-    def extract_feature(
-        self,
-        p1,
-        p2,
-        queue,
-        mu=PASSING_DEFAULT["gauss_mu"],
-        sigma=PASSING_DEFAULT["gauss_sig"],
-        wrist_mu=PASSING_DEFAULT["wrist_gauss_mu"],
-        wrist_sig=PASSING_DEFAULT["wrist_gauss_sig"],
-    ):
-        p1_kps = p1[IA_FORMAT[START_IDX - 1]]
-        p2_kps = p2[IA_FORMAT[START_IDX - 1]]
-        p1_pos = p1[IA_FORMAT[START_IDX + 0]]
-        p2_pos = p2[IA_FORMAT[START_IDX + 0]]
-        p1_body = p1[IA_FORMAT[START_IDX + 2]]
-        p2_body = p2[IA_FORMAT[START_IDX + 2]]
-        p1_arm = p1[IA_FORMAT[START_IDX + 3]]
-        p2_arm = p2[IA_FORMAT[START_IDX + 3]]
-        p1_wrist = (p1_kps[body["LWrist"]][:2], p1_kps[body["RWrist"]][:2])
-        p2_wrist = (p2_kps[body["LWrist"]][:2], p2_kps[body["RWrist"]][:2])
+    def extract_feature(self, p1, p2, que, **defs):
+        mu = defs["gauss_mu"]
+        sigma = defs["gauss_sig"]
+        wrist_mu = defs["wrist_gauss_mu"]
+        wrist_sig = defs["wrist_gauss_sig"]
 
-        if (
-            p1_pos is None
-            or p2_pos is None
-            or p1_body is None
-            or p2_body is None
-            or p1_arm is None
-            or p2_arm is None
-            or p1_wrist is None
-            or p2_wrist is None
-        ):
+        # get indicator
+        def get_indicators(person):
+            kps = Keypoints(person["keypoints"])
+            pos = person["position"]
+            body = person["body"]
+            arm = person["arm"]
+            wrist = (kps.get("lwrist", True), kps.get("rwrist", True))
+            ret = SimpleNamespace(
+                **{"pos": pos, "body": body, "arm": arm, "wrist": wrist}
+            )
+            return ret
+
+        p1_data = get_indicators(p1)
+        p2_data = get_indicators(p2)
+
+        if None in p1_data.__dict__.values() or None in p2_data.__dict__.values():
             return None
 
-        p1_pos = np.array(p1_pos)
-        p2_pos = np.array(p2_pos)
+        # calc distance of position
+        p1_pos = np.array(p1_data.pos)
+        p2_pos = np.array(p2_data.pos)
 
-        # calc distance
         norm = np.linalg.norm(p1_pos - p2_pos, ord=2)
         distance = gauss(norm, mu=mu, sigma=sigma)
 
-        # calc vector of each other
         p1p2 = p2_pos - p1_pos
         p2p1 = p1_pos - p2_pos
 
-        p1p2_sim = cos_similarity(p1_body, p1p2)
-        p2p1_sim = cos_similarity(p2_body, p2p1)
-        body_direction = (np.average([p1p2_sim, p2p1_sim]) + 1) / 2
+        p1p2_sim = cos_similarity(p1_data.body, p1p2)
+        p2p1_sim = cos_similarity(p2_data.body, p2p1)
+        body_distance = (np.average([p1p2_sim, p2p1_sim]) + 1) / 2
 
         # calc arm average
-        arm_ave = np.average([p1_arm, p2_arm])
+        arm_ave = np.average([p1_data.arm, p2_data.arm])
 
         # calc wrist distance
         min_norm = np.inf
         for i in range(2):
             for j in range(2):
                 norm = np.linalg.norm(
-                    np.array(p1_wrist[i]) - np.array(p2_wrist[j]), ord=2
+                    np.array(p1_data.wrist[i]) - np.array(p2_data.wrist[j]), ord=2
                 )
                 if norm < min_norm:
                     min_norm = norm
 
         wrist_distance = gauss(min_norm, mu=wrist_mu, sigma=wrist_sig)
 
-        feature = [distance, body_direction, arm_ave, wrist_distance]
+        # concatnate to feature
+        feature = [distance, body_distance, arm_ave, wrist_distance]
+        que.append(feature)
 
-        queue.append(feature)
+        return que[-self.seq_len :]
 
-        return queue[-self.seq_len :]
-
-    def predict(self, features, pass_duration, length=5):
-        if len(features) < self.seq_len:
-            return 0, pass_duration
-
+    def predict(self, features):
         with torch.no_grad():
             features = torch.Tensor(np.array([features])).float().to(self.device)
             pred = self.model(features)
             pred = pred.max(1)[1]
             pred = pred.cpu().numpy()[0]
 
-        if pred == 1:
-            pass_duration += 1
-
-        else:
-            pass_duration = 0
-
-        # return (
-        #     1 if pass_duration > length else 0,
-        #     pass_duration
-        # )
-        return pred, pass_duration
+        return pred
 
 
-class RNNModel(nn.Module):
+class LSTMModel(nn.Module):
     def __init__(self, **config):
-        super(RNNModel, self).__init__()
+        super(LSTMModel, self).__init__()
 
         # init rnn layers
         in_dim = config["size"]
