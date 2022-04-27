@@ -7,6 +7,7 @@ import yaml
 
 from keypoint.extracter import Extractor
 from individual.individual_analyzer import IndividualAnalyzer
+from group.group_analyzer import GroupAnalyzer
 from utility.logger import setup_logger
 from utility.transform import Homography
 
@@ -58,8 +59,12 @@ def main():
     extractor.predict(video_path, data_dir)
 
     # individual actitivy
-    anlyzer: IndividualAnalyzer = IndividualAnalyzer(**cfg)
-    anlyzer.analyze(data_dir, homo)
+    individual_anlyzer: IndividualAnalyzer = IndividualAnalyzer(**cfg)
+    individual_anlyzer.analyze(data_dir, homo)
+
+    # group actitivy
+    group_anlyzer: GroupAnalyzer = GroupAnalyzer(**cfg)
+    group_anlyzer.analyze(data_dir, field_raw)
 
 
 if __name__ == "__main__":
