@@ -35,10 +35,7 @@ class Extractor:
         out_path = os.path.join(data_dir, "video", "tracking.mp4")
         video_writer = Writer(out_path, video_capture.fps, video_capture.size)
 
-        # prepair json data list
-        json_path = os.path.join(data_dir, "json", "keypoints.json")
         json_data = []
-
         self.logger.info(f"=> loading video from {video_path}.")
         data_loader = make_test_dataloader(video_capture)
         self.logger.info(f"=> writing video into {out_path} while processing.")
@@ -64,8 +61,9 @@ class Extractor:
 
             del imgs, img, kps, tracks  # release memory
 
+        json_path = os.path.join(data_dir, "json", "keypoints.json")
         self.logger.info(f"=> writing json file into {json_path}.")
-        self._write_json(json_data, json_path)
+        dump(json_data, json_path)
 
         # release memory
         del (video_capture, video_writer, data_loader, json_data)
@@ -76,7 +74,3 @@ class Extractor:
             image = draw_skeleton(image, t.track_id, t.pose)
 
         writer.write(image)
-
-    def _write_json(self, json_data: List[Dict[str, Any]], json_path: str):
-        os.makedirs(os.path.dirname(json_path), exist_ok=True)
-        dump(json_data, json_path)
