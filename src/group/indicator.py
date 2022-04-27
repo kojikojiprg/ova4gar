@@ -1,28 +1,24 @@
-import inspect
+from typing import Dict, List
 
 import numpy as np
-from common.default import ATTENTION_DEFAULT
+from individual.individual import Individual
+from utility.functions import gauss
 
-# from common.functions import cos_similarity, normalize_vector
-from common.functions import gauss
-from common.json import GA_FORMAT, IA_FORMAT, START_IDX
-
-# from common.object_point import EX0304
+from group.passing_detector import PassingDetector
 
 
-def calc_attention(
+def attention(
     frame_num,
-    individual_activity_datas,
+    individuals: List[Individual],
     queue,
     field,
-    angle_range=ATTENTION_DEFAULT["angle"],
-    division=ATTENTION_DEFAULT["division"],
-    length=ATTENTION_DEFAULT["length"],
-    sigma=ATTENTION_DEFAULT["sigma"],
-    seq_len=ATTENTION_DEFAULT["seq_len"],
+    **defs,
 ):
-    key = inspect.currentframe().f_code.co_name.replace("calc_", "")
-    json_format = GA_FORMAT[key]
+    angle_range = defs["angle"]
+    division = defs["division"]
+    length = defs["length"]
+    sigma = defs["sigma"]
+    seq_len = defs["seq_len"]
 
     angle_range = np.deg2rad(angle_range)
 
@@ -38,9 +34,9 @@ def calc_attention(
         for x in range(0, field.shape[0], division):
             point = np.array([y, x])  # the coordination of each pixel
             value = 0.0  # value of each pixel
-            for data in individual_activity_datas:
-                pos = data[IA_FORMAT[START_IDX + 0]]
-                face_vector = data[IA_FORMAT[START_IDX + 1]]
+            for ind in individuals:
+                pos = ind.get_indicator("position", frame_num)
+                face_vector = ind.get_indicator("face", frame_num)
                 if pos is None or face_vector is None:
                     continue
 
@@ -73,9 +69,9 @@ def calc_attention(
 
                     datas.append(
                         {
-                            json_format[0]: frame_num,
-                            json_format[2]: [y, x],
-                            json_format[4]: total,
+                            "frame": frame_num,
+                            "point": [y, x],
+                            "value": total,
                         }
                     )
 
@@ -86,130 +82,46 @@ def calc_attention(
     return datas, queue
 
 
-# def calc_attention(
-#     frame_num,
-#     individual_activity_datas,
-#     object_points=EX0304,
-#     angle_th=ATTENTION_DEFAULT["angle_th"],
-#     th=ATTENTION_DEFAULT["count_th"],
-# ):
-#     key = inspect.currentframe().f_code.co_name.replace("calc_", "")
-#     json_format = GA_FORMAT[key]
-
-#     object_count = {label: 0 for label in object_points.keys()}
-#     object_persons = {label: [] for label in object_points.keys()}
-#     # person_num = len(individual_activity_datas)
-#     th_cos = np.cos(np.deg2rad(angle_th))
-
-#     for individual in individual_activity_datas:
-#         position = individual[IA_FORMAT[START_IDX + 0]]
-#         face = individual[IA_FORMAT[START_IDX + 1]]
-
-#         if position is None or face is None:
-#             continue
-
-#         for label, obj in object_points.items():
-#             # ポジションと対象物のベクトルを求める
-#             pos2obj = np.array(obj) - position
-#             pos2obj = normalize_vector(pos2obj.astype(float))
-
-#             # コサイン類似度
-#             cos = cos_similarity(face, pos2obj)
-#             if cos >= th_cos:
-#                 object_count[label] += 1
-#                 object_persons[label].append(individual[IA_FORMAT[START_IDX + 0]])
-
-#     datas = []
-#     for label in object_points.keys():
-#         datas.append(
-#             {
-#                 json_format[0]: frame_num,
-#                 json_format[1]: label,
-#                 json_format[2]: object_points[label],
-#                 json_format[3]: object_persons[label],
-#                 json_format[4]: object_count[label],
-#             }
-#         )
-
-#     return datas
-
-
-def calc_passing(
-    frame_num, individual_activity_datas, queue_dict, model, pass_length=5
+def passing(
+    frame_num: int,
+    individuals: List[Individual],
+    queue_dict: Dict[str, list],
+    model: PassingDetector,
 ):
-    key = inspect.currentframe().f_code.co_name.replace("calc_", "")
-    json_format = GA_FORMAT[key]
-
     datas = []
-    for i in range(len(individual_activity_datas) - 1):
-        for j in range(i + 1, len(individual_activity_datas)):
-            p1 = individual_activity_datas[i]
-            p2 = individual_activity_datas[j]
+    for i in range(len(individuals) - 1):
+        for j in range(i + 1, len(individuals)):
+            p1 = individuals[i]
+            p2 = individuals[j]
             p1_id = p1["label"]
             p2_id = p2["label"]
 
             # get queue
-            feature_key = f"{p1_id}_{p2_id}"
-            if feature_key not in queue_dict:
-                queue_dict[feature_key] = {"features": [], "duration": 0}
-            queue = queue_dict[feature_key]
+            pair_key = f"{p1_id}_{p2_id}"
+            if pair_key not in queue_dict:
+                queue_dict[pair_key] = []
+            queue = queue_dict[pair_key]
 
             # push and pop queue
-            queue["features"] = model.extract_feature(p1, p2, queue["features"])
+            queue = model.extract_feature(p1, p2, queue)
 
             # predict
-            pred, queue["duration"] = model.predict(
-                queue["features"], queue["duration"], pass_length
-            )
+            pred = model.predict(queue)
 
             # update queue
-            queue_dict[feature_key] = queue
+            queue_dict[pair_key] = queue
 
             if pred == 1:
                 datas.append(
                     {
-                        json_format[0]: frame_num,
-                        json_format[1]: [p1[IA_FORMAT[0]], p2[IA_FORMAT[0]]],
-                        json_format[2]: [
-                            p1[IA_FORMAT[START_IDX + 0]],
-                            p2[IA_FORMAT[START_IDX + 0]],
+                        "frame": frame_num,
+                        "persons": [p1.id, p2.id],
+                        "points": [
+                            p1.get_indicator("position", frame_num),
+                            p2.get_indicator("position", frame_num),
                         ],
-                        json_format[3]: pred,
+                        "pred": pred,
                     }
                 )
 
     return datas, queue_dict
-
-
-# def calc_passing(frame_num, individual_activity_datas, clf):
-#     key = inspect.currentframe().f_code.co_name.replace("calc_", "")
-#     json_format = GA_FORMAT[key]
-
-#     datas = []
-#     for i in range(len(individual_activity_datas) - 1):
-#         for j in range(i + 1, len(individual_activity_datas)):
-#             p1 = individual_activity_datas[i]
-#             p2 = individual_activity_datas[j]
-#             pred = clf.predict(p1, p2)
-
-#             if pred is not None:
-#                 datas.append(
-#                     {
-#                         json_format[0]: frame_num,
-#                         json_format[1]: [p1[IA_FORMAT[0]], p2[IA_FORMAT[0]]],
-#                         json_format[2]: [
-#                             p1[IA_FORMAT[START_IDX + 0]],
-#                             p2[IA_FORMAT[START_IDX + 0]],
-#                         ],
-#                         json_format[3]: pred,
-#                     }
-#                 )
-
-#     return datas
-
-
-keys = list(GA_FORMAT.keys())
-INDICATOR_DICT = {
-    keys[0]: calc_attention,
-    keys[1]: calc_passing,
-}
