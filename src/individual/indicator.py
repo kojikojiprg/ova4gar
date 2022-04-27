@@ -25,7 +25,10 @@ def position(kps: Keypoints, homo: Homography, que: Que, **defs):
     new_pos = homo.transform_point(new_pos)
     new_pos = que.put_pop(new_pos)
 
-    return new_pos.astype(int)
+    if new_pos is not None:
+        return new_pos.astype(int)
+    else:
+        return None
 
 
 def face(kps: Keypoints, homo: Homography, que: Que, **defs):
@@ -82,7 +85,8 @@ def face(kps: Keypoints, homo: Homography, que: Que, **defs):
         new_vector = new_vector[:2]
 
     new_vector = que.put_pop(new_vector)
-    new_vector = normalize_vector(new_vector)
+    if new_vector is not None:
+        new_vector = normalize_vector(new_vector)
     return new_vector
 
 
@@ -113,8 +117,8 @@ def body(kps: Keypoints, homo: Homography, que: Que, **defs):
     new_vector = rotation(new_vector[:2], -np.pi / 2)
 
     new_vector = que.put_pop(new_vector)
-
-    new_vector = normalize_vector(new_vector)
+    if new_vector is not None:
+        new_vector = normalize_vector(new_vector)
     return new_vector
 
 
@@ -147,5 +151,4 @@ def arm(kps: Keypoints, homo: Homography, que: Que, **defs):
         new_arm = np.max((larm, rarm))
 
     new_arm = que.put_pop(new_arm)
-
     return new_arm

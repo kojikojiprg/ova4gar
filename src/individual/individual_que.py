@@ -30,7 +30,7 @@ class Que:
 
         if np.any(np.std(que, axis=0) < 1.0):
             # 分布の中身がほぼ同じのとき
-            item = np.average(que, axis=0)
+            return np.average(que, axis=0)
         else:
             if que.ndim < 2:
                 # 各点の中心からの距離を求める
@@ -45,9 +45,11 @@ class Que:
             std = np.std(distances)
 
             # 外れ値を除去した平均値を値とする
-            item = np.average(que[np.abs(distances - mean) < std * th_std], axis=0)
-
-        return item
+            exclude_outlier = que[np.abs(distances - mean) < std * th_std]
+            if len(exclude_outlier) > 0:
+                return np.average(exclude_outlier, axis=0)
+            else:
+                return None
 
 
 class KeypointQue(Que):
@@ -113,7 +115,11 @@ class KeypointQue(Que):
             ret_kps = []
             tmp_que = np.transpose(self._que, (1, 0, 2))
             for i in range(len(new_kps)):
-                ret_kps.append(self._moving_average(tmp_que[i], self._th_std))
+                ret_pt = self._moving_average(tmp_que[i], self._th_std)
+                if ret_pt is not None:
+                    ret_kps.append(ret_pt)
+                else:
+                    ret_kps.append(np.full((3,), np.nan))
 
         ret_kps = Keypoints(ret_kps)
         return ret_kps, kps_dict
