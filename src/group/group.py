@@ -51,7 +51,7 @@ class Group:
                     self._field,
                 )
             else:
-                raise ValueError
+                raise KeyError
 
             self._idc_dict[key] += value
             self._idc_que[key] = queue
