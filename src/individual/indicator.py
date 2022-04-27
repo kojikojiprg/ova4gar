@@ -6,7 +6,7 @@ from utility.transform import Homography
 from individual.individual_que import Que
 
 
-def position(kps: Keypoints, homo: Homography, que: Que, **defs):
+def position(kps: Keypoints, homo: Homography, que: Que, defs):
     # read default
     th_ankle = defs["th_ankle"]
     ratio = defs["ratio"]
@@ -31,7 +31,7 @@ def position(kps: Keypoints, homo: Homography, que: Que, **defs):
         return None
 
 
-def face(kps: Keypoints, homo: Homography, que: Que, **defs):
+def face(kps: Keypoints, homo: Homography, que: Que, defs):
     ratio = defs["ratio"]
 
     nose = kps.get("Nose")
@@ -90,7 +90,7 @@ def face(kps: Keypoints, homo: Homography, que: Que, **defs):
     return new_vector
 
 
-def body(kps: Keypoints, homo: Homography, que: Que, **defs):
+def body(kps: Keypoints, homo: Homography, que: Que, defs):
     ratio = defs["ratio"]
 
     lshoulder = kps.get("LShoulder")
@@ -122,7 +122,7 @@ def body(kps: Keypoints, homo: Homography, que: Que, **defs):
     return new_vector
 
 
-def arm(kps: Keypoints, homo: Homography, que: Que, **defs):
+def arm(kps: Keypoints, homo: Homography, que: Que, defs):
     def calc(keypoints, lr):
         shoulder = keypoints.get_middle("Shoulder")
         hip = keypoints.get_middle("Hip")
