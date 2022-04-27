@@ -2,6 +2,7 @@ import os
 from typing import Any, Dict
 
 import numpy as np
+from torch import isin
 from tqdm import tqdm
 from utility import json_handler
 
@@ -30,3 +31,5 @@ class GroupAnalyzer:
         group_data = group.to_json()
         grp_json_path = os.path.join(data_dir, "json", "group.json")
         json_handler.dump(group_data, grp_json_path)
+
+        del individuals, group, group_data  # release memory
