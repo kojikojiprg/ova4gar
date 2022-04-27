@@ -1,7 +1,7 @@
 from typing import List, Tuple
 
 import numpy as np
-from common.functions import rotation
+from utility.functions import rotation
 
 
 class Line:

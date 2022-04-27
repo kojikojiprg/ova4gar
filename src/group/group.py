@@ -1,3 +1,4 @@
+from logging import Logger
 from typing import Any, Dict, List
 
 import numpy as np
@@ -8,9 +9,7 @@ from group.passing_detector import PassingDetector
 
 
 class Group:
-    def __init__(self, field: np.typing.NDArray, **cfg):
-        self._field = field
-
+    def __init__(self, cfg: dict, field: np.typing.NDArray, logger: Logger):
         self._keys = list(cfg["indicator"].keys())
         self._funcs = {k: eval(k) for k in self._keys}
         self._defs: Dict[str, Any] = {}
@@ -19,9 +18,12 @@ class Group:
             for key, val in item["default"].items():
                 self._defs[ind_key][key] = val
 
-        self._pass_clf = PassingDetector(
-            cfg["indicator"]["passing"]["cfg_path"], **self._defs["passing"]
-        )
+        self._field = field
+        self._logger = logger
+
+        pass_cfg_path = cfg["indicator"]["passing"]["cfg_path"]
+        self._logger.info(f"=> load passing detector from {pass_cfg_path}")
+        self._pass_clf = PassingDetector(pass_cfg_path, self._defs["passing"])
         self._pass_clf.eval()
 
         self._idc_dict: Dict[str, Any] = {k: [] for k in self._keys}

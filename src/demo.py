@@ -54,17 +54,15 @@ def main():
     logger = setup_logger(log_dir)
 
     # extract keypoints
-    hrnet_cfg_path = "config/higher-hrnet/w32_512_adam_lr1e-3.yaml"
-    unitrack_cfg_path = "config/unitrack/barlowtwins.yaml"
-    extractor = Extractor(hrnet_cfg_path, unitrack_cfg_path, logger)
+    extractor = Extractor(cfg, logger)
     extractor.predict(video_path, data_dir)
 
     # individual actitivy
-    individual_anlyzer: IndividualAnalyzer = IndividualAnalyzer(**cfg)
+    individual_anlyzer: IndividualAnalyzer = IndividualAnalyzer(cfg, logger)
     individual_anlyzer.analyze(data_dir, homo)
 
     # group actitivy
-    group_anlyzer: GroupAnalyzer = GroupAnalyzer(**cfg)
+    group_anlyzer: GroupAnalyzer = GroupAnalyzer(cfg, logger)
     group_anlyzer.analyze(data_dir, field_raw)
 
 
