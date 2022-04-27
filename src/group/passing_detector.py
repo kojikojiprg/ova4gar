@@ -9,13 +9,13 @@ from utility.functions import cos_similarity, gauss
 
 
 class PassingDetector:
-    def __init__(self, config_path):
+    def __init__(self, config_path: str, **defs):
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
 
         with open(config_path) as f:
             cfg = yaml.safe_load(f)
         self.model = LSTMModel(**cfg)
-        self.seq_len = cfg["seq_len"]
+        self.defaults = defs
 
         param = torch.load(cfg["pretrained_path"])
         self.model.load_state_dict(param)
@@ -27,11 +27,12 @@ class PassingDetector:
     def eval(self):
         self.model.eval()
 
-    def extract_feature(self, p1, p2, que, **defs):
-        mu = defs["gauss_mu"]
-        sigma = defs["gauss_sig"]
-        wrist_mu = defs["wrist_gauss_mu"]
-        wrist_sig = defs["wrist_gauss_sig"]
+    def extract_feature(self, p1, p2, que):
+        mu = self.defaults["gauss_mu"]
+        sigma = self.defaults["gauss_sig"]
+        wrist_mu = self.defaults["wrist_gauss_mu"]
+        wrist_sig = self.defaults["wrist_gauss_sig"]
+        seq_len = self.defaults["seq_len"]
 
         # get indicator
         def get_indicators(person):
@@ -84,7 +85,7 @@ class PassingDetector:
         feature = [distance, body_distance, arm_ave, wrist_distance]
         que.append(feature)
 
-        return que[-self.seq_len :]
+        return que[-seq_len:]
 
     def predict(self, features):
         with torch.no_grad():
