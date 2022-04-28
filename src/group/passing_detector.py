@@ -28,6 +28,9 @@ class PassingDetector:
         self._wrist_mu = defs["wrist_gauss_mu"]
         self._wrist_sig = defs["wrist_gauss_sig"]
 
+    def __del__(self):
+        del self._model
+
     def train(self):
         self._model.train()
 
