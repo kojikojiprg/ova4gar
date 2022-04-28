@@ -74,11 +74,11 @@ def main():
 
     # homography
     homo_cfg = cfg["homography"]["surgery"]
-    field_raw = cv2.imread(homo_cfg["field_path"])
+    field = cv2.imread(homo_cfg["field_path"])
 
     p_video = homo_cfg[room_num]["video"]
     p_field = homo_cfg[room_num]["field"]
-    homo = Homography(p_video, p_field, field_raw.shape)
+    homo = Homography(p_video, p_field, field.shape)
 
     # create logger
     log_dir = os.path.join(data_dir, "log")
@@ -93,12 +93,12 @@ def main():
     # individual actitivy
     if not without_individual:
         individual_anlyzer: IndividualAnalyzer = IndividualAnalyzer(cfg, logger)
-        individual_anlyzer.analyze(data_dir, homo)
+        individual_anlyzer.analyze(data_dir, homo, field)
 
     # group actitivy
     if not without_group:
         group_anlyzer: GroupAnalyzer = GroupAnalyzer(cfg, logger)
-        group_anlyzer.analyze(data_dir, field_raw)
+        group_anlyzer.analyze(data_dir, field)
 
 
 if __name__ == "__main__":
