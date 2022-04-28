@@ -80,9 +80,7 @@ def main():
     homo = Homography(p_video, p_field, field.shape)
 
     # create logger
-    log_dir = os.path.join(data_dir, "log")
-    os.makedirs(log_dir, exist_ok=True)
-    logger = setup_logger(log_dir)
+    logger = setup_logger()
 
     # extract keypoints
     if not without_keypoint:

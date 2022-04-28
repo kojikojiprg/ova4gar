@@ -25,7 +25,7 @@ class GroupAnalyzer:
 
     def analyze(self, data_dir: str, field: np.typing.NDArray):
         # load individual data from json file
-        ind_json_path = os.path.join(data_dir, "json", "individual.json")
+        ind_json_path = os.path.join(data_dir, ".json", "individual.json")
         self._logger.info(f"=> load individual data from {ind_json_path}")
         inds, last_frame_num = self._load_individuals(ind_json_path)
 
@@ -65,7 +65,7 @@ class GroupAnalyzer:
 
         # write json
         group_data = group.to_dict()
-        grp_json_path = os.path.join(data_dir, "json", "group.json")
+        grp_json_path = os.path.join(data_dir, ".json", "group.json")
         self._logger.info(f"=> write group data to {grp_json_path}")
         json_handler.dump(group_data, grp_json_path)
 

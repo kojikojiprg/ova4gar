@@ -73,7 +73,7 @@ class Extractor:
 
             del imgs, frame, kps, tracks  # release memory
 
-        json_path = os.path.join(data_dir, "json", "keypoints.json")
+        json_path = os.path.join(data_dir, ".json", "keypoints.json")
         self._logger.info(f"=> writing json file into {json_path}.")
         dump(json_data, json_path)
 

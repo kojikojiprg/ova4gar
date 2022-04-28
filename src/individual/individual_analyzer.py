@@ -48,7 +48,7 @@ class IndividualAnalyzer:
         video_writer = Writer(out_path, video_capture.fps, size)
 
         # load keypoints data from json file
-        kps_json_path = os.path.join(data_dir, "json", "keypoints.json")
+        kps_json_path = os.path.join(data_dir, ".json", "keypoints.json")
         self._logger.info(f"=> loading keypoint data from {kps_json_path}")
         keypoints_data = json_handler.load(kps_json_path)
 
@@ -95,7 +95,7 @@ class IndividualAnalyzer:
             del video_data  # release memory
 
         # write json
-        ind_json_path = os.path.join(data_dir, "json", "individual.json")
+        ind_json_path = os.path.join(data_dir, ".json", "individual.json")
         self._logger.info(f"=> writing individual data to {ind_json_path}")
         json_handler.dump(json_data, ind_json_path)
 
