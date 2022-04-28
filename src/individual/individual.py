@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any, Dict, Union
 
 import numpy as np
 from keypoint.keypoint import PARTS, Keypoints
@@ -40,7 +40,7 @@ class Individual:
         # update pre frame num
         self._pre_frame_num = frame_num
 
-    def get_indicator(self, key: str, frame_num: int) -> Any:
+    def get_indicator(self, key: str, frame_num: int) -> Union[Any, None]:
         if key not in self._keys:
             raise KeyError
 
@@ -51,7 +51,7 @@ class Individual:
 
     def get_keypoints(
         self, key: str, frame_num: int, ignore_confidence: bool = True
-    ) -> Any:
+    ) -> Union[np.typing.NDArray, None]:
         if key not in PARTS:
             raise KeyError
 
@@ -65,10 +65,14 @@ class Individual:
     def exists_on_frame(self, frame_num: int):
         return frame_num in self._idc_dict["position"]
 
-    def to_json(self, frame_num: int) -> Dict[str, Any]:
+    def to_json(self, frame_num: int) -> Union[Dict[str, Any], None]:
         data: Dict[str, Any] = {}
         data["frame"] = frame_num
         data["id"] = self.id
+
+        if frame_num not in self._kps_dict:
+            return None
+
         data["keypoints"] = self._kps_dict[frame_num]
 
         for k in self._keys:
