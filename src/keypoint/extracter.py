@@ -5,13 +5,13 @@ from typing import List
 import numpy as np
 from numpy.typing import NDArray
 from tqdm import tqdm
-from tracker.mot.basetrack import STrack  # from unitrack
+from unitrack.tracker.mot.basetrack import STrack
 from utility.json_handler import dump
 from utility.video import Capture, Writer
 
+from keypoint.dataset import make_test_dataloader
 from keypoint.api.higher_hrnet import HigherHRNetDetecter
 from keypoint.api.unitrack import UniTrackTracker
-from keypoint.dataset import make_test_dataloader
 from keypoint.visualization import draw_skeleton, put_frame_num
 
 

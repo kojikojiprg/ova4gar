@@ -8,7 +8,8 @@ import numpy as np
 import yaml
 from numpy.typing import NDArray
 from torchvision.transforms import transforms as T
-from tracker.mot.pose import PoseAssociationTracker  # from unitrack
+
+from unitrack.tracker.mot.pose import PoseAssociationTracker
 
 
 class UniTrackTracker:

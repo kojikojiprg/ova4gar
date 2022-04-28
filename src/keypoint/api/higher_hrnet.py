@@ -1,19 +1,22 @@
+import sys
 from logging import Logger
 from types import SimpleNamespace
 from typing import Any
 
-import models  # from higher-hrnet
 import numpy as np
 import torch
 import torchvision
-from config import cfg, check_config, update_config  # from higher-hrnet
-from core.group import HeatmapParser  # from higher-hrnet
-from core.inference import aggregate_results  # higher-from hrnet
-from core.inference import get_multi_stage_outputs
-from fp16_utils.fp16util import network_to_half  # higher-from hrnet
 from numpy.typing import NDArray
-from utils.transforms import get_final_preds  # higher-from hrnet
-from utils.transforms import get_multi_scale_size, resize_align_multi_scale
+
+from higher_hrnet.lib.config import cfg, check_config, update_config
+from higher_hrnet.lib.core.group import HeatmapParser
+from higher_hrnet.lib.core.inference import aggregate_results, get_multi_stage_outputs
+from higher_hrnet.lib.models import pose_higher_hrnet
+from higher_hrnet.lib.utils.transforms import (
+    get_final_preds,
+    get_multi_scale_size,
+    resize_align_multi_scale,
+)
 
 
 class HigherHRNetDetecter:
@@ -31,18 +34,12 @@ class HigherHRNetDetecter:
         torch.backends.cudnn.deterministic = self.cfg.CUDNN.DETERMINISTIC
         torch.backends.cudnn.enabled = self.cfg.CUDNN.ENABLED
 
-        model = eval("models." + self.cfg.MODEL.NAME + ".get_pose_net")(
-            self.cfg, is_train=False
+        model = pose_higher_hrnet.get_pose_net(self.cfg, is_train=False)
+
+        self.logger.info(
+            "=> loading hrnet model from {}".format(self.cfg.TEST.MODEL_FILE)
         )
-
-        if self.cfg.FP16.ENABLED:
-            model = network_to_half(model)
-
-        if self.cfg.TEST.MODEL_FILE:
-            self.logger.info(
-                "=> loading hrnet model from {}".format(self.cfg.TEST.MODEL_FILE)
-            )
-            model.load_state_dict(torch.load(self.cfg.TEST.MODEL_FILE), strict=True)
+        model.load_state_dict(torch.load(self.cfg.TEST.MODEL_FILE), strict=True)
 
         if torch.cuda.is_available():
             self.model = torch.nn.DataParallel(model, device_ids=self.cfg.GPUS)
