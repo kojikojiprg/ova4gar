@@ -1,0 +1,2 @@
+TEST:
+  MODEL_FILE: "models/hrnet/pose_hrnet_w32_256x192.pth"
