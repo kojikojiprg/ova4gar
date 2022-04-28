@@ -6,10 +6,10 @@ import numpy as np
 from tqdm import tqdm
 from utility import json_handler
 from utility.transform import Homography
-from utility.video import Capture, Writer
+from utility.video import Capture, Writer, concat_field_with_frame
 
 from individual.individual import Individual
-from individual.visualization import concat_field_with_frame, visualize
+from individual.visualization import visualize
 
 
 class IndividualAnalyzer:

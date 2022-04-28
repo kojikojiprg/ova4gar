@@ -1,6 +1,7 @@
 import os
 
 import cv2
+import numpy as np
 
 
 class Capture:
@@ -75,3 +76,15 @@ class Writer:
         for frame in frames:
             frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)  # RGB to BGR
             self._writer.write(frame)
+
+
+def concat_field_with_frame(frame: np.typing.NDArray, field: np.typing.NDArray):
+    ratio = 1 - (field.shape[0] - frame.shape[0]) / field.shape[0]
+    size = [round(field.shape[1] * ratio), round(field.shape[0] * ratio)]
+    # if frame.shape[0] != size[1]:
+    #     # 丸め誤差が起きる
+    #     size[1] = frame.shape[0]
+    field = cv2.resize(field, size)
+    frame = np.concatenate([frame, field], axis=1)
+
+    return frame
