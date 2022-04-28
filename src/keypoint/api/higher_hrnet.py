@@ -1,5 +1,3 @@
-import pprint
-from enum import unique
 from logging import Logger
 from types import SimpleNamespace
 from typing import Any
@@ -14,11 +12,8 @@ from core.inference import aggregate_results  # higher-from hrnet
 from core.inference import get_multi_stage_outputs
 from fp16_utils.fp16util import network_to_half  # higher-from hrnet
 from numpy.typing import NDArray
-from utils.transforms import (
-    get_final_preds,  # higher-from hrnet
-    get_multi_scale_size,
-    resize_align_multi_scale,
-)
+from utils.transforms import get_final_preds  # higher-from hrnet
+from utils.transforms import get_multi_scale_size, resize_align_multi_scale
 
 
 class HigherHRNetDetecter:
