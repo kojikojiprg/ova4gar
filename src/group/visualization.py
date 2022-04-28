@@ -1,116 +1,79 @@
-import inspect
+from typing import Any, Dict, List, Union
 
 import cv2
 import numpy as np
-from common.json import GA_FORMAT
 
-from display.heatmap import Heatmap
+from group.heatmap import Heatmap
 
-keys = list(GA_FORMAT.keys())
-HEATMAP_SETTING_DICT = {
+HEATMAP_SETTING = {
     # key: [is_heatmap, heatmap_data_index, min, max]
-    keys[0]: (True, None, 0, 2),
-    keys[1]: (False, None, None, None),
+    "passing": (False, -1, None, None),
+    "attention": (True, -1, 0, 2),
 }
 
 
-class DisplayGroupActivity:
-    def __init__(self, group_activity_datas):
-        self.heatmap_dict = {}
-        self.make_heatmap(group_activity_datas)
+class GroupVisualizer:
+    def __init__(self, group_indicator_data: Dict[str, List[Dict[str, Any]]]):
+        self._heatmaps: Dict[str, Union[Heatmap, None]] = {}
+        self._make_heatmap(group_indicator_data)
 
-    def make_heatmap(self, group_activity_datas):
-        for key, datas in group_activity_datas.items():
-            if HEATMAP_SETTING_DICT[key][0]:
+    def _make_heatmap(self, group_indicator_data: Dict[str, List[Dict[str, Any]]]):
+        for key, data in group_indicator_data.items():
+            if HEATMAP_SETTING[key][0]:
                 # ヒートマップを作成する場合
                 distribution = []
-                if HEATMAP_SETTING_DICT[key][2] is None:
-                    # ヒートマップをデータから作成
-                    data_keys = GA_FORMAT[key]
-                    for data in datas:
-                        append_data = data[data_keys[HEATMAP_SETTING_DICT[key][1]]]
-                        if append_data is not None:
-                            distribution.append(append_data)
-                    print(f'max of {key}: ', np.max(distribution))
-                else:
+                if (
+                    HEATMAP_SETTING[key][2] is not None
+                    or HEATMAP_SETTING[key][3] is not None
+                ):
                     # ヒートマップをminとmaxから作成
                     distribution = [
-                        HEATMAP_SETTING_DICT[key][2],
-                        HEATMAP_SETTING_DICT[key][3],
+                        HEATMAP_SETTING[key][2],
+                        HEATMAP_SETTING[key][3],
                     ]
+                else:
+                    # ヒートマップをデータから作成
+                    for item in data:
+                        append_data = list(item.values())[HEATMAP_SETTING[key][1]]
+                        if append_data is not None:
+                            distribution.append(append_data)
 
                 if len(distribution) > 0:
-                    self.heatmap_dict[key] = Heatmap(distribution)
+                    self._heatmaps[key] = Heatmap(distribution)
                 else:
-                    self.heatmap_dict[key] = None
+                    self._heatmaps[key] = None
             else:
-                self.heatmap_dict[key] = None
+                self._heatmaps[key] = None
 
-    def disp(self, key, frame_num, group_activity_datas, field):
-        indicator_datas = group_activity_datas[key]
+    def visualize(
+        self,
+        key: str,
+        frame_num: int,
+        group_indicator_data: Dict[str, List[Dict[str, Any]]],
+        field: np.typing.NDArray,
+    ) -> np.typing.NDArray:
+        data = group_indicator_data[key]
 
         # フレームごとにデータを取得する
-        frame_indicator_datas = [
-            data for data in indicator_datas if data["frame"] == frame_num
-        ]
+        data_per_frame = [item for item in data if item["frame"] == frame_num]
 
         # 指標を書き込む
-        field = eval("self.disp_{}".format(key))(frame_indicator_datas, field)
+        field = eval(f"self._{key}")(data_per_frame, field)
 
         return field
 
-    def disp_attention(self, datas, field, alpha=0.2, max_radius=15):
-        key = inspect.currentframe().f_code.co_name.replace("disp_", "")
-        json_format = GA_FORMAT[key]
-
-        copy = field.copy()
-        for data in datas:
-            point = data[json_format[2]]
-            value = data[json_format[4]]
-
-            color = self.heatmap_dict[key].colormap(value)
-
-            # calc radius of circle
-            max_value = self.heatmap_dict[key].xmax
-            radius = int(value / max_value * max_radius)
-            if radius == 0:
-                radius = 1
-
-            cv2.circle(copy, tuple(point), radius, color, thickness=-1)
-
-        field = cv2.addWeighted(copy, alpha, field, 1 - alpha, 0)
-
-        return field
-
-    # def disp_attention(self, datas, field, th=2):
-    #     key = inspect.currentframe().f_code.co_name.replace("disp_", "")
-    #     json_format = GA_FORMAT[key]
-
-    #     for data in datas:
-    #         point = data[json_format[2]]
-    #         count = data[json_format[4]]
-    #         if count >= th:
-    #             cv2.circle(field, tuple(point), 10, (255, 165, 0), thickness=-1)
-    #             cv2.circle(field, tuple(point), 45, (255, 165, 0), thickness=3)
-
-    #     return field
-
-    def disp_passing(self, datas, field, persons=None, alpha=0.2):
-        key = inspect.currentframe().f_code.co_name.replace("disp_", "")
-        json_format = GA_FORMAT[key]
-
-        for data in datas:
+    def _passing(self, data, field, persons=None, alpha=0.2):
+        for item in data:
             is_persons = False
             if persons is None:
                 is_persons = True
             else:
                 is_persons = (
-                    data[json_format[1]][0] in persons
-                    and data[json_format[1]][1] in persons
+                    item["persons"][0] in persons and item["persons"][1] in persons
                 )
 
-            points = data[json_format[2]]
-            pred = data[json_format[3]]
+            points = item["points"]
+            pred = item["pred"]
             if is_persons and points is not None and pred == 1:
                 p1 = np.array(points[0])
                 p2 = np.array(points[1])
@@ -132,5 +95,25 @@ class DisplayGroupActivity:
                     thickness=-1,
                 )
                 field = cv2.addWeighted(copy, alpha, field, 1 - alpha, 0)
+
+        return field
+
+    def _attention(self, data, field, alpha=0.2, max_radius=15):
+        copy = field.copy()
+        for item in data:
+            point = item["point"]
+            value = item["value"]
+
+            color = self._heatmaps["attention"].colormap(value)
+
+            # calc radius of circle
+            max_value = self._heatmaps["attention"].xmax
+            radius = int(value / max_value * max_radius)
+            if radius == 0:
+                radius = 1
+
+            cv2.circle(copy, tuple(point), radius, color, thickness=-1)
+
+        field = cv2.addWeighted(copy, alpha, field, 1 - alpha, 0)
 
         return field

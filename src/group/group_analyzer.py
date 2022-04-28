@@ -14,15 +14,18 @@ from group.group import Group
 class GroupAnalyzer:
     def __init__(self, cfg: dict, logger: Logger):
         self._cfg = cfg["group"]
+        self._keys = list(self._cfg["indicator"].keys())
         self._logger = logger
 
         self._ind_defs = IndividualAnalyzer.load_default(cfg["individual"])
 
     def analyze(self, data_dir: str, field: np.typing.NDArray):
+        # load individual data from json file
         ind_json_path = os.path.join(data_dir, "json", "individual.json")
         self._logger.info(f"=> load individual data from {ind_json_path}")
         inds, last_frame_num = self._load_individuals(ind_json_path)
 
+        # create group class
         self._logger.info(f"=> construct group activity model for {data_dir}")
         group = Group(self._cfg, field, self._logger)
 
@@ -38,6 +41,9 @@ class GroupAnalyzer:
         grp_json_path = os.path.join(data_dir, "json", "group.json")
         self._logger.info(f"=> write group data to {grp_json_path}")
         json_handler.dump(group_data, grp_json_path)
+
+        # write video
+        group.write_video(data_dir)
 
         del inds, group, group_data  # release memory
 
