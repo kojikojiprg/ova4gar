@@ -65,7 +65,7 @@ class Individual:
     def exists_on_frame(self, frame_num: int):
         return frame_num in self._idc_dict["position"]
 
-    def to_json(self, frame_num: int) -> Union[Dict[str, Any], None]:
+    def to_dict(self, frame_num: int) -> Union[Dict[str, Any], None]:
         data: Dict[str, Any] = {}
         data["frame"] = frame_num
         data["id"] = self.id
@@ -77,8 +77,10 @@ class Individual:
 
         for k in self._keys:
             indicator = self._idc_dict[k][frame_num]
-            if indicator is not None:
+            if type(indicator) == np.array:
                 data[k] = indicator.tolist()
+            elif indicator is not None:
+                data[k] = indicator
             else:
                 data[k] = None
 

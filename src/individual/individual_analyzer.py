@@ -70,13 +70,13 @@ class IndividualAnalyzer:
             ind.calc_indicator(frame_num, keypoints, homo)
 
             # create and append json data
-            output = ind.to_json(frame_num)
+            output = ind.to_dict(frame_num)
             json_data.append(output)
 
             # when frame next, write video frame
             if pre_frame_num < frame_num:
                 video_data = [
-                    ind.to_json(pre_frame_num)
+                    ind.to_dict(pre_frame_num)
                     for ind in individuals.values()
                     if ind.exists_on_frame(pre_frame_num)
                 ]
@@ -86,7 +86,7 @@ class IndividualAnalyzer:
                 pre_frame_num = frame_num  # update pre_frame_num
         else:
             video_data = [
-                ind.to_json(frame_num)
+                ind.to_dict(frame_num)
                 for ind in individuals.values()
                 if ind.exists_on_frame(frame_num)
             ]

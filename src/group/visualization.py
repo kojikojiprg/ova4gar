@@ -6,42 +6,26 @@ import numpy as np
 from group.heatmap import Heatmap
 
 HEATMAP_SETTING = {
-    # key: [is_heatmap, heatmap_data_index, min, max]
-    "passing": (False, -1, None, None),
-    "attention": (True, -1, 0, 2),
+    # key: [is_heatmap, min, max]
+    "passing": (False, None, None),
+    "attention": (True, 0, 2),
 }
 
 
 class GroupVisualizer:
-    def __init__(self, group_indicator_data: Dict[str, List[Dict[str, Any]]]):
+    def __init__(self, keys: List[str]):
         self._heatmaps: Dict[str, Union[Heatmap, None]] = {}
-        self._make_heatmap(group_indicator_data)
+        self._make_heatmap(keys)
 
-    def _make_heatmap(self, group_indicator_data: Dict[str, List[Dict[str, Any]]]):
-        for key, data in group_indicator_data.items():
+    def _make_heatmap(self, keys: List[str]):
+        for key in keys:
             if HEATMAP_SETTING[key][0]:
                 # ヒートマップを作成する場合
-                distribution = []
-                if (
-                    HEATMAP_SETTING[key][2] is not None
-                    or HEATMAP_SETTING[key][3] is not None
-                ):
-                    # ヒートマップをminとmaxから作成
-                    distribution = [
-                        HEATMAP_SETTING[key][2],
-                        HEATMAP_SETTING[key][3],
-                    ]
-                else:
-                    # ヒートマップをデータから作成
-                    for item in data:
-                        append_data = list(item.values())[HEATMAP_SETTING[key][1]]
-                        if append_data is not None:
-                            distribution.append(append_data)
-
-                if len(distribution) > 0:
-                    self._heatmaps[key] = Heatmap(distribution)
-                else:
-                    self._heatmaps[key] = None
+                distribution = [
+                    HEATMAP_SETTING[key][1],
+                    HEATMAP_SETTING[key][2],
+                ]
+                self._heatmaps[key] = Heatmap(distribution)
             else:
                 self._heatmaps[key] = None
 

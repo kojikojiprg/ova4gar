@@ -75,9 +75,9 @@ def attention(
 
     data = []
     pixcel_datas = np.zeros((field.shape[1], field.shape[0]), dtype=np.float32)
-    for y in range(0, field.shape[1], division):
-        for x in range(0, field.shape[0], division):
-            point = np.array([y, x])  # the coordination of each pixel
+    for x in range(0, field.shape[1], division):
+        for y in range(0, field.shape[0], division):
+            point = np.array([x, y])  # the coordination of each pixel
             value = 0.0  # value of each pixel
             for ind in individuals:
                 pos = ind.get_indicator("position", frame_num)
@@ -103,19 +103,19 @@ def attention(
                     else:
                         value += gauss(norm, mu=length, sigma=sigma)
 
-                pixcel_datas[y, x] = value  # save every frame value
+                pixcel_datas[x, y] = value  # save every frame value
 
                 if value >= 1 / seq_len:
                     total = value
                     if sum_data is not None:
                         # sum all pixel data in queue
-                        total += sum_data[y, x]
+                        total += sum_data[x, y]
                     total /= seq_len
 
                     data.append(
                         {
                             "frame": frame_num,
-                            "point": [y, x],
+                            "point": point,
                             "value": total,
                         }
                     )
