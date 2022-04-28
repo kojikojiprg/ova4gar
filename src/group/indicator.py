@@ -13,7 +13,7 @@ def passing(
     queue_dict: Dict[str, list],
     model: PassingDetector,
 ):
-    datas = []
+    data = []
     for i in range(len(individuals) - 1):
         for j in range(i + 1, len(individuals)):
             ind1 = individuals[i]
@@ -37,7 +37,7 @@ def passing(
             queue_dict[pair_key] = queue
 
             if pred == 1:
-                datas.append(
+                data.append(
                     {
                         "frame": frame_num,
                         "persons": [ind1.id, ind2.id],
@@ -49,7 +49,7 @@ def passing(
                     }
                 )
 
-    return datas, queue_dict
+    return data, queue_dict
 
 
 def attention(
@@ -73,7 +73,7 @@ def attention(
     else:
         sum_data = None
 
-    datas = []
+    data = []
     pixcel_datas = np.zeros((field.shape[1], field.shape[0]), dtype=np.float32)
     for y in range(0, field.shape[1], division):
         for x in range(0, field.shape[0], division):
@@ -112,7 +112,7 @@ def attention(
                         total += sum_data[y, x]
                     total /= seq_len
 
-                    datas.append(
+                    data.append(
                         {
                             "frame": frame_num,
                             "point": [y, x],
@@ -124,4 +124,4 @@ def attention(
     queue.append(pixcel_datas)
     queue = queue[-seq_len:]
 
-    return datas, queue
+    return data, queue
