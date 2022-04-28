@@ -9,9 +9,9 @@ from tracker.mot.basetrack import STrack  # from unitrack
 from utility.json_handler import dump
 from utility.video import Capture, Writer
 
+from keypoint.api.higher_hrnet import HigherHRNetDetecter
+from keypoint.api.unitrack import UniTrackTracker
 from keypoint.dataset import make_test_dataloader
-from keypoint.higher_hrnet import HigherHRNetDetecter
-from keypoint.unitrack import UniTrackTracker
 from keypoint.visualization import draw_skeleton, put_frame_num
 
 
