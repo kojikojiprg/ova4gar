@@ -72,7 +72,7 @@ def main():
         cfg = yaml.safe_load(f)
 
     # homography
-    homo_cfg = cfg["homography"]["surgery"]
+    homo_cfg = cfg["homography"]
     field = cv2.imread(homo_cfg["field_path"])
 
     p_video = homo_cfg[room_num]["video"]
