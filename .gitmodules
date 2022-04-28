@@ -6,3 +6,6 @@
 	path = submodules/unitrack
 	url = https://github.com/Zhongdao/UniTrack.git
 	ignore = dirty
+[submodule "submodules/hrnet"]
+	path = submodules/hrnet
+	url = https://github.com/microsoft/human-pose-estimation.pytorch.git
