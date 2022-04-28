@@ -1,6 +1,6 @@
 import os
 from logging import Logger
-from typing import Any, Dict, List
+from typing import List
 
 import numpy as np
 from numpy.typing import NDArray
@@ -8,21 +8,21 @@ from tqdm import tqdm
 from tracker.mot.basetrack import STrack  # from unitrack
 from utility.json_handler import dump
 from utility.video import Capture, Writer
-from utility.visualization import draw_skeleton
 
-from .dataset import make_test_dataloader
-from .hrnet import HRNetDetecter
-from .unitrack import UniTrackTracker
+from keypoint.dataset import make_test_dataloader
+from keypoint.hrnet import HRNetDetecter
+from keypoint.unitrack import UniTrackTracker
+from keypoint.visualization import draw_skeleton, put_frame_num
 
 
 class Extractor:
     def __init__(self, cfg: dict, logger: Logger):
-        self.logger = logger
-        self.detector = HRNetDetecter(cfg["keypoint"]["hrnet_cfg_path"], logger)
-        self.tracker = UniTrackTracker(cfg["keypoint"]["unitrack_cfg_path"], logger)
+        self._logger = logger
+        self._detector = HRNetDetecter(cfg["keypoint"]["hrnet_cfg_path"], logger)
+        self._tracker = UniTrackTracker(cfg["keypoint"]["unitrack_cfg_path"], logger)
 
     def __del__(self):
-        del self.detector, self.tracker, self.logger
+        del self._detector, self._tracker, self._logger
 
     def predict(self, video_path: str, data_dir: str):
         # create video capture
@@ -36,18 +36,19 @@ class Extractor:
         video_writer = Writer(out_path, video_capture.fps, video_capture.size)
 
         json_data = []
-        self.logger.info(f"=> loading video from {video_path}.")
+        self._logger.info(f"=> loading video from {video_path}.")
         data_loader = make_test_dataloader(video_capture)
-        self.logger.info(f"=> writing video into {out_path} while processing.")
+        self._logger.info(f"=> writing video into {out_path} while processing.")
         for frame_num, imgs in enumerate(tqdm(data_loader)):
             assert 1 == imgs.size(0), "Test batch size should be 1"
-            img = imgs[0].cpu().numpy()
+            frame = imgs[0].cpu().numpy()
 
             # do keypoints detection and tracking
-            kps = self.detector.predict(img)
-            tracks = self.tracker.update(img, kps)
+            kps = self._detector.predict(frame)
+            tracks = self._tracker.update(frame, kps)
 
-            self._write_video(video_writer, img, tracks)  # write video
+            # write video
+            self._write_video(video_writer, frame, tracks, frame_num)
 
             # append result
             for t in tracks:
@@ -59,18 +60,22 @@ class Extractor:
                 json_data.append(data)
                 del data  # release memory
 
-            del imgs, img, kps, tracks  # release memory
+            del imgs, frame, kps, tracks  # release memory
 
         json_path = os.path.join(data_dir, "json", "keypoints.json")
-        self.logger.info(f"=> writing json file into {json_path}.")
+        self._logger.info(f"=> writing json file into {json_path}.")
         dump(json_data, json_path)
 
         # release memory
         del (video_capture, video_writer, data_loader, json_data)
 
-    def _write_video(self, writer: Writer, image: NDArray, tracks: List[STrack]):
+    @staticmethod
+    def _write_video(
+        writer: Writer, frame: NDArray, tracks: List[STrack], frame_num: int
+    ):
         # add keypoints to image
+        frame = put_frame_num(frame, frame_num)
         for t in tracks:
-            image = draw_skeleton(image, t.track_id, t.pose)
+            frame = draw_skeleton(frame, t.track_id, t.pose)
 
-        writer.write(image)
+        writer.write(frame)
