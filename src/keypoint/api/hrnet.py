@@ -17,6 +17,10 @@ class HRNetDetecter:
     def __init__(self, cfg_path: str, logger: Logger, opts: list = []):
         # update config
         args = SimpleNamespace(**{"cfg": cfg_path, "opts": opts})
+        args.modelDir = ""
+        args.logDir = ""
+        args.dataDir = ""
+        args.prevModelDir = ""
         self.cfg = cfg
         update_config(self.cfg, args)
 
@@ -28,7 +32,7 @@ class HRNetDetecter:
         torch.backends.cudnn.enabled = self.cfg.CUDNN.ENABLED
 
         self.box_model = torchvision.models.detection.fasterrcnn_resnet50_fpn(
-            pretrained=True
+            pretrained=True, progress=False
         )
 
         pose_model = pose_hrnet.get_pose_net(self.cfg, is_train=False)
