@@ -78,7 +78,7 @@ class IndividualAnalyzer:
                 video_data = [
                     ind.to_json(pre_frame_num)
                     for ind in individuals.values()
-                    if ind.to_json(pre_frame_num) is not None
+                    if ind.exists_on_frame(pre_frame_num)
                 ]
                 _, frame = video_capture.read()
                 self._write_video(video_writer, video_data, frame, field)

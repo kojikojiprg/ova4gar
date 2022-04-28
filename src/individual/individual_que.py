@@ -74,6 +74,9 @@ class KeypointQue(Que):
         nan_array = np.full(new_kps.shape, np.nan)
         new_kps[mask] = nan_array[mask]
 
+        if frame_num - pre_frame_num >= self._size:
+            self._que = []
+
         # append keypoints dict
         kps_dict[frame_num] = Keypoints(new_kps)
         if pre_frame_num == 0:
@@ -82,26 +85,25 @@ class KeypointQue(Que):
 
         # fill copied keypoints for blank
         pre = np.array(kps_dict[pre_frame_num])
-        for i in range(pre_frame_num + 1, frame_num):
+        filled_kps_lst = []
+        for i in range(pre_frame_num, frame_num):
             if i in kps_dict:
                 # append current keypoints
-                kps = np.array(kps_dict[i])
-                pre = kps.copy()
+                pre = np.array(kps_dict[i]).copy()
             else:
-                # copy and append pre keypoints for filling blank
-                kps_dict[i] = pre.copy()
+                # append pre keypoints for filling blank
+                filled_kps_lst.append(pre.copy())
 
-        if len(kps_dict) <= self._window:
-            kps_lst = list(kps_dict.values())
-            kps_means = np.nanmean(kps_lst, axis=0)
+        if len(filled_kps_lst) == 0:
+            return Keypoints(new_kps), kps_dict
+        elif 0 < len(filled_kps_lst) and len(filled_kps_lst) <= self._window:
+            kps_means = np.nanmean(filled_kps_lst, axis=0)
             self._que.append(kps_means)
         else:
             # fill nan each keypoint
-            for i in range(pre_frame_num, frame_num + 1 - self._window):
+            for i in range(len(filled_kps_lst) - self._window + 1):
                 # calc means of all keypoints
-                kps_window = [
-                    kps_dict[i + j] for j in range(self._window)
-                ]
+                kps_window = filled_kps_lst[i : i + self._window]
                 kps_means = np.nanmean(kps_window, axis=0)
 
                 self._que.append(kps_means)
@@ -109,8 +111,8 @@ class KeypointQue(Que):
                     self._que = self._que[-self._size :]
 
         # calc mean of que
-        if len(self._que) < self._size:
-            ret_kps = np.nanmean(self._que, axis=0)
+        if len(self._que) == 0:
+            ret_kps = new_kps
         else:
             ret_kps = []
             tmp_que = np.transpose(self._que, (1, 0, 2))
