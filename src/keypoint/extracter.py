@@ -9,17 +9,28 @@ from unitrack.tracker.mot.basetrack import STrack
 from utility.json_handler import dump
 from utility.video import Capture, Writer
 
-from keypoint.dataset import make_test_dataloader
 from keypoint.api.higher_hrnet import HigherHRNetDetecter
+from keypoint.api.hrnet import HRNetDetecter
 from keypoint.api.unitrack import UniTrackTracker
+from keypoint.dataset import make_test_dataloader
 from keypoint.visualization import draw_skeleton, put_frame_num
 
 
 class Extractor:
     def __init__(self, cfg: dict, logger: Logger):
         self._logger = logger
-        self._detector = HigherHRNetDetecter(cfg["keypoint"]["hrnet_cfg_path"], logger)
-        self._tracker = UniTrackTracker(cfg["keypoint"]["unitrack_cfg_path"], logger)
+
+        cfg = cfg["keypoint"]
+        detector_name = cfg["detector"]
+        if detector_name == "higher_hrnet":
+            self._detector = HigherHRNetDetecter(
+                cfg["cfg_path"]["higher_hrnet"], logger
+            )
+        elif detector_name == "hrnet":
+            self._detector = HRNetDetecter(cfg["cfg_path"]["hrnet"], logger)
+        else:
+            raise KeyError
+        self._tracker = UniTrackTracker(cfg["cfg_path"]["unitrack"], logger)
 
     def __del__(self):
         del self._detector, self._tracker, self._logger
