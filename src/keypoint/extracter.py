@@ -10,7 +10,7 @@ from utility.json_handler import dump
 from utility.video import Capture, Writer
 
 from keypoint.dataset import make_test_dataloader
-from keypoint.hrnet import HRNetDetecter
+from keypoint.higher_hrnet import HigherHRNetDetecter
 from keypoint.unitrack import UniTrackTracker
 from keypoint.visualization import draw_skeleton, put_frame_num
 
@@ -18,7 +18,7 @@ from keypoint.visualization import draw_skeleton, put_frame_num
 class Extractor:
     def __init__(self, cfg: dict, logger: Logger):
         self._logger = logger
-        self._detector = HRNetDetecter(cfg["keypoint"]["hrnet_cfg_path"], logger)
+        self._detector = HigherHRNetDetecter(cfg["keypoint"]["hrnet_cfg_path"], logger)
         self._tracker = UniTrackTracker(cfg["keypoint"]["unitrack_cfg_path"], logger)
 
     def __del__(self):
