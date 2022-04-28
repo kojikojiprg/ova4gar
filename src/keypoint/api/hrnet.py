@@ -43,8 +43,9 @@ class HRNetDetecter:
         if torch.cuda.is_available():
             self.device = "cuda"
             self.box_model.cuda()
-            gpus = [int(i) for i in self.cfg.GPUS.split(",")]
-            self.pose_model = torch.nn.DataParallel(pose_model, device_ids=gpus)
+            self.pose_model = torch.nn.DataParallel(
+                pose_model, device_ids=self.cfg.GPUS
+            )
             self.pose_model.cuda()
         else:
             self.device = "cpu"
@@ -56,14 +57,7 @@ class HRNetDetecter:
 
     def __del__(self):
         # release memory
-        del (
-            self.box_model,
-            self.pose_model,
-            self.logger,
-            self.cfg,
-            self.transforms,
-            self.parser,
-        )
+        del self.box_model, self.pose_model, self.logger, self.cfg
 
     def predict(self, image: NDArray):
         # object detection box
