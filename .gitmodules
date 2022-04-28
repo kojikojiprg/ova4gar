@@ -6,3 +6,7 @@
 	path = submodules/unitrack
 	url = https://github.com/Zhongdao/UniTrack.git
 	ignore = dirty
+[submodule "submodules/hrnet"]
+	path = submodules/hrnet
+	url = https://github.com/leoxiaobin/deep-high-resolution-net.pytorch.git
+	ignore = dirty
