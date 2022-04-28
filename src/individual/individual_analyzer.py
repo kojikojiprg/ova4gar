@@ -55,7 +55,7 @@ class IndividualAnalyzer:
         individuals: Dict[int, Individual] = {}
         json_data: List[Dict[str, Any]] = []
         pre_frame_num = 1
-        self._logger.info(f"=> writing video into {out_path} while processing.")
+        self._logger.info(f"=> writing video into {out_path} while processing")
         for data in tqdm(keypoints_data):
             frame_num = data["frame"]
             pid = data["id"]
