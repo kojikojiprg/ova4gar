@@ -82,9 +82,17 @@ class IndividualAnalyzer:
                 ]
                 _, frame = video_capture.read()
                 self._write_video(video_writer, video_data, frame, field)
-
                 del video_data  # release memory
                 pre_frame_num = frame_num  # update pre_frame_num
+        else:
+            video_data = [
+                ind.to_json(frame_num)
+                for ind in individuals.values()
+                if ind.exists_on_frame(frame_num)
+            ]
+            _, frame = video_capture.read()
+            self._write_video(video_writer, video_data, frame, field)
+            del video_data  # release memory
 
         # write json
         ind_json_path = os.path.join(data_dir, "json", "individual.json")

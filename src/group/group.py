@@ -96,7 +96,7 @@ class Group:
             writers[key] = video_writer
 
         self._logger.info(f"=> writing video into {out_path} while processing")
-        for frame_num in tqdm(range(self._max_frame_num)):
+        for frame_num in tqdm(range(1, self._max_frame_num + 2)):
             # get frame and field
             _, frame = video_capture.read()
             frame, field = divide_field_and_frame(frame, self._field.shape[1])
