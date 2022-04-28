@@ -6,6 +6,7 @@ import numpy as np
 import torch
 import torchvision
 from numpy.typing import NDArray
+from PIL import Image
 
 from hrnet.lib.config import cfg, update_config
 from hrnet.lib.core.function import get_final_preds
@@ -61,14 +62,11 @@ class HRNetDetecter:
 
     def predict(self, image: NDArray):
         # object detection box
-        image_t = (
-            torch.from_numpy(image / 255.0).permute(2, 0, 1).float().to(self.device)
-        )
-        pred_boxes = self._get_person_detection_boxes(image_t, threshold=0.9)
+        pred_boxes = self._get_person_detection_boxes(image, threshold=0.9)
 
         # pose estimation
         if len(pred_boxes) >= 1:
-            preds = []
+            preds = np.empty((0, 17, 3))
             for box in pred_boxes:
                 center, scale = self._box_to_center_scale(
                     box, cfg.MODEL.IMAGE_SIZE[0], self.cfg.MODEL.IMAGE_SIZE[1]
@@ -78,15 +76,20 @@ class HRNetDetecter:
                     if cfg.DATASET.COLOR_RGB
                     else image[:, :, [2, 1, 0]].copy()
                 )
-                pose_preds = self._get_pose_estimation_prediction(
+                pred_poses = self._get_pose_estimation_prediction(
                     image_pose, center, scale
                 )
-                preds.append(pose_preds)
+                preds = np.append(preds, pred_poses, axis=0)
 
         return preds
 
     def _get_person_detection_boxes(self, img, threshold=0.5):
-        pred = self.box_model(img)
+        pil_image = Image.fromarray(img)  # Load the image
+        transform = torchvision.transforms.Compose(
+            [torchvision.transforms.ToTensor()]
+        )  # Defing PyTorch Transform
+        transformed_img = transform(pil_image)  # Apply the transform to the image
+        pred = self.box_model([transformed_img.to(self.device)])
         pred_classes = [
             i for i in list(pred[0]["labels"].cpu().numpy())
         ]  # Get the Prediction Score
@@ -163,11 +166,11 @@ class HRNetDetecter:
         with torch.no_grad():
             # compute output heatmap
             output = self.pose_model(model_input)
-            preds, _ = get_final_preds(
+            coors, scores = get_final_preds(
                 cfg,
                 output.clone().cpu().numpy(),
                 np.asarray([center]),
                 np.asarray([scale]),
             )
 
-        return preds
+        return np.concatenate((coors, scores), axis=2)
