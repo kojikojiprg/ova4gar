@@ -29,13 +29,20 @@ python setup.py
 cd ../../  # go back root of the project
 ```
 
-5. Download pretrained models from [Higher-HRNet model zoo](https://drive.google.com/drive/folders/1bdXVmYrSynPLSk5lptvgyQ8fhziobD50).  
+5. Install [HRNet]().  
+```
+cd ./submodules/hrnet/lib
+make
+cd ../../../
+```
+
+6. Download pretrained models from [Higher-HRNet model zoo](https://drive.google.com/drive/folders/1bdXVmYrSynPLSk5lptvgyQ8fhziobD50).  
 And store the model into ```./models/hrnet/```.
 
-6. Download pretrained models from [UniTrack model zoo](https://github.com/Zhongdao/UniTrack/blob/main/docs/MODELZOO.md), BarlowTwins recommended.  
+7. Download pretrained models from [UniTrack model zoo](https://github.com/Zhongdao/UniTrack/blob/main/docs/MODELZOO.md), BarlowTwins recommended.  
 And store the model into ```./models/unitrack/```.
 
-7. Delete specific Python code in UniTrack.
+8. Delete specific Python code in UniTrack.
 ```
 cd ./submodules/unitrack/utils
 sed -i '/jaccard_similarity_score/d' mask.py  # sklearn >= 0.23 changed this function name
