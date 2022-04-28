@@ -88,3 +88,8 @@ def concat_field_with_frame(frame: np.typing.NDArray, field: np.typing.NDArray):
     frame = np.concatenate([frame, field], axis=1)
 
     return frame
+
+
+def divide_field_and_frame(frame: np.typing.NDArray, field_width: int):
+    width = frame.shape[1] - field_width
+    return frame[:, : width + 1, :], frame[:, width + 1 :, :]
