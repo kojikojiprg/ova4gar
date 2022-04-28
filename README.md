@@ -39,7 +39,7 @@ cd ../../../
 6. Download pretrained models from [Higher-HRNet model zoo](https://drive.google.com/drive/folders/1bdXVmYrSynPLSk5lptvgyQ8fhziobD50).  
 And store the model into ```./models/higher_hrnet/```.
 
-7. Download pretrained models from [HRNet model zoo](https://drive.google.com/drive/folders/14p2l1u19bLOm5p6esKyolYJyfE1_inLv).  
+7. Download pretrained models from [HRNet model zoo](https://drive.google.com/drive/folders/1nzM_OBV9LbAEA7HClC0chEyf_7ECDXYA).  
 And store the model into ```./models/hrnet/```.
 
 8. Download pretrained models from [UniTrack model zoo](https://github.com/Zhongdao/UniTrack/blob/main/docs/MODELZOO.md), BarlowTwins recommended.  
