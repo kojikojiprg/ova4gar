@@ -9,7 +9,6 @@ video_raw/
 json/
 out/
 models/
-notebook/
 
 *.zip
 *.mp4
@@ -20,3 +19,6 @@ notebook/
 
 .ipynb_checkpoints
 .mypy_cache
+
+notebook/
+requirements-dev.txt
