@@ -9,7 +9,8 @@ def main():
     args = surgery_parser()
 
     video_dir = os.path.join("video", args.room_num, args.date)
-    video_paths = glob(os.path.join(video_dir, "*.mp4"))
+    video_paths = sorted(glob(os.path.join(video_dir, "*.mp4")))
+
     data_dirs = []
     for video_path in video_paths:
         name = os.path.basename(video_path).replace(".mp4", "")

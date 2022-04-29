@@ -10,7 +10,7 @@ def _common_parser():
         "--room_num",
         required=True,
         type=str,
-        help="The room number of operating room",
+        help="operating room number",
     )
 
     # options
@@ -19,28 +19,28 @@ def _common_parser():
         "--cfg_path",
         type=str,
         default="config/demo_config.yaml",
-        help="Config file path.",
+        help="config file path.",
     )
     parser.add_argument(
         "-wk",
         "--without_keypoint",
         default=False,
         action="store_true",
-        help="Without keypoint extraction.",
+        help="without keypoint extraction.",
     )
     parser.add_argument(
         "-wi",
         "--without_individual",
         default=False,
         action="store_true",
-        help="Without idividual analyzation.",
+        help="without idividual analyzation.",
     )
     parser.add_argument(
         "-wg",
         "--without_group",
         default=False,
         action="store_true",
-        help="Without group analyzation.",
+        help="without group analyzation.",
     )
     return parser
 
@@ -49,7 +49,7 @@ def surgery_parser():
     parser = _common_parser()
 
     # requires
-    parser.add_argument("-d", "--date", required=True, type=str, help="Date")
+    parser.add_argument("-d", "--date", required=True, type=str, help="date of surgery")
 
     return parser.parse_args()
 
@@ -58,9 +58,9 @@ def file_parser():
     parser = _common_parser()
 
     # requires
-    parser.add_argument("video_path", type=str, help="Path of a raw video.")
+    parser.add_argument("video_path", type=str, help="video file path")
     parser.add_argument(
-        "data_dir", type=str, help="Path of data directory where results are saved."
+        "data_dir", type=str, help="data directory path where results are saved"
     )
 
     return parser.parse_args()
