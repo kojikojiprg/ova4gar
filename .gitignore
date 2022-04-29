@@ -9,6 +9,7 @@ video_raw/
 json/
 out/
 models/
+notebook/
 
 *.zip
 *.mp4
