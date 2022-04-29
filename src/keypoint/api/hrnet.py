@@ -65,8 +65,8 @@ class HRNetDetecter:
         pred_boxes = self._get_person_detection_boxes(image, threshold=0.9)
 
         # pose estimation
+        preds = np.empty((0, 17, 3))
         if len(pred_boxes) >= 1:
-            preds = np.empty((0, 17, 3))
             for box in pred_boxes:
                 center, scale = self._box_to_center_scale(
                     box, cfg.MODEL.IMAGE_SIZE[0], self.cfg.MODEL.IMAGE_SIZE[1]
