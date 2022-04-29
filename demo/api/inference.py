@@ -1,3 +1,4 @@
+from logging import Logger
 import sys
 
 import cv2
@@ -7,21 +8,17 @@ sys.path.append("src")
 from group.group_analyzer import GroupAnalyzer
 from individual.individual_analyzer import IndividualAnalyzer
 from keypoint.extracter import Extractor
-from utility.logger import setup_logger
 from utility.transform import Homography
 
 
 class InferenceModel:
-    def __init__(self, args):
+    def __init__(self, args, logger: Logger):
         # open config file
         with open(args.cfg_path) as f:
             cfg = yaml.safe_load(f)
 
         # homography
         self._homo, self._field = self._create_homography(cfg, args.room_num)
-
-        # create logger
-        logger = setup_logger()
 
         self.extractor = Extractor(cfg, logger)
         self.individual_anlyzer = IndividualAnalyzer(cfg, logger)
