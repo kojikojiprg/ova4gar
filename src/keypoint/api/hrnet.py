@@ -7,6 +7,7 @@ import torch
 import torchvision
 from numpy.typing import NDArray
 from PIL import Image
+from torchvision import transforms
 
 from hrnet.lib.config import cfg, update_config
 from hrnet.lib.core.function import get_final_preds
@@ -56,6 +57,16 @@ class HRNetDetecter:
         self.box_model.eval()
         self.pose_model.eval()
 
+        self.box_transform = transforms.Compose([transforms.ToTensor()])
+        self.pose_transform = transforms.Compose(
+            [
+                transforms.ToTensor(),
+                transforms.Normalize(
+                    mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
+                ),
+            ]
+        )
+
     def __del__(self):
         # release memory
         del self.box_model, self.pose_model, self.logger, self.cfg
@@ -65,30 +76,30 @@ class HRNetDetecter:
         pred_boxes = self._get_person_detection_boxes(image, threshold=0.9)
 
         # pose estimation
-        preds = np.empty((0, 17, 3))
         if len(pred_boxes) >= 1:
+            centers, scales = [], []
             for box in pred_boxes:
                 center, scale = self._box_to_center_scale(
                     box, cfg.MODEL.IMAGE_SIZE[0], self.cfg.MODEL.IMAGE_SIZE[1]
                 )
-                image_pose = (
-                    image.copy()
-                    if cfg.DATASET.COLOR_RGB
-                    else image[:, :, [2, 1, 0]].copy()
-                )
-                pred_poses = self._get_pose_estimation_prediction(
-                    image_pose, center, scale
-                )
-                preds = np.append(preds, pred_poses, axis=0)
+                centers.append(center)
+                scales.append(scale)
+            image_pose = (
+                image.copy() if cfg.DATASET.COLOR_RGB else image[:, :, [2, 1, 0]].copy()
+            )
+            pred_poses = self._get_pose_estimation_prediction(
+                image_pose, centers, scales
+            )
 
-        return preds
+            return pred_poses
+        else:
+            return np.empty((0, 17, 3))
 
     def _get_person_detection_boxes(self, img, threshold=0.5):
         pil_image = Image.fromarray(img)  # Load the image
-        transform = torchvision.transforms.Compose(
-            [torchvision.transforms.ToTensor()]
-        )  # Defing PyTorch Transform
-        transformed_img = transform(pil_image)  # Apply the transform to the image
+        transformed_img = self.box_transform(
+            pil_image
+        )  # Apply the transform to the image
         pred = self.box_model([transformed_img.to(self.device)])
         pred_classes = [
             i for i in list(pred[0]["labels"].cpu().numpy())
@@ -140,37 +151,34 @@ class HRNetDetecter:
 
         return center, scale
 
-    def _get_pose_estimation_prediction(self, image, center, scale):
+    def _get_pose_estimation_prediction(self, image, centers, scales):
         # pose estimation transformation
-        rotation = 0
-        trans = get_affine_transform(center, scale, rotation, cfg.MODEL.IMAGE_SIZE)
-        model_input = cv2.warpAffine(
-            image,
-            trans,
-            (int(cfg.MODEL.IMAGE_SIZE[0]), int(cfg.MODEL.IMAGE_SIZE[1])),
-            flags=cv2.INTER_LINEAR,
-        )
-        transform = torchvision.transforms.Compose(
-            [
-                torchvision.transforms.ToTensor(),
-                torchvision.transforms.Normalize(
-                    mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
-                ),
-            ]
-        )
+        model_inputs = []
+        for center, scale in zip(centers, scales):
+            trans = get_affine_transform(center, scale, 0, cfg.MODEL.IMAGE_SIZE)
+            # Crop smaller image of people
+            model_input = cv2.warpAffine(
+                image,
+                trans,
+                (int(cfg.MODEL.IMAGE_SIZE[0]), int(cfg.MODEL.IMAGE_SIZE[1])),
+                flags=cv2.INTER_LINEAR,
+            )
 
-        # pose estimation inference
-        model_input = transform(model_input).unsqueeze(0)
-        # switch to evaluate mode
-        self.pose_model.eval()
+            # hwc -> 1chw
+            model_input = self.pose_transform(model_input)  # .unsqueeze(0)
+            model_inputs.append(model_input)
+
+        # n * 1chw -> nchw
+        model_inputs = torch.stack(model_inputs)
+
         with torch.no_grad():
             # compute output heatmap
-            output = self.pose_model(model_input)
+            output = self.pose_model(model_inputs.to(self.device))
             coors, scores = get_final_preds(
                 cfg,
                 output.clone().cpu().numpy(),
-                np.asarray([center]),
-                np.asarray([scale]),
+                np.asarray(centers),
+                np.asarray(scales),
             )
 
         return np.concatenate((coors, scores), axis=2)
