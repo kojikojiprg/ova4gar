@@ -10,7 +10,8 @@ rm -rf CrowdPose
 # install unitrack
 cd ./submodules/unitrack
 python setup.py
-sed -i 'utils/jaccard_similarity_score/d' mask.py  # sklearn >= 0.23 changed this function name
+# sklearn >= 0.23 changed this function name
+sed -i '/jaccard_similarity_score/d' utils/mask.py
 cd ../../  # go back root of the project
 
 # install hrnet
