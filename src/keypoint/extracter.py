@@ -43,7 +43,7 @@ class Extractor:
         ), f"{video_path} does not exist or is wrong file type."
 
         # create video writer
-        out_path = os.path.join(data_dir, "video", "tracking.mp4")
+        out_path = os.path.join(data_dir, "video", "keypoints.mp4")
         video_writer = Writer(out_path, video_capture.fps, video_capture.size)
 
         json_data = []

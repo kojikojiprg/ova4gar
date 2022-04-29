@@ -33,7 +33,7 @@ class IndividualAnalyzer:
 
     def analyze(self, data_dir: str, homo: Homography, field: np.typing.NDArray):
         # create video capture
-        video_path = os.path.join(data_dir, "video", "tracking.mp4")
+        video_path = os.path.join(data_dir, "video", "keypoints.mp4")
         self._logger.info(f"=> loading video from {video_path}.")
         video_capture = Capture(video_path)
         assert (

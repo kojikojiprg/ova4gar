@@ -34,7 +34,7 @@ class GroupAnalyzer:
         group = Group(self._cfg, field, self._logger)
 
         # create video capture
-        video_path = os.path.join(data_dir, "video", "tracking.mp4")
+        video_path = os.path.join(data_dir, "video", "keypoints.mp4")
         self._logger.info(f"=> loading video from {video_path}.")
         video_capture = Capture(video_path)
         assert (
