@@ -19,13 +19,13 @@ posetrack:
     obid: 'lighttrack_MSRA152'
     data_root: '/home/wangzd/datasets/GOT/Posetrack2018'
     split: 'val'
-    track_buffer: 30
+    track_buffer: 300
     nms_thres: 0.4
     conf_thres: 0.5
     iou_thres: 0.5
-    frame_rate: 6
+    frame_rate: 30
     save_videos: False
-    save_images: True
+    save_images: False
     prop_flag: False
     feat_size: [4,10]
     max_mask_area: 400
