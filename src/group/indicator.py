@@ -4,7 +4,7 @@ import numpy as np
 from individual.individual import Individual
 from utility.functions import gauss
 
-from group.passing_detector import PassingDetector
+from group.passing.passing_detector import PassingDetector
 
 
 def passing(
