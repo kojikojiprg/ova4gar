@@ -18,7 +18,7 @@ def _common_parser():
         "-c",
         "--cfg_path",
         type=str,
-        default="config/config.yaml",
+        default="config/demo_config.yaml",
         help="Config file path.",
     )
     parser.add_argument(
