@@ -14,7 +14,7 @@ def get_color(idx: int):
 def put_frame_num(img: NDArray, frame_num: int):
     return cv2.putText(
         img,
-        "Frame:{}".format(frame_num + 1),
+        "Frame:{}".format(frame_num),
         (10, 50),
         cv2.FONT_HERSHEY_PLAIN,
         2,

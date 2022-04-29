@@ -51,6 +51,7 @@ class Extractor:
         data_loader = make_test_dataloader(video_capture)
         self._logger.info(f"=> writing video into {out_path} while processing.")
         for frame_num, imgs in enumerate(tqdm(data_loader)):
+            frame_num += 1  # frame_num = (1, ...)
             assert 1 == imgs.size(0), "Test batch size should be 1"
             frame = imgs[0].cpu().numpy()
 
@@ -64,7 +65,7 @@ class Extractor:
             # append result
             for t in tracks:
                 data = {
-                    "frame": frame_num + 1,
+                    "frame": frame_num,
                     "id": t.track_id,
                     "keypoints": np.array(t.pose),
                 }
