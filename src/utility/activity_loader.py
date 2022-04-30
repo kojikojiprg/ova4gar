@@ -1,10 +1,10 @@
 from logging import Logger
 from typing import Dict, Tuple
 
-import numpy as np
 from group.group import Group
 from individual.individual import Individual
 from individual.individual_analyzer import IndividualAnalyzer
+from numpy.typing import NDArray
 
 from utility import json_handler
 
