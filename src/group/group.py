@@ -12,11 +12,7 @@ class Group:
     def __init__(self, cfg: dict, field: np.typing.NDArray, logger: Logger):
         self._keys = list(cfg["indicator"].keys())
         self._funcs = {k: eval(k) for k in self._keys}
-        self._defs: Dict[str, Any] = {}
-        for ind_key, item in cfg["indicator"].items():
-            self._defs[ind_key] = {}
-            for key, val in item["default"].items():
-                self._defs[ind_key][key] = val
+        self._defs: Dict[str, Any] = self.load_default(cfg)
 
         self._field = field
         self._logger = logger
@@ -31,6 +27,15 @@ class Group:
             "attention": [],
             "passing": {},
         }
+
+    @staticmethod
+    def load_default(cfg: dict) -> Dict[str, Any]:
+        defs: Dict[str, Any] = {}
+        for ind_key, item in cfg["indicator"].items():
+            defs[ind_key] = {}
+            for key, val in item["default"].items():
+                defs[ind_key][key] = val
+        return defs
 
     def __del__(self):
         del self._field, self._logger
