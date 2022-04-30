@@ -46,12 +46,14 @@ class GroupAnalyzer:
         video_capture.set_pos_frame_count(0)
         size = cmb_img.shape[1::-1]
         writers: Dict[str, Writer] = {}
+        out_paths = []
         for key in self._keys:
             out_path = os.path.join(data_dir, "video", f"{key}.mp4")
+            out_paths.append(out_path)
             video_writer = Writer(out_path, video_capture.fps, size)
             writers[key] = video_writer
 
-        self._logger.info(f"=> writing video into {out_path} while processing")
+        self._logger.info(f"=> writing video into {out_paths} while processing")
         for frame_num in tqdm(range(last_frame_num)):
             inds_per_frame = [
                 ind for ind in inds.values() if ind.exists_on_frame(frame_num)
