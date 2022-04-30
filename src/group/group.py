@@ -1,15 +1,15 @@
 from logging import Logger
 from typing import Any, Dict, List
 
-import numpy as np
 from individual.individual import Individual
+from numpy.typing import NDArray
 
 from group.indicator import attention, passing
 from group.passing.passing_detector import PassingDetector
 
 
 class Group:
-    def __init__(self, cfg: dict, field: np.typing.NDArray, logger: Logger):
+    def __init__(self, cfg: dict, field: NDArray, logger: Logger):
         self._keys = list(cfg["indicator"].keys())
         self._funcs = {k: eval(k) for k in self._keys}
         self._defs: Dict[str, Any] = self.load_default(cfg)

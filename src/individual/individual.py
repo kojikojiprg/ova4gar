@@ -2,6 +2,7 @@ from typing import Any, Dict, Union
 
 import numpy as np
 from keypoint.keypoint import PARTS, Keypoints
+from numpy.typing import NDArray
 from utility.transform import Homography
 
 from individual.indicator import arm, body, face, position
@@ -51,7 +52,7 @@ class Individual:
 
     def get_keypoints(
         self, key: str, frame_num: int, ignore_confidence: bool = True
-    ) -> Union[np.typing.NDArray, None]:
+    ) -> Union[NDArray, None]:
         if key not in PARTS:
             raise KeyError
 

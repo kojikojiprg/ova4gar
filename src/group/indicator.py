@@ -2,6 +2,7 @@ from typing import Dict, List
 
 import numpy as np
 from individual.individual import Individual
+from numpy.typing import NDArray
 from utility.functions import gauss
 
 from group.passing.passing_detector import PassingDetector
@@ -56,7 +57,7 @@ def attention(
     frame_num,
     individuals: List[Individual],
     queue: list,
-    field: np.typing.NDArray,
+    field: NDArray,
     defs: dict,
 ):
     angle_range = defs["angle"]

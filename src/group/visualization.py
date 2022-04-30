@@ -2,6 +2,7 @@ from typing import Any, Dict, List, Union
 
 import cv2
 import numpy as np
+from numpy.typing import NDArray
 
 from group.heatmap import Heatmap
 
@@ -34,8 +35,8 @@ class GroupVisualizer:
         key: str,
         frame_num: int,
         group_indicator_data: Dict[str, List[Dict[str, Any]]],
-        field: np.typing.NDArray,
-    ) -> np.typing.NDArray:
+        field: NDArray,
+    ) -> NDArray:
         data = group_indicator_data[key]
 
         # フレームごとにデータを取得する

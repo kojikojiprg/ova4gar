@@ -1,9 +1,9 @@
 import os
 from logging import Logger
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List
 
-import numpy as np
 from individual.visualization import visualize as individual_vis
+from numpy.typing import NDArray
 from tqdm import tqdm
 from utility import json_handler
 from utility.activity_loader import load_individuals
@@ -22,7 +22,7 @@ class GroupAnalyzer:
 
         self._visualizer = GroupVisualizer(self._keys)
 
-    def analyze(self, data_dir: str, field: np.typing.NDArray):
+    def analyze(self, data_dir: str, field: NDArray):
         # load individual data from json file
         ind_json_path = os.path.join(data_dir, ".json", "individual.json")
         self._logger.info(f"=> load individual data from {ind_json_path}")
@@ -76,8 +76,8 @@ class GroupAnalyzer:
         self,
         writers: Dict[str, Writer],
         frame_num: int,
-        frame: np.typing.NDArray,
-        field: np.typing.NDArray,
+        frame: NDArray,
+        field: NDArray,
         inds_data: List[Dict[str, Any]],
         group: Group,
     ):

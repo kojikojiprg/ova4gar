@@ -2,6 +2,7 @@ import os
 
 import cv2
 import numpy as np
+from numpy.typing import NDArray
 
 
 class Capture:
@@ -78,7 +79,7 @@ class Writer:
             self._writer.write(frame)
 
 
-def concat_field_with_frame(frame: np.typing.NDArray, field: np.typing.NDArray):
+def concat_field_with_frame(frame: NDArray, field: NDArray):
     ratio = 1 - (field.shape[0] - frame.shape[0]) / field.shape[0]
     size = [round(field.shape[1] * ratio), round(field.shape[0] * ratio)]
     # if frame.shape[0] != size[1]:

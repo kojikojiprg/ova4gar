@@ -2,7 +2,7 @@ import os
 from logging import Logger
 from typing import Any, Dict, List
 
-import numpy as np
+from numpy.typing import NDArray
 from tqdm import tqdm
 from utility import json_handler
 from utility.transform import Homography
@@ -31,7 +31,7 @@ class IndividualAnalyzer:
             defaults["keypoint"][key] = val
         return defaults
 
-    def analyze(self, data_dir: str, homo: Homography, field: np.typing.NDArray):
+    def analyze(self, data_dir: str, homo: Homography, field: NDArray):
         # create video capture
         video_path = os.path.join(data_dir, "video", "keypoints.mp4")
         self._logger.info(f"=> loading video from {video_path}.")
@@ -106,8 +106,8 @@ class IndividualAnalyzer:
     def _write_video(
         writer: Writer,
         data: List[Dict[str, Any]],
-        frame: np.typing.NDArray,
-        field: np.typing.NDArray,
+        frame: NDArray,
+        field: NDArray,
     ):
         field_tmp = visualize(data, field.copy())
         frame = concat_field_with_frame(frame, field_tmp)

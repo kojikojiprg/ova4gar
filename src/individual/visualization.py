@@ -2,6 +2,7 @@ from typing import Any, Dict, List
 
 import cv2
 import numpy as np
+from numpy.typing import NDArray
 
 # size, color, thickness
 ID_SETTING = (3, (20, 20, 20), 2)
@@ -14,7 +15,7 @@ VECTOR_SETTING_LIST = {
 }
 
 
-def visualize(inds_data: List[Dict[str, Any]], field: np.typing.NDArray):
+def visualize(inds_data: List[Dict[str, Any]], field: NDArray):
     field = _vis_body_face(inds_data, field)
     field = _vis_arm(inds_data, field)
     field = _vis_id(inds_data, field)
@@ -22,7 +23,7 @@ def visualize(inds_data: List[Dict[str, Any]], field: np.typing.NDArray):
     return field
 
 
-def _vis_id(inds_data: List[Dict[str, Any]], field: np.typing.NDArray):
+def _vis_id(inds_data: List[Dict[str, Any]], field: NDArray):
     for data in inds_data:
         ind_id = data["id"]
         position = data["position"]
@@ -39,7 +40,7 @@ def _vis_id(inds_data: List[Dict[str, Any]], field: np.typing.NDArray):
     return field
 
 
-def __vis_arrow(key: str, data: Dict[str, Any], field: np.typing.NDArray):
+def __vis_arrow(key: str, data: Dict[str, Any], field: NDArray):
     position = data["position"]
     vector = data[key]
     arrow_length = VECTOR_SETTING_LIST[key][0]
@@ -62,7 +63,7 @@ def __vis_arrow(key: str, data: Dict[str, Any], field: np.typing.NDArray):
     return field
 
 
-def _vis_body_face(inds_data: List[Dict[str, Any]], field: np.typing.NDArray):
+def _vis_body_face(inds_data: List[Dict[str, Any]], field: NDArray):
     for data in inds_data:
         # face vector
         field = __vis_arrow("face", data, field)
@@ -72,7 +73,7 @@ def _vis_body_face(inds_data: List[Dict[str, Any]], field: np.typing.NDArray):
     return field
 
 
-def _vis_arm(inds_data: List[Dict[str, Any]], field: np.typing.NDArray):
+def _vis_arm(inds_data: List[Dict[str, Any]], field: NDArray):
     for data in inds_data:
         position = data["position"]
         arm = data["arm"]
