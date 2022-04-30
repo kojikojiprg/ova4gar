@@ -63,3 +63,6 @@ class Group:
 
     def to_dict(self):
         return self._idc_dict
+
+    def from_json(self, json_data):
+        self._idc_dict = json_data
