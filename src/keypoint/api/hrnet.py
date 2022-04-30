@@ -73,7 +73,7 @@ class HRNetDetecter:
 
     def predict(self, image: NDArray):
         # object detection box
-        pred_boxes = self._get_person_detection_boxes(image, threshold=0.9)
+        pred_boxes = self._get_person_detection_boxes(image, threshold=0.7)
 
         # pose estimation
         if len(pred_boxes) >= 1:
@@ -95,7 +95,7 @@ class HRNetDetecter:
         else:
             return np.empty((0, 17, 3))
 
-    def _get_person_detection_boxes(self, img, threshold=0.5):
+    def _get_person_detection_boxes(self, img, threshold):
         pil_image = Image.fromarray(img)  # Load the image
         transformed_img = self.box_transform(
             pil_image
