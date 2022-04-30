@@ -6,7 +6,7 @@ keypoint:
     unitrack: "config/unitrack/barlowtwins.yaml"
 
 homography:
-  field_path: "demo/field.png"
+  field_path: "image/field.png"
   "02":
     video: [[426, 553], [494, 510], [773, 638], [718, 692]]
     field: [[271, 255], [321, 255], [321, 412], [271, 412]]
