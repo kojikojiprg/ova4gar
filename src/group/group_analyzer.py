@@ -15,6 +15,7 @@ from group.visualization import GroupVisualizer
 
 class GroupAnalyzer:
     def __init__(self, cfg: dict, logger: Logger):
+        self._ind_cfg = cfg["individual"]
         self._cfg = cfg["group"]
         self._keys = list(self._cfg["indicator"].keys())
         self._logger = logger
@@ -25,7 +26,7 @@ class GroupAnalyzer:
         # load individual data from json file
         ind_json_path = os.path.join(data_dir, ".json", "individual.json")
         self._logger.info(f"=> load individual data from {ind_json_path}")
-        inds, last_frame_num = load_individuals(ind_json_path, cfg["individual"])
+        inds, last_frame_num = load_individuals(ind_json_path, self._ind_cfg)
 
         # create group class
         self._logger.info(f"=> construct group activity model for {data_dir}")
