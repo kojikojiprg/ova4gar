@@ -57,6 +57,7 @@ class Extractor:
 
             # do keypoints detection and tracking
             kps = self._detector.predict(frame)
+            kps = self._get_unique(kps)
             tracks = self._tracker.update(frame, kps)
 
             # write video
@@ -80,6 +81,27 @@ class Extractor:
 
         # release memory
         del (video_capture, video_writer, data_loader, json_data)
+
+    @staticmethod
+    def _get_unique(kps):
+        unique_kps = np.empty((0, 17, 3))
+
+        for i in range(len(kps)):
+            found_overlap = False
+
+            for j in range(len(unique_kps)):
+                found_overlap = True in (kps[i, :, :2] == unique_kps[j, :, :2])
+                if found_overlap:
+                    if np.mean(kps[i, :, 2]) > np.mean(unique_kps[j, :, 2]):
+                        # select one has more confidence score
+                        unique_kps[j] = kps[i]
+                    break
+
+            if not found_overlap:
+                # if there aren't overlapped
+                unique_kps = np.append(unique_kps, [kps[i]], axis=0)
+
+        return unique_kps
 
     @staticmethod
     def _write_video(
