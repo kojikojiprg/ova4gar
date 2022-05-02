@@ -14,11 +14,11 @@ class PassingDetector:
 
         # load config of model
         with open(cfg_path) as f:
-            cfg = yaml.safe_load(f)
-        self._model = LSTMModel(**cfg)
-        self._seq_len = cfg["seq_len"]
+            self.cfg = yaml.safe_load(f)
+        self._model = LSTMModel(**self.cfg)
+        self._seq_len = self.cfg["seq_len"]
 
-        param = torch.load(cfg["pretrained_path"])
+        param = torch.load(self.cfg["pretrained_path"])
         self._model.load_state_dict(param)
         self._model.to(self.device)
 
