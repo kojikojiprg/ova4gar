@@ -5,7 +5,7 @@ keypoint:
     hrnet: "config/hrnet/w32_384x288.yaml"
     unitrack: "config/unitrack/barlowtwins.yaml"
   th_diff: 10  # threshold of difference for finding same keypoints
-  th_count: 3
+  th_count: 5
 
 homography:
   field_path: "image/field.png"
