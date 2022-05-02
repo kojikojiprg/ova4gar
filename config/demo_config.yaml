@@ -45,6 +45,7 @@ individual:
       th_std: 1
       window: 3  # the moving average length for filling nan
       th_conf: 0.0  # threshold of confidence score
+      th_diff: 10
 
 group:
   indicator:

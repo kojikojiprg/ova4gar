@@ -20,17 +20,17 @@ class Extractor:
     def __init__(self, cfg: dict, logger: Logger):
         self._logger = logger
 
-        cfg = cfg["keypoint"]
-        detector_name = cfg["detector"]
+        self._cfg = cfg["keypoint"]
+        detector_name = self._cfg["detector"]
         if detector_name == "higher_hrnet":
             self._detector = HigherHRNetDetecter(
-                cfg["cfg_path"]["higher_hrnet"], logger
+                self._cfg["cfg_path"]["higher_hrnet"], logger
             )
         elif detector_name == "hrnet":
-            self._detector = HRNetDetecter(cfg["cfg_path"]["hrnet"], logger)
+            self._detector = HRNetDetecter(self._cfg["cfg_path"]["hrnet"], logger)
         else:
             raise KeyError
-        self._tracker = UniTrackTracker(cfg["cfg_path"]["unitrack"], logger)
+        self._tracker = UniTrackTracker(self._cfg["cfg_path"]["unitrack"], logger)
 
     def __del__(self):
         del self._detector, self._tracker, self._logger
@@ -57,7 +57,7 @@ class Extractor:
 
             # do keypoints detection and tracking
             kps = self._detector.predict(frame)
-            kps = self._get_unique(kps)
+            kps = self._get_unique(kps, threshold=self._cfg["th_diff"])
             tracks = self._tracker.update(frame, kps)
 
             # write video
@@ -83,14 +83,20 @@ class Extractor:
         del (video_capture, video_writer, data_loader, json_data)
 
     @staticmethod
-    def _get_unique(kps):
+    def _get_unique(kps, threshold):
         unique_kps = np.empty((0, 17, 3))
 
         for i in range(len(kps)):
             found_overlap = False
 
             for j in range(len(unique_kps)):
-                found_overlap = True in (kps[i, :, :2] == unique_kps[j, :, :2])
+                for k in range(17):
+                    diff = np.linalg.norm(kps[i, k, :2], unique_kps[j, k, :2])
+                    print(diff)
+                    if diff < threshold:
+                        found_overlap = True
+                        break
+
                 if found_overlap:
                     if np.mean(kps[i, :, 2]) > np.mean(unique_kps[j, :, 2]):
                         # select one has more confidence score
