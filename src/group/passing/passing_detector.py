@@ -32,8 +32,14 @@ class PassingDetector:
         del self._model
 
     @property
-    def model(self):
+    def model(self) -> LSTMModel:
         return self._model
+
+    @model.setter
+    def model(self, model: LSTMModel):
+        if not isinstance(model, LSTMModel):
+            raise TypeError
+        self._model = model
 
     def train(self):
         self._model.train()
