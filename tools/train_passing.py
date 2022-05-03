@@ -7,10 +7,8 @@ from glob import glob
 import numpy as np
 import torch
 import yaml
-from sklearn.metrics import (accuracy_score, f1_score, precision_score,
-                             recall_score)
+from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
 from torch import nn, optim
-from tqdm import tqdm
 
 sys.path.append("src")
 from group.passing.dataset import make_data_loaders
@@ -70,7 +68,7 @@ def _train(
     model, train_loader, val_loader, criterion, optimizer, scheduler, epoch_len, logger
 ):
     history = dict(train=[], val=[])
-    for epoch in tqdm(range(1, epoch_len + 1)):
+    for epoch in range(1, epoch_len + 1):
         ts = time.time()
 
         # train
