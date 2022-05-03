@@ -67,6 +67,7 @@ def _scores(model, loader):
 def _train(
     model, train_loader, val_loader, criterion, optimizer, scheduler, epoch_len, logger
 ):
+    logger.info("=> start training")
     history = dict(train=[], val=[])
     for epoch in range(1, epoch_len + 1):
         ts = time.time()
@@ -108,6 +109,7 @@ def _train(
             f"Epoch[{epoch}/{(epoch_len)}] train loss: {train_loss:.5f},\
             val loss: {val_loss:.5f}, lr: {lr:.7f}, time: {te - ts:.2f}"
         )
+    logger.info("=> end training")
 
     logger.info("=> calculating train scores")
     acc, pre, rcl, f1 = _scores(model, train_loader)
