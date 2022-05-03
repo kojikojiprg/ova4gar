@@ -106,8 +106,8 @@ def _train(
         history["val"].append(val_loss)
 
         logger.info(
-            f"Epoch[{epoch}/{(epoch_len)}] train loss: {train_loss:.5f},\
-            val loss: {val_loss:.5f}, lr: {lr:.7f}, time: {te - ts:.2f}"
+            f"Epoch[{epoch}/{(epoch_len)}] \
+            train loss: {train_loss:.5f}, val loss: {val_loss:.5f}, lr: {lr:.7f}, time: {te - ts:.2f}"
         )
     logger.info("=> end training")
 
