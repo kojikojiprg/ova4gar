@@ -31,6 +31,10 @@ class PassingDetector:
     def __del__(self):
         del self._model
 
+    @property
+    def model(self):
+        return self._model
+
     def train(self):
         self._model.train()
 

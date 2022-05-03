@@ -1,8 +1,8 @@
 import argparse
 import os
 import sys
+import time
 from glob import glob
-from time import time
 
 import numpy as np
 import torch
@@ -63,12 +63,6 @@ def _scores(model, loader):
     precision = precision_score(y_all, preds)
     recall = recall_score(y_all, preds)
     f1 = f1_score(y_all, preds)
-    print(
-        "accuracy: {:.3f}".format(accuracy),
-        "precision: {:.3f}".format(precision),
-        "recall: {:.3f}".format(recall),
-        "f1_score: {:.3f}".format(f1),
-    )
     return accuracy, precision, recall, f1
 
 
@@ -80,7 +74,7 @@ def _train(
         ts = time.time()
 
         # train
-        model = model.train()
+        model.train()
         lr = optimizer.param_groups[0]["lr"]
         train_losses = []
         for x, y in train_loader:
@@ -97,7 +91,7 @@ def _train(
         scheduler.step()
 
         # validate
-        model = model.eval()
+        model.eval()
         val_losses = []
         with torch.no_grad():
             for x, y in val_loader:
@@ -117,16 +111,23 @@ def _train(
             val loss: {val_loss:.5f}, lr: {lr:.7f}, time: {te - ts:.2f}"
         )
 
+    logger.info("=> calculating train scores")
+    acc, pre, rcl, f1 = _scores(model, train_loader)
+    logger.info(
+        f"=> train score\naccuracy: {acc}\npresision: {pre}\nrecall: {rcl}\nf1: {f1}"
+    )
+
     return model, epoch, history
 
 
 def _testing(model, test_loader):
     model.eval()
     with torch.no_grad():
-        print("train scores")
-        _scores(model, test_loader)
-        print("test scores")
+        logger.info("=> calculating test scores")
         acc, pre, rcl, f1 = _scores(model, test_loader)
+        logger.info(
+            f"=> test score\naccuracy: {acc}\npresision: {pre}\nrecall: {rcl}\nf1: {f1}"
+        )
 
     return model, acc, pre, rcl, f1
 
@@ -137,14 +138,14 @@ def main():
         cfg = yaml.safe_load(f)
 
     data_dirs_all = {}
-    for room_num, date_items in cfg["dataset"].items():
+    for room_num, date_items in cfg["dataset"]["frame_number"].items():
         for date in date_items.keys():
             dirs = sorted(glob(os.path.join("data", room_num, date, "passing", "*")))
             data_dirs_all[f"{room_num}_{date}"] = dirs
 
     logger.info(f"=> loading individuals from {data_dirs_all}")
     inds = {}
-    for key_prefix, dirs in data_dirs_all:
+    for key_prefix, dirs in data_dirs_all.items():
         for model_path in dirs:
             num = model_path.split("/")[-1]
             json_path = os.path.join(model_path, ".json", "individual.json")
@@ -154,33 +155,41 @@ def main():
 
     # create model
     model_cfg_path = cfg["group"]["indicator"]["passing"]["cfg_path"]
-    grp_defs = cfg["group"]
-    model = _init_model(model_cfg_path, grp_defs)
+    grp_defs = cfg["group"]["indicator"]["passing"]["default"]
+    detector = _init_model(model_cfg_path, grp_defs, model=None)
 
     # create data loader
     train_loader, val_loader, test_loader = make_data_loaders(
-        model, inds, cfg["dataset"]
+        detector, inds, cfg["dataset"], logger
     )
 
     # init optimizer
-    criterion = _init_loss(cfg["optim"]["pos_weight"])
-    optimizer, scheduler = _init_optim(cfg["optim"]["lr"], cfg["optim"]["lr_rate"])
+    criterion = _init_loss(cfg["optim"]["pos_weight"], detector.device)
+    optimizer, scheduler = _init_optim(
+        detector.model, cfg["optim"]["lr"], cfg["optim"]["lr_rate"]
+    )
 
     # train and test
+    epoch_len = cfg["optim"]["epoch"]
     try:
-        model, epoch, history = _train(
-            model, train_loader, criterion, optimizer, scheduler
+        detector.model, epoch, history = _train(
+            detector.model,
+            train_loader,
+            val_loader,
+            criterion,
+            optimizer,
+            scheduler,
+            epoch_len,
+            logger,
         )
     except KeyboardInterrupt:
         pass
-    acc, pre, rcl, f1 = _testing(model, test_loader)
-    logger.info(
-        f"=> test score\naccuracy: {acc}\npresision: {pre}\nrecall: {rcl}\nf1: {f1}"
-    )
+    acc, pre, rcl, f1 = _testing(detector.model, test_loader)
 
     # save model
     model_path = os.path.join("models", "passing", f"pass_model_ep{epoch}.pth")
-    torch.save(model.state_dict(), model_path)
+    logger.info(f"=> saving model params to {model_path}")
+    torch.save(detector.state_dict(), model_path)
 
 
 if __name__ == "__main__":
