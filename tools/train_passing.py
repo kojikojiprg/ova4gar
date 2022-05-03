@@ -189,7 +189,7 @@ def main():
     # save model
     model_path = os.path.join("models", "passing", f"pass_model_ep{epoch}.pth")
     logger.info(f"=> saving model params to {model_path}")
-    torch.save(detector.state_dict(), model_path)
+    torch.save(detector.model.state_dict(), model_path)
 
 
 if __name__ == "__main__":
