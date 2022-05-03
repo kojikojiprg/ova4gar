@@ -127,7 +127,7 @@ def _testing(model, test_loader):
             f"=> test score\naccuracy: {acc}\npresision: {pre}\nrecall: {rcl}\nf1: {f1}"
         )
 
-    return model, acc, pre, rcl, f1
+    return acc, pre, rcl, f1
 
 
 def main():
