@@ -3,5 +3,6 @@ flake8
 isort
 mypy
 jupyterlab
+jupyterlab-vim
 
 types-PyYAML
