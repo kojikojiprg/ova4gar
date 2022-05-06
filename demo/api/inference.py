@@ -1,5 +1,5 @@
-from logging import Logger
 import sys
+from logging import Logger
 
 import cv2
 import yaml
@@ -20,13 +20,16 @@ class InferenceModel:
         # homography
         self._homo, self._field = self._create_homography(cfg, args.room_num)
 
-        self.extractor = Extractor(cfg, logger)
-        self.individual_anlyzer = IndividualAnalyzer(cfg, logger)
-        self.group_anlyzer = GroupAnalyzer(cfg, logger)
-
         self._do_keypoint = not args.without_keypoint
         self._do_individual = not args.without_individual
         self._do_group = not args.without_group
+
+        if self._do_keypoint:
+            self.extractor = Extractor(cfg, logger)
+        if self._do_individual:
+            self.individual_anlyzer = IndividualAnalyzer(cfg, logger)
+        if self._do_group:
+            self.group_anlyzer = GroupAnalyzer(cfg, logger)
 
     def _create_homography(self, cfg, room_num):
         homo_cfg = cfg["homography"]
