@@ -50,7 +50,7 @@ optim:
   epoch: 50
   lr: 0.001
   lr_rate: 1.0
-  pos_weight: [1, 10]
+  pos_weight: [1, 8]
 
 dataset:
   batch_size: 4096
