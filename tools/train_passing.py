@@ -7,7 +7,8 @@ from glob import glob
 import numpy as np
 import torch
 import yaml
-from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
+from sklearn.metrics import (accuracy_score, f1_score, precision_score,
+                             recall_score)
 from torch import nn, optim
 
 sys.path.append("src")
@@ -26,20 +27,20 @@ def _setup_parser():
     return parser.parse_args()
 
 
-def _init_model(cfg_path, defs, model=None):
+def init_model(cfg_path, defs, model=None):
     if isinstance(model, PassingDetector):
         del model
     model = PassingDetector(cfg_path, defs)
     return model
 
 
-def _init_loss(pos_weight, device):
+def init_loss(pos_weight, device):
     pos_weight = torch.tensor(pos_weight).to(device)
     criterion = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
     return criterion
 
 
-def _init_optim(model, lr, rate):
+def init_optim(model, lr, rate):
     optimizer = optim.Adam(model.parameters(), lr=lr)
     scheduler = optim.lr_scheduler.LambdaLR(
         optimizer, lr_lambda=lambda epoch: rate**epoch
@@ -47,7 +48,7 @@ def _init_optim(model, lr, rate):
     return optimizer, scheduler
 
 
-def _scores(model, loader):
+def scores(model, loader):
     preds, y_all = [], []
     for x, y in loader:
         pred = model(x)
@@ -64,7 +65,7 @@ def _scores(model, loader):
     return accuracy, precision, recall, f1
 
 
-def _train(
+def train(
     model, train_loader, val_loader, criterion, optimizer, scheduler, epoch_len, logger
 ):
     logger.info("=> start training")
@@ -106,13 +107,12 @@ def _train(
         history["val"].append(val_loss)
 
         logger.info(
-            f"Epoch[{epoch}/{(epoch_len)}] \
-            train loss: {train_loss:.5f}, val loss: {val_loss:.5f}, lr: {lr:.7f}, time: {te - ts:.2f}"
+            f"Epoch[{epoch}/{(epoch_len)}] train loss: {train_loss:.5f}, val loss: {val_loss:.5f}, lr: {lr:.7f}, time: {te - ts:.2f}"
         )
     logger.info("=> end training")
 
     logger.info("=> calculating train scores")
-    acc, pre, rcl, f1 = _scores(model, train_loader)
+    acc, pre, rcl, f1 = scores(model, train_loader)
     logger.info(
         f"=> train score\naccuracy: {acc}\npresision: {pre}\nrecall: {rcl}\nf1: {f1}"
     )
@@ -120,11 +120,11 @@ def _train(
     return model, epoch, history
 
 
-def _testing(model, test_loader):
+def test(model, test_loader):
     model.eval()
     with torch.no_grad():
         logger.info("=> calculating test scores")
-        acc, pre, rcl, f1 = _scores(model, test_loader)
+        acc, pre, rcl, f1 = scores(model, test_loader)
         logger.info(
             f"=> test score\naccuracy: {acc}\npresision: {pre}\nrecall: {rcl}\nf1: {f1}"
         )
@@ -156,7 +156,7 @@ def main():
     # create model
     model_cfg_path = cfg["group"]["indicator"]["passing"]["cfg_path"]
     grp_defs = cfg["group"]["indicator"]["passing"]["default"]
-    detector = _init_model(model_cfg_path, grp_defs, model=None)
+    detector = init_model(model_cfg_path, grp_defs, model=None)
 
     # create data loader
     train_loader, val_loader, test_loader = make_data_loaders(
@@ -164,15 +164,15 @@ def main():
     )
 
     # init optimizer
-    criterion = _init_loss(cfg["optim"]["pos_weight"], detector.device)
-    optimizer, scheduler = _init_optim(
+    criterion = init_loss(cfg["optim"]["pos_weight"], detector.device)
+    optimizer, scheduler = init_optim(
         detector.model, cfg["optim"]["lr"], cfg["optim"]["lr_rate"]
     )
 
     # train and test
     epoch_len = cfg["optim"]["epoch"]
     try:
-        detector.model, epoch, history = _train(
+        detector.model, epoch, history = train(
             detector.model,
             train_loader,
             val_loader,
@@ -184,7 +184,7 @@ def main():
         )
     except KeyboardInterrupt:
         pass
-    acc, pre, rcl, f1 = _testing(detector.model, test_loader)
+    acc, pre, rcl, f1 = test(detector.model, test_loader)
 
     # save model
     model_path = os.path.join("models", "passing", f"pass_model_ep{epoch}.pth")
