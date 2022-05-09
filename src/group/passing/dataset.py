@@ -68,8 +68,8 @@ def make_data_loaders(
     cfg: dict,
     logger: Logger,
 ):
-    x_dict, y_dict = _make_all_data(
-        passing_detector, individuals, cfg["frame_number"], logger
+    x_dict, y_dict = make_all_data(
+        passing_detector, individuals, cfg["setting"], logger
     )
 
     seq_len = passing_detector.cfg["seq_len"]
@@ -103,63 +103,7 @@ def make_data_loaders(
     return train_loader, val_loader, test_loader
 
 
-def _make_time_series_from_cfg(dataset_cfg: dict, logger: Logger):
-    ret_data = {}
-    for room_num, room_cfg in dataset_cfg.items():
-        room_data = {}
-        for date, date_cfg in room_cfg.items():
-            logger.info(f"=> createing time series {room_num}_{date}")
-            date_data = {}
-            for num, row in tqdm(date_cfg.items()):
-                frame_numbers = []
-                for item in row:
-                    target_persons = sorted([int(item[0]), int(item[1])])
-                    begin = int(item[2])
-                    end = int(item[3])
-                    frame_numbers.append(
-                        {"targets": target_persons, "begin": begin, "end": end}
-                    )
-
-                kps_json_path = os.path.join(
-                    "data", room_num, date, "passing", num, ".json", "keypoints.json"
-                )
-                kps_data = json_handler.load(kps_json_path)
-
-                max_frame = kps_data[-1]["frame"]
-                time_series = []
-                for frame_num in range(max_frame):
-                    frame_data = [
-                        data for data in kps_data if data["frame"] == frame_num
-                    ]
-
-                    for i in range(len(frame_data) - 1):
-                        for j in range(i + 1, len(frame_data)):
-                            id1 = frame_data[i]["id"]
-                            id2 = frame_data[j]["id"]
-                            for item in frame_numbers:
-                                is_pass = 0
-                                if id1 in item["targets"] and id2 in item["targets"]:
-                                    if (
-                                        item["begin"] <= frame_num
-                                        and frame_num <= item["end"]
-                                    ):
-                                        is_pass = 1
-
-                                time_series.append((frame_num, id1, id2, is_pass))
-
-                time_series = sorted(
-                    time_series, key=lambda x: x[2]
-                )  # sorted by person2
-                time_series = sorted(
-                    time_series, key=lambda x: x[1]
-                )  # sorted by person1
-                date_data[num] = time_series
-            room_data[date] = date_data
-        ret_data[room_num] = room_data
-    return ret_data
-
-
-def _make_all_data(
+def make_all_data(
     passing_detector: PassingDetector,
     individuals: Dict[str, Individual],
     dataset_cfg: dict,
@@ -171,28 +115,100 @@ def _make_all_data(
     for room_num, room_data in data_all.items():
         for date, date_data in room_data.items():
             logger.info(f"=> extracting feature {room_num}_{date}")
-            for num, time_series in tqdm(date_data.items()):
+            for file_num, time_series in tqdm(date_data.items()):
                 queue_dict: Dict[str, list] = {}
-                for row in time_series:
-                    frame_num = row[0]
-                    id1 = f"{room_num}_{date}_{num}_{row[1]}"
-                    id2 = f"{room_num}_{date}_{num}_{row[2]}"
+                for pair_key, row in time_series.items():
+                    id1, id2 = pair_key.split("_")
+                    for (frame_num, is_pass) in row:
+                        # frame_num, is_pass = row[0], row[1]
 
-                    ind1 = individuals[id1]
-                    ind2 = individuals[id2]
+                        ind1 = individuals[f"{room_num}_{date}_{file_num}_{id1}"]
+                        ind2 = individuals[f"{room_num}_{date}_{file_num}_{id2}"]
 
-                    pair_key = f"{ind1.id}_{ind2.id}"
-                    if pair_key not in queue_dict:
-                        queue_dict[pair_key] = []
-                    que = queue_dict[pair_key]
-                    que = passing_detector.extract_feature(ind1, ind2, que, frame_num)
-                    key = f"{room_num}_{date}_{num}_{row[1]}_{row[2]}"
+                        # queue
+                        pair_key = f"{ind1.id}_{ind2.id}"
+                        if pair_key not in queue_dict:
+                            queue_dict[pair_key] = []
+                        feature_que = queue_dict[pair_key]
 
-                    if key not in x_dict:
-                        x_dict[key] = []
-                        y_dict[key] = []
+                        # extract feature
+                        feature_que = passing_detector.extract_feature(
+                            ind1, ind2, feature_que, frame_num
+                        )
 
-                    x_dict[key].append(que[-1])
-                    y_dict[key].append(row[3])
+                        # save data
+                        key = f"{room_num}_{date}_{file_num}_{ind1.id}_{ind2.id}"
+                        if key not in x_dict:
+                            x_dict[key] = []
+                            y_dict[key] = []
+
+                        if len(feature_que) > 0:
+                            x_dict[key].append(feature_que[-1])
+                            y_dict[key].append(is_pass)
 
     return x_dict, y_dict
+
+
+def _make_time_series_from_cfg(dataset_cfg: dict, logger: Logger):
+    ret_data = {}
+    for room_num, room_cfg in dataset_cfg.items():
+        room_data = {}
+        for date, date_cfg in room_cfg.items():
+            logger.info(f"=> createing time series {room_num}_{date}")
+            date_data = {}
+            for file_num, row in tqdm(date_cfg.items()):
+                settings = []
+                for item in row:
+                    settings.append(
+                        {
+                            "id1": item[0],
+                            "id2": item[1],
+                            "begin": int(item[2]),
+                            "end": int(item[3]),
+                        }
+                    )
+
+                kps_json_path = os.path.join(
+                    "data",
+                    room_num,
+                    date,
+                    "passing",
+                    file_num,
+                    ".json",
+                    "keypoints.json",
+                )
+                kps_data = json_handler.load(kps_json_path)
+
+                max_frame = kps_data[-1]["frame"]
+                time_series: Dict[str, list] = {}
+                for frame_num in range(max_frame):
+                    frame_data = [
+                        data for data in kps_data if data["frame"] == frame_num
+                    ]
+
+                    for i in range(len(frame_data) - 1):
+                        for j in range(i + 1, len(frame_data)):
+                            id1 = frame_data[i]["id"]
+                            id2 = frame_data[j]["id"]
+
+                            pair_key = f"{id1}_{id2}"
+                            if pair_key not in time_series:
+                                time_series[pair_key] = []
+
+                            is_pass = 0
+                            for item in settings:
+                                if (id1 == item["id1"] and id2 == item["id2"]) or (
+                                    id1 == item["id2"] and id2 == item["id1"]
+                                ):
+                                    if (
+                                        item["begin"] <= frame_num
+                                        and frame_num <= item["end"]
+                                    ):
+                                        is_pass = 1
+
+                            time_series[pair_key].append((frame_num, is_pass))
+
+                date_data[file_num] = time_series
+            room_data[date] = date_data
+        ret_data[room_num] = room_data
+    return ret_data

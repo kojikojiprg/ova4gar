@@ -67,7 +67,7 @@ class PassingDetector:
         ind2_data = self._get_indicators(ind2, frame_num)
 
         if None in ind1_data.__dict__.values() or None in ind2_data.__dict__.values():
-            return None
+            return que
 
         # calc distance of position
         p1_pos = np.array(ind1_data.pos)

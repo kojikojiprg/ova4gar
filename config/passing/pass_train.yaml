@@ -57,7 +57,7 @@ dataset:
   train_ratio: 0.65
   val_ratio: 0.05
   random_seed: 128
-  frame_number:
+  setting:
     "02":
       "20210903":
       # num     p1   p2   s1   e1

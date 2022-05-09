@@ -138,7 +138,7 @@ def main():
         cfg = yaml.safe_load(f)
 
     data_dirs_all = {}
-    for room_num, date_items in cfg["dataset"]["frame_number"].items():
+    for room_num, date_items in cfg["dataset"]["setting"].items():
         for date in date_items.keys():
             dirs = sorted(glob(os.path.join("data", room_num, date, "passing", "*")))
             data_dirs_all[f"{room_num}_{date}"] = dirs
