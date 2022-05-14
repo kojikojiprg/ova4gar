@@ -7,7 +7,8 @@ from glob import glob
 import numpy as np
 import torch
 import yaml
-from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
+from sklearn.metrics import (accuracy_score, f1_score, precision_score,
+                             recall_score)
 from torch import nn, optim
 
 sys.path.append("src")
@@ -183,6 +184,7 @@ def main():
             logger,
         )
     except KeyboardInterrupt:
+        logger.info("KeyboardInterrupt")
         pass
     acc, pre, rcl, f1 = test(detector.model, test_loader)
 
