@@ -17,7 +17,7 @@ VECTOR_SETTING_LIST = {
 
 def visualize(inds_data: List[Dict[str, Any]], field: NDArray):
     field = _vis_body_face(inds_data, field)
-    field = _vis_arm(inds_data, field)
+    # field = _vis_arm(inds_data, field)
     field = _vis_id(inds_data, field)
 
     return field
