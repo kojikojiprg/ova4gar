@@ -31,6 +31,9 @@ class InferenceModel:
         if self._do_group:
             self.group_anlyzer = GroupAnalyzer(cfg, logger)
 
+    def __del__(self):
+        del self.extractor, self.individual_anlyzer, self.group_anlyzer
+
     def _create_homography(self, cfg, room_num):
         homo_cfg = cfg["homography"]
         field = cv2.imread(homo_cfg["field_path"])
