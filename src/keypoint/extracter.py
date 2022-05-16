@@ -57,6 +57,7 @@ class Extractor:
 
             # do keypoints detection and tracking
             kps = self._detector.predict(frame)
+            kps = self._del_leaky(kps, self._cfg["th_delete"])
             kps = self._get_unique(kps, self._cfg["th_diff"], self._cfg["th_count"])
             tracks = self._tracker.update(frame, kps)
 
@@ -83,7 +84,11 @@ class Extractor:
         del (video_capture, video_writer, data_loader, json_data)
 
     @staticmethod
-    def _get_unique(kps, th_diff, th_count):
+    def _del_leaky(kps: NDArray, th_delete: float):
+        return kps[np.nonzero(np.mean(kps[:, :, 2], axis=1) > th_delete)]
+
+    @staticmethod
+    def _get_unique(kps: NDArray, th_diff: float, th_count: int):
         unique_kps = np.empty((0, 17, 3))
 
         for i in range(len(kps)):
@@ -111,6 +116,6 @@ class Extractor:
         # add keypoints to image
         frame = put_frame_num(frame, frame_num)
         for t in tracks:
-            frame = draw_skeleton(frame, t.track_id, t.pose)
+            frame = draw_skeleton(frame, t.track_id, np.array(t.pose))
 
         writer.write(frame)
