@@ -70,46 +70,50 @@ def train(
 ):
     logger.info("=> start training")
     history = dict(train=[], val=[])
-    for epoch in range(1, epoch_len + 1):
-        ts = time.time()
+    try:
+        for epoch in range(1, epoch_len + 1):
+            ts = time.time()
 
-        # train
-        model.train()
-        lr = optimizer.param_groups[0]["lr"]
-        train_losses = []
-        for x, y in train_loader:
-            optimizer.zero_grad()
+            # train
+            model.train()
+            lr = optimizer.param_groups[0]["lr"]
+            train_losses = []
+            for x, y in train_loader:
+                optimizer.zero_grad()
 
-            pred = model(x)
-
-            loss = criterion(pred.requires_grad_(), y)
-            loss.backward()
-            train_losses.append(loss.item())
-
-            optimizer.step()
-
-        scheduler.step()
-
-        # validate
-        model.eval()
-        val_losses = []
-        with torch.no_grad():
-            for x, y in val_loader:
                 pred = model(x)
 
                 loss = criterion(pred.requires_grad_(), y)
-                val_losses.append(loss.item())
+                loss.backward()
+                train_losses.append(loss.item())
 
-        te = time.time()
-        train_loss = np.mean(train_losses)
-        val_loss = np.mean(val_losses)
-        history["train"].append(train_loss)
-        history["val"].append(val_loss)
+                optimizer.step()
 
-        logger.info(
-            f"Epoch[{epoch}/{(epoch_len)}] train loss: {train_loss:.5f}, "
-            + f"val loss: {val_loss:.5f}, lr: {lr:.7f}, time: {te - ts:.2f}"
-        )
+            scheduler.step()
+
+            # validate
+            model.eval()
+            val_losses = []
+            with torch.no_grad():
+                for x, y in val_loader:
+                    pred = model(x)
+
+                    loss = criterion(pred.requires_grad_(), y)
+                    val_losses.append(loss.item())
+
+            te = time.time()
+            train_loss = np.mean(train_losses)
+            val_loss = np.mean(val_losses)
+            history["train"].append(train_loss)
+            history["val"].append(val_loss)
+
+            logger.info(
+                f"Epoch[{epoch}/{(epoch_len)}] train loss: {train_loss:.5f}, "
+                + f"val loss: {val_loss:.5f}, lr: {lr:.7f}, time: {te - ts:.2f}"
+            )
+    except KeyboardInterrupt:
+        logger.info("KeyboardInterrupt")
+        pass
     logger.info("=> end training")
 
     logger.info("=> calculating train scores")
@@ -172,20 +176,16 @@ def main():
 
     # train and test
     epoch_len = cfg["optim"]["epoch"]
-    try:
-        detector.model, epoch, history = train(
-            detector.model,
-            train_loader,
-            val_loader,
-            criterion,
-            optimizer,
-            scheduler,
-            epoch_len,
-            logger,
-        )
-    except KeyboardInterrupt:
-        logger.info("KeyboardInterrupt")
-        pass
+    detector.model, epoch, history = train(
+        detector.model,
+        train_loader,
+        val_loader,
+        criterion,
+        optimizer,
+        scheduler,
+        epoch_len,
+        logger,
+    )
     acc, pre, rcl, f1 = test(detector.model, test_loader)
 
     # save model
