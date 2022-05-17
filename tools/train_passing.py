@@ -7,8 +7,7 @@ from glob import glob
 import numpy as np
 import torch
 import yaml
-from sklearn.metrics import (accuracy_score, f1_score, precision_score,
-                             recall_score)
+from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
 from torch import nn, optim
 
 sys.path.append("src")
@@ -143,10 +142,12 @@ def main():
         cfg = yaml.safe_load(f)
 
     data_dirs_all = {}
-    for room_num, date_items in cfg["dataset"]["setting"].items():
-        for date in date_items.keys():
-            dirs = sorted(glob(os.path.join("data", room_num, date, "passing", "*")))
-            data_dirs_all[f"{room_num}_{date}"] = dirs
+    for room_num, surgery_data in cfg["dataset"]["setting"].items():
+        for surgery_num in surgery_data.keys():
+            dirs = sorted(
+                glob(os.path.join("data", room_num, surgery_num, "passing", "*"))
+            )
+            data_dirs_all[f"{room_num}_{surgery_num}"] = dirs
 
     logger.info(f"=> loading individuals from {data_dirs_all}")
     inds = {}

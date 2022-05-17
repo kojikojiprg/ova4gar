@@ -12,14 +12,14 @@ from utility.logger import logger
 def main():
     args = surgery_parser()
 
-    video_dir = os.path.join("video", args.room_num, args.date)
+    video_dir = os.path.join("video", args.room_num, args.surgery_num)
     video_paths = sorted(glob(os.path.join(video_dir, "*.mp4")))
     logger.info(f"=> video paths:\n{video_paths}")
 
     data_dirs = []
     for video_path in video_paths:
         name = os.path.basename(video_path).replace(".mp4", "")
-        data_dir = os.path.join("data", args.room_num, args.date, name)
+        data_dir = os.path.join("data", args.room_num, args.surgery_num, name)
         data_dirs.append(data_dir)
         os.makedirs(data_dir, exist_ok=True)
 

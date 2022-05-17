@@ -113,17 +113,17 @@ def make_all_data(
     y_dict: Dict[str, Any] = {}
     data_all = _make_time_series_from_cfg(dataset_cfg, logger)
     for room_num, room_data in data_all.items():
-        for date, date_data in room_data.items():
-            logger.info(f"=> extracting feature {room_num}_{date}")
-            for file_num, time_series in tqdm(date_data.items()):
+        for surgery_num, surgery_data in room_data.items():
+            logger.info(f"=> extracting feature {room_num}_{surgery_num}")
+            for data_num, time_series in tqdm(surgery_data.items()):
                 queue_dict: Dict[str, list] = {}
                 for pair_key, row in time_series.items():
                     id1, id2 = pair_key.split("_")
                     for (frame_num, is_pass) in row:
                         # frame_num, is_pass = row[0], row[1]
 
-                        ind1 = individuals[f"{room_num}_{date}_{file_num}_{id1}"]
-                        ind2 = individuals[f"{room_num}_{date}_{file_num}_{id2}"]
+                        ind1 = individuals[f"{room_num}_{surgery_num}_{data_num}_{id1}"]
+                        ind2 = individuals[f"{room_num}_{surgery_num}_{data_num}_{id2}"]
 
                         # queue
                         pair_key = f"{ind1.id}_{ind2.id}"
@@ -137,7 +137,7 @@ def make_all_data(
                         )
 
                         # save data
-                        key = f"{room_num}_{date}_{file_num}_{ind1.id}_{ind2.id}"
+                        key = f"{room_num}_{surgery_num}_{data_num}_{ind1.id}_{ind2.id}"
                         if key not in x_dict:
                             x_dict[key] = []
                             y_dict[key] = []
@@ -153,10 +153,10 @@ def _make_time_series_from_cfg(dataset_cfg: dict, logger: Logger):
     ret_data = {}
     for room_num, room_cfg in dataset_cfg.items():
         room_data = {}
-        for date, date_cfg in room_cfg.items():
-            logger.info(f"=> createing time series {room_num}_{date}")
-            date_data = {}
-            for file_num, row in tqdm(date_cfg.items()):
+        for surgery_num, date_cfg in room_cfg.items():
+            logger.info(f"=> createing time series {room_num}_{surgery_num}")
+            surgery_data = {}
+            for data_num, row in tqdm(date_cfg.items()):
                 settings = []
                 for item in row:
                     settings.append(
@@ -171,9 +171,9 @@ def _make_time_series_from_cfg(dataset_cfg: dict, logger: Logger):
                 kps_json_path = os.path.join(
                     "data",
                     room_num,
-                    date,
+                    surgery_num,
                     "passing",
-                    file_num,
+                    data_num,
                     ".json",
                     "keypoints.json",
                 )
@@ -208,7 +208,7 @@ def _make_time_series_from_cfg(dataset_cfg: dict, logger: Logger):
 
                             time_series[pair_key].append((frame_num, is_pass))
 
-                date_data[file_num] = time_series
-            room_data[date] = date_data
+                surgery_data[data_num] = time_series
+            room_data[surgery_num] = surgery_data
         ret_data[room_num] = room_data
     return ret_data

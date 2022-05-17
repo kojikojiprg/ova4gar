@@ -49,7 +49,9 @@ def surgery_parser():
     parser = _common_parser()
 
     # requires
-    parser.add_argument("-d", "--date", required=True, type=str, help="date of surgery")
+    parser.add_argument(
+        "-f", "--surgery_num", required=True, type=str, help="surgery_num of surgery"
+    )
 
     return parser.parse_args()
 
