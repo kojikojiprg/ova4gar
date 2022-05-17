@@ -14,6 +14,7 @@ sys.path.append("src")
 from group.passing.dataset import make_data_loaders
 from group.passing.passing_detector import PassingDetector
 from utility.activity_loader import load_individuals
+from utility.device import get_device
 from utility.logger import logger
 
 
@@ -26,10 +27,10 @@ def _setup_parser():
     return parser.parse_args()
 
 
-def init_model(cfg_path, defs, model=None):
+def init_model(cfg_path, defs, device, model=None):
     if isinstance(model, PassingDetector):
         del model
-    model = PassingDetector(cfg_path, defs)
+    model = PassingDetector(cfg_path, defs, device)
     return model
 
 
@@ -141,6 +142,8 @@ def main():
     with open(args.cfg_path, "r") as f:
         cfg = yaml.safe_load(f)
 
+    device = get_device(args)
+
     data_dirs_all = {}
     for room_num, surgery_data in cfg["dataset"]["setting"].items():
         for surgery_num in surgery_data.keys():
@@ -162,11 +165,11 @@ def main():
     # create model
     model_cfg_path = cfg["group"]["indicator"]["passing"]["cfg_path"]
     grp_defs = cfg["group"]["indicator"]["passing"]["default"]
-    detector = init_model(model_cfg_path, grp_defs, model=None)
+    detector = init_model(model_cfg_path, grp_defs, device, model=None)
 
     # create data loader
     train_loader, val_loader, test_loader = make_data_loaders(
-        detector, inds, cfg["dataset"], logger
+        detector, inds, cfg["dataset"], logger, device
     )
 
     # init optimizer

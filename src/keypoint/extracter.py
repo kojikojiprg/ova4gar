@@ -12,7 +12,6 @@ from utility.video import Capture, Writer
 from keypoint.api.higher_hrnet import HigherHRNetDetecter
 from keypoint.api.hrnet import HRNetDetecter
 from keypoint.api.unitrack import UniTrackTracker
-from keypoint.dataset import make_test_dataloader
 from keypoint.visualization import draw_skeleton, put_frame_num
 
 
@@ -41,6 +40,7 @@ class Extractor:
 
     def predict(self, video_path: str, data_dir: str):
         # create video capture
+        self._logger.info(f"=> loading video from {video_path}.")
         video_capture = Capture(video_path)
         assert (
             video_capture.is_opened
@@ -51,13 +51,10 @@ class Extractor:
         video_writer = Writer(out_path, video_capture.fps, video_capture.size)
 
         json_data = []
-        self._logger.info(f"=> loading video from {video_path}.")
-        data_loader = make_test_dataloader(video_capture)
         self._logger.info(f"=> writing video into {out_path} while processing.")
-        for frame_num, imgs in enumerate(tqdm(data_loader)):
+        for frame_num in tqdm(range(video_capture.frame_count)):
             frame_num += 1  # frame_num = (1, ...)
-            assert 1 == imgs.size(0), "Test batch size should be 1"
-            frame = imgs[0].cpu().numpy()
+            _, frame = video_capture.read()
 
             # do keypoints detection and tracking
             kps = self._detector.predict(frame)
@@ -78,14 +75,14 @@ class Extractor:
                 json_data.append(data)
                 del data  # release memory
 
-            del imgs, frame, kps, tracks  # release memory
+            del frame, kps, tracks  # release memory
 
         json_path = os.path.join(data_dir, ".json", "keypoints.json")
         self._logger.info(f"=> writing json file into {json_path}.")
         dump(json_data, json_path)
 
         # release memory
-        del (video_capture, video_writer, data_loader, json_data)
+        del video_capture, video_writer, json_data
 
     @staticmethod
     def _del_leaky(kps: NDArray, th_delete: float):

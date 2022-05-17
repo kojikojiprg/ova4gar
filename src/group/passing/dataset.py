@@ -11,7 +11,7 @@ from utility import json_handler
 
 
 class PassingDataset(torch.utils.data.Dataset):
-    def __init__(self, x_dict, y_dict, seq_len, logger):
+    def __init__(self, x_dict, y_dict, seq_len, logger, device):
         self.x, self.y = [], []
         logger.info("=> create dataset")
         for key in tqdm(x_dict.keys()):
@@ -21,7 +21,7 @@ class PassingDataset(torch.utils.data.Dataset):
             self.x += x_seq
             self.y += y_seq
 
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.device = device
 
     def __getitem__(self, index):
         return (
@@ -53,8 +53,9 @@ def make_data_loader(
     batch_size: int,
     shuffle: bool,
     logger: Logger,
+    device: str,
 ):
-    dataset = PassingDataset(x_dict, y_dict, seq_len, logger)
+    dataset = PassingDataset(x_dict, y_dict, seq_len, logger, device)
     loader = torch.utils.data.DataLoader(
         dataset, batch_size=batch_size, shuffle=shuffle
     )
@@ -67,6 +68,7 @@ def make_data_loaders(
     individuals: Dict[str, Individual],
     cfg: dict,
     logger: Logger,
+    device: str,
 ):
     x_dict, y_dict = make_all_data(
         passing_detector, individuals, cfg["setting"], logger
@@ -89,16 +91,20 @@ def make_data_loaders(
     x_train_dict = {key: x_dict[key] for key in train_keys}
     y_train_dict = {key: y_dict[key] for key in train_keys}
     train_loader = make_data_loader(
-        x_train_dict, y_train_dict, seq_len, batch_size, True, logger
+        x_train_dict, y_train_dict, seq_len, batch_size, True, logger, device
     )
 
     x_val_dict = {key: x_dict[key] for key in val_keys}
     y_val_dict = {key: y_dict[key] for key in val_keys}
-    val_loader = make_data_loader(x_val_dict, y_val_dict, seq_len, 1, False, logger)
+    val_loader = make_data_loader(
+        x_val_dict, y_val_dict, seq_len, 1, False, logger, device
+    )
 
     x_test_dict = {key: x_dict[key] for key in test_keys}
     y_test_dict = {key: y_dict[key] for key in test_keys}
-    test_loader = make_data_loader(x_test_dict, y_test_dict, seq_len, 1, False, logger)
+    test_loader = make_data_loader(
+        x_test_dict, y_test_dict, seq_len, 1, False, logger, device
+    )
 
     return train_loader, val_loader, test_loader
 
