@@ -1,5 +1,5 @@
-from ast import arg
 import sys
+from ast import arg
 from logging import Logger
 
 import cv2
@@ -41,11 +41,11 @@ class InferenceModel:
             self.group_anlyzer = GroupAnalyzer(cfg, logger, device)
 
     def __del__(self):
-        if isinstance(self.extractor, Extractor):
+        if self.extractor is not None:
             del self.extractor
-        if isinstance(self.individual_anlyzer, IndividualAnalyzer):
+        if self.individual_anlyzer is not None:
             del self.individual_anlyzer
-        if isinstance(self.group_anlyzer, GroupAnalyzer):
+        if self.group_anlyzer is not None:
             del self.group_anlyzer
 
     def _create_homography(self, cfg, room_num):
