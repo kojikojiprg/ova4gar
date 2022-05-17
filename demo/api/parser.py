@@ -22,6 +22,13 @@ def _common_parser():
         help="config file path.",
     )
     parser.add_argument(
+        "-g",
+        "--gpu",
+        type=int,
+        default=None,
+        help="gpu number",
+    )
+    parser.add_argument(
         "-wk",
         "--without_keypoint",
         default=False,

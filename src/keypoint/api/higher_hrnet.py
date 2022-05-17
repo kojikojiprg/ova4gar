@@ -20,7 +20,7 @@ from higher_hrnet.lib.utils.transforms import (
 
 
 class HigherHRNetDetecter:
-    def __init__(self, cfg_path: str, logger: Logger, opts: list = []):
+    def __init__(self, cfg_path: str, logger: Logger, device: str, opts: list = []):
         # update config
         args = SimpleNamespace(**{"cfg": cfg_path, "opts": opts})
         self.cfg = cfg
@@ -34,18 +34,12 @@ class HigherHRNetDetecter:
         torch.backends.cudnn.deterministic = self.cfg.CUDNN.DETERMINISTIC
         torch.backends.cudnn.enabled = self.cfg.CUDNN.ENABLED
 
-        model = pose_higher_hrnet.get_pose_net(self.cfg, is_train=False)
-
         self.logger.info(
             "=> loading hrnet model from {}".format(self.cfg.TEST.MODEL_FILE)
         )
+        model = pose_higher_hrnet.get_pose_net(self.cfg, is_train=False)
         model.load_state_dict(torch.load(self.cfg.TEST.MODEL_FILE), strict=True)
-
-        if torch.cuda.is_available():
-            self.model = torch.nn.DataParallel(model, device_ids=self.cfg.GPUS)
-            self.model.cuda()
-        else:
-            self.model.cpu()
+        self.model = model.to(device)
 
         self.model.eval()
 

@@ -9,9 +9,7 @@ from utility.functions import cos_similarity, gauss
 
 
 class PassingDetector:
-    def __init__(self, cfg_path: str, defs: dict):
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
-
+    def __init__(self, cfg_path: str, defs: dict, device: str):
         # load config of model
         with open(cfg_path) as f:
             self.cfg = yaml.safe_load(f)
@@ -20,7 +18,8 @@ class PassingDetector:
 
         param = torch.load(self.cfg["pretrained_path"])
         self._model.load_state_dict(param)
-        self._model.to(self.device)
+        self._model.to(device)
+        self.device = device
 
         # load defaults
         self._mu = defs["gauss_mu"]

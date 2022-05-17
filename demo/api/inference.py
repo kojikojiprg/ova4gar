@@ -1,7 +1,9 @@
+from ast import arg
 import sys
 from logging import Logger
 
 import cv2
+import torch
 import yaml
 
 sys.path.append("src")
@@ -24,12 +26,19 @@ class InferenceModel:
         self._do_individual = not args.without_individual
         self._do_group = not args.without_group
 
+        if torch.cuda.is_available():
+            device = "cuda"
+            if args.gpu is not None:
+                device += f":{args.gpu}"
+        else:
+            device = "cpu"
+
         if self._do_keypoint:
-            self.extractor = Extractor(cfg, logger)
+            self.extractor = Extractor(cfg, logger, device)
         if self._do_individual:
             self.individual_anlyzer = IndividualAnalyzer(cfg, logger)
         if self._do_group:
-            self.group_anlyzer = GroupAnalyzer(cfg, logger)
+            self.group_anlyzer = GroupAnalyzer(cfg, logger, device)
 
     def __del__(self):
         if isinstance(self.extractor, Extractor):

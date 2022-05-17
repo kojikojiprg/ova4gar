@@ -17,6 +17,7 @@ class UniTrackTracker:
         self,
         cfg_path: str,
         logger: Logger,
+        device: str,
         model_type: str = "detco",
         model_path: str = "models/unitrack/detco.pth",
     ):
@@ -31,6 +32,7 @@ class UniTrackTracker:
         opts.model_type = model_type
         opts.resume = model_path
         opts.return_stage = 2
+        opts.device = device  # assign device
         self.use_lab = getattr(opts, "use_lab", False)
 
         self.transforms = T.Compose(

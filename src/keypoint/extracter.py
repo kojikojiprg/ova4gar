@@ -17,20 +17,24 @@ from keypoint.visualization import draw_skeleton, put_frame_num
 
 
 class Extractor:
-    def __init__(self, cfg: dict, logger: Logger):
+    def __init__(self, cfg: dict, logger: Logger, device: str):
         self._logger = logger
 
         self._cfg = cfg["keypoint"]
         detector_name = self._cfg["detector"]
         if detector_name == "higher_hrnet":
             self._detector = HigherHRNetDetecter(
-                self._cfg["cfg_path"]["higher_hrnet"], logger
+                self._cfg["cfg_path"]["higher_hrnet"], logger, device
             )
         elif detector_name == "hrnet":
-            self._detector = HRNetDetecter(self._cfg["cfg_path"]["hrnet"], logger)
+            self._detector = HRNetDetecter(
+                self._cfg["cfg_path"]["hrnet"], logger, device
+            )
         else:
             raise KeyError
-        self._tracker = UniTrackTracker(self._cfg["cfg_path"]["unitrack"], logger)
+        self._tracker = UniTrackTracker(
+            self._cfg["cfg_path"]["unitrack"], logger, device
+        )
 
     def __del__(self):
         del self._detector, self._tracker, self._logger

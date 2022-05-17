@@ -9,7 +9,7 @@ from group.passing.passing_detector import PassingDetector
 
 
 class Group:
-    def __init__(self, cfg: dict, field: NDArray, logger: Logger):
+    def __init__(self, cfg: dict, field: NDArray, logger: Logger, device: str):
         self._keys = list(cfg["indicator"].keys())
         self._funcs = {k: eval(k) for k in self._keys}
         self._defs: Dict[str, Any] = self.load_default(cfg)
@@ -19,7 +19,7 @@ class Group:
 
         pass_cfg_path = cfg["indicator"]["passing"]["cfg_path"]
         self._logger.info(f"=> load passing detector from {pass_cfg_path}")
-        self._pass_clf = PassingDetector(pass_cfg_path, self._defs["passing"])
+        self._pass_clf = PassingDetector(pass_cfg_path, self._defs["passing"], device)
         self._pass_clf.eval()
 
         self._idc_dict: Dict[str, List[Dict[str, Any]]] = {k: [] for k in self._keys}

@@ -16,7 +16,7 @@ from hrnet.lib.utils.transforms import get_affine_transform
 
 
 class HRNetDetecter:
-    def __init__(self, cfg_path: str, logger: Logger, opts: list = []):
+    def __init__(self, cfg_path: str, logger: Logger, device: str, opts: list = []):
         # update config
         args = SimpleNamespace(**{"cfg": cfg_path, "opts": opts})
         args.modelDir = ""
@@ -27,6 +27,7 @@ class HRNetDetecter:
         update_config(self.cfg, args)
 
         self.logger: Logger = logger
+        self.device = device
 
         # cudnn related setting
         torch.backends.cudnn.benchmark = self.cfg.CUDNN.BENCHMARK
@@ -35,24 +36,12 @@ class HRNetDetecter:
 
         self.box_model = torchvision.models.detection.fasterrcnn_resnet50_fpn(
             pretrained=True, progress=False
-        )
-
-        pose_model = pose_hrnet.get_pose_net(self.cfg, is_train=False)
+        ).to(device)
 
         self.logger.info("=> loading model from {}".format(self.cfg.TEST.MODEL_FILE))
+        pose_model = pose_hrnet.get_pose_net(self.cfg, is_train=False)
         pose_model.load_state_dict(torch.load(self.cfg.TEST.MODEL_FILE))
-
-        if torch.cuda.is_available():
-            self.device = "cuda"
-            self.box_model.cuda()
-            self.pose_model = torch.nn.DataParallel(
-                pose_model, device_ids=self.cfg.GPUS
-            )
-            self.pose_model.cuda()
-        else:
-            self.device = "cpu"
-            self.box_model.cpu()
-            self.pose_model.cpu()
+        self.pose_model = pose_model.to(device)
 
         self.box_model.eval()
         self.pose_model.eval()
