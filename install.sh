@@ -1,5 +1,14 @@
 #!/bin/sh
 
+# install python libraries
+pip install -r requirements.txt --extra-index-url https://download.pytorch.org/whl/cu115
+
+# cython_bbox requires Cython, lap requires numpy.
+pip install cython_bbox lap
+
+# init submodules
+git submodule update --init
+
 # install crowdpose
 git clone https://github.com/Jeff-sjtu/CrowdPose.git
 cd CrowdPose/crowdpose-api/PythonAPI

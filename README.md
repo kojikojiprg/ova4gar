@@ -1,35 +1,21 @@
 # Environment
 - OS: Ubuntu-20.04
 - Pyhon: 3.9.12
-- CUDA: 11.5 (Optional)
+- CUDA: 11.5
 
 # Installation
-1. Install python requirements.
-```
-# if CUDA version is not 11.5, change extra-index-url to match CUDA version.
-pip install -r requirements.txt --extra-index-url https://download.pytorch.org/whl/cu115
-
-# cython_bbox requires Cython, lap requires numpy.
-pip install cython_bbox lap
-```
-
-2. Update submodules.
-```
-git submodule update --init
-```
-
-3. Install submodules.
+1. Install python requirements and submodules.
 ```
 sh install.sh
 ```
 
-4. Download pretrained models from [Higher-HRNet model zoo](https://drive.google.com/drive/folders/1bdXVmYrSynPLSk5lptvgyQ8fhziobD50).  
+2. Download pretrained models from [Higher-HRNet model zoo](https://drive.google.com/drive/folders/1bdXVmYrSynPLSk5lptvgyQ8fhziobD50).  
 And store the model into ```./models/higher_hrnet/```.
 
-5. Download pretrained models from [HRNet model zoo](https://drive.google.com/drive/folders/1nzM_OBV9LbAEA7HClC0chEyf_7ECDXYA).  
+3. Download pretrained models from [HRNet model zoo](https://drive.google.com/drive/folders/1nzM_OBV9LbAEA7HClC0chEyf_7ECDXYA).  
 And store the model into ```./models/hrnet/```.
 
-6. Download pretrained models from [UniTrack model zoo](https://github.com/Zhongdao/UniTrack/blob/main/docs/MODELZOO.md), BarlowTwins recommended.  
+4. Download pretrained models from [UniTrack model zoo](https://github.com/Zhongdao/UniTrack/blob/main/docs/MODELZOO.md), BarlowTwins recommended.  
 And store the model into ```./models/unitrack/```.
 
 
