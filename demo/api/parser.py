@@ -50,7 +50,11 @@ def surgery_parser():
 
     # requires
     parser.add_argument(
-        "-f", "--surgery_num", required=True, type=str, help="surgery_num of surgery"
+        "-s",
+        "--surgery_num",
+        required=True,
+        type=str,
+        help="surgery number of each room",
     )
 
     return parser.parse_args()
