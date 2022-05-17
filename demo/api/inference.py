@@ -32,7 +32,12 @@ class InferenceModel:
             self.group_anlyzer = GroupAnalyzer(cfg, logger)
 
     def __del__(self):
-        del self.extractor, self.individual_anlyzer, self.group_anlyzer
+        if isinstance(self.extractor, Extractor):
+            del self.extractor
+        if isinstance(self.individual_anlyzer, IndividualAnalyzer):
+            del self.individual_anlyzer
+        if isinstance(self.group_anlyzer, GroupAnalyzer):
+            del self.group_anlyzer
 
     def _create_homography(self, cfg, room_num):
         homo_cfg = cfg["homography"]
