@@ -81,7 +81,7 @@ class IndividualAnalyzer:
                     if ind.exists_on_frame(pre_frame_num)
                 ]
                 _, frame = video_capture.read()
-                self._write_video(video_writer, video_data, frame, field)
+                self.write_video(video_writer, video_data, frame, field)
                 del video_data  # release memory
                 pre_frame_num = frame_num  # update pre_frame_num
         else:
@@ -91,7 +91,7 @@ class IndividualAnalyzer:
                 if ind.exists_on_frame(frame_num)
             ]
             _, frame = video_capture.read()
-            self._write_video(video_writer, video_data, frame, field)
+            self.write_video(video_writer, video_data, frame, field)
             del video_data  # release memory
 
         # write json
@@ -103,7 +103,7 @@ class IndividualAnalyzer:
         del video_capture, video_writer, keypoints_data, individuals, json_data
 
     @staticmethod
-    def _write_video(
+    def write_video(
         writer: Writer,
         data: List[Dict[str, Any]],
         frame: NDArray,

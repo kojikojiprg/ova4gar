@@ -62,7 +62,7 @@ class Extractor:
             tracks = self._tracker.update(frame, kps)
 
             # write video
-            self._write_video(video_writer, frame, tracks, frame_num)
+            self.write_video(video_writer, frame, tracks, frame_num)
 
             # append result
             for t in tracks:
@@ -110,7 +110,7 @@ class Extractor:
         return unique_kps
 
     @staticmethod
-    def _write_video(
+    def write_video(
         writer: Writer, frame: NDArray, tracks: List[STrack], frame_num: int
     ):
         # add keypoints to image

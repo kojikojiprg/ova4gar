@@ -62,7 +62,7 @@ class GroupAnalyzer:
 
             inds_video_data = [ind.to_dict(frame_num) for ind in inds_per_frame]
             _, frame = video_capture.read()
-            self._write_video(writers, frame_num, frame, field, inds_video_data, group)
+            self.write_video(writers, frame_num, frame, field, inds_video_data, group)
 
         # write json
         group_data = group.to_dict()
@@ -72,7 +72,7 @@ class GroupAnalyzer:
 
         del inds, group, group_data, video_capture, writers  # release memory
 
-    def _write_video(
+    def write_video(
         self,
         writers: Dict[str, Writer],
         frame_num: int,
