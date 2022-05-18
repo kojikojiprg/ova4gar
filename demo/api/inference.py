@@ -3,7 +3,6 @@ from ast import arg
 from logging import Logger
 
 import cv2
-import torch
 import yaml
 
 sys.path.append("src")
