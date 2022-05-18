@@ -14,7 +14,6 @@ sys.path.append("src")
 from group.passing.dataset import make_data_loaders
 from group.passing.passing_detector import PassingDetector
 from utility.activity_loader import load_individuals
-from utility.device import get_device
 from utility.logger import logger
 
 
@@ -142,7 +141,8 @@ def main():
     with open(args.cfg_path, "r") as f:
         cfg = yaml.safe_load(f)
 
-    device = get_device(args)
+    os.environ["CUDA_VISIBLE_DEVICES"] = str(args.gpu)
+    device = "cuda" if torch.cuda.is_available() else "cpu"
 
     data_dirs_all = {}
     for room_num, surgery_data in cfg["dataset"]["setting"].items():
