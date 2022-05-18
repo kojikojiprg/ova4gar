@@ -24,8 +24,10 @@ def load_individuals(json_path: str, cfg: dict) -> Tuple[Dict[int, Individual], 
     return inds, last_frame_num
 
 
-def load_group(json_path: str, cfg: dict, field: NDArray, logger: Logger) -> Group:
-    group = Group(cfg, field, logger)
+def load_group(
+    json_path: str, cfg: dict, field: NDArray, logger: Logger, device: str
+) -> Group:
+    group = Group(cfg, field, logger, device)
     json_data = json_handler.load(json_path)
     group.from_json(json_data)
 
