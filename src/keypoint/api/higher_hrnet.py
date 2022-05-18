@@ -38,9 +38,9 @@ class HigherHRNetDetecter:
         self.logger.info(
             "=> loading hrnet model from {}".format(self.cfg.TEST.MODEL_FILE)
         )
-        model = pose_higher_hrnet.get_pose_net(self.cfg, is_train=False)
-        model.load_state_dict(torch.load(self.cfg.TEST.MODEL_FILE), strict=True)
-        self.model = model.to(device)
+        self.model = pose_higher_hrnet.get_pose_net(self.cfg, is_train=False)
+        self.model.load_state_dict(torch.load(self.cfg.TEST.MODEL_FILE), strict=True)
+        self.model.to(device)
 
         self.model.eval()
 

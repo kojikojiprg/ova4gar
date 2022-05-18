@@ -39,9 +39,9 @@ class HRNetDetecter:
         ).to(device)
 
         self.logger.info("=> loading model from {}".format(self.cfg.TEST.MODEL_FILE))
-        pose_model = pose_hrnet.get_pose_net(self.cfg, is_train=False)
-        pose_model.load_state_dict(torch.load(self.cfg.TEST.MODEL_FILE))
-        self.pose_model = pose_model.to(device)
+        self.pose_model = pose_hrnet.get_pose_net(self.cfg, is_train=False)
+        self.pose_model.load_state_dict(torch.load(self.cfg.TEST.MODEL_FILE))
+        self.pose_model.to(device)
 
         self.box_model.eval()
         self.pose_model.eval()
