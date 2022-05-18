@@ -28,6 +28,7 @@ class HigherHRNetDetecter:
         check_config(self.cfg)
 
         self.logger: Logger = logger
+        self.device = device
 
         # cudnn related setting
         torch.backends.cudnn.benchmark = self.cfg.CUDNN.BENCHMARK
@@ -78,7 +79,7 @@ class HigherHRNetDetecter:
                     image, input_size, s, min(self.cfg.TEST.SCALE_FACTOR)
                 )
                 image_resized = self.transforms(image_resized)
-                image_resized = image_resized.unsqueeze(0).cuda()
+                image_resized = image_resized.unsqueeze(0).to(self.device)
 
                 outputs, heatmaps, tags = get_multi_stage_outputs(
                     self.cfg,
