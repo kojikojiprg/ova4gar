@@ -12,7 +12,6 @@ common:
     down_factor: 8
     infer2D: True
     workers: 4
-    gpu_id: 0
     device: cuda
 
 posetrack:
