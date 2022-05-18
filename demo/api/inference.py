@@ -1,5 +1,4 @@
 import sys
-from ast import arg
 from logging import Logger
 
 import cv2
@@ -9,7 +8,6 @@ sys.path.append("src")
 from group.group_analyzer import GroupAnalyzer
 from individual.individual_analyzer import IndividualAnalyzer
 from keypoint.extracter import Extractor
-from utility.device import get_device
 from utility.transform import Homography
 
 
@@ -26,7 +24,7 @@ class InferenceModel:
         self._do_individual = not args.without_individual
         self._do_group = not args.without_group
 
-        device = get_device(args)
+        device = "cuda" if torch.cuda.is_available() else "cpu"
         if self._do_keypoint:
             self.extractor = Extractor(cfg, logger, device)
         if self._do_individual:
