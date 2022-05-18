@@ -102,7 +102,8 @@ def attention(
     for face, diffs in zip(faces, diffs_all_ind):
         shitas = [
             np.arccos(
-                np.dot(diff, face) / (np.linalg.norm(diff) * np.linalg.norm(face) + 1e-10)
+                np.dot(diff, face)
+                / (np.linalg.norm(diff) * np.linalg.norm(face) + 1e-10)
             )
             for diff in diffs
         ]
@@ -114,23 +115,25 @@ def attention(
                 else:
                     pixcel_data[tuple(coors[i])] += gauss(norm, mu=length, sigma=sigma)
 
-    data = []
     if sum_data is not None:
         # moving average
-        total_data = sum_data + pixcel_data
+        ave = (sum_data + pixcel_data) / seq_len
 
         # concat result
         data = [
             {
                 "frame": frame_num,
                 "point": coor,
-                "value": total_data[coor],
+                "value": ave[tuple(coor)],
             }
-            for coor in coors if total_data[coor] > 0.05
+            for coor in coors
+            if pixcel_data[tuple(coor)] > 1 / seq_len
         ]
+    else:
+        data = []
 
-        # push and pop queue
-        queue.append(pixcel_data)
-        queue = queue[-seq_len:]
+    # push and pop queue
+    queue.append(pixcel_data)
+    queue = queue[-seq_len:]
 
     return data, queue
