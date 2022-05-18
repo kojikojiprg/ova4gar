@@ -74,55 +74,63 @@ def attention(
     else:
         sum_data = None
 
+    # extract position and face vector
+    poss_tmp, faces_tmp = [], []
+    for ind in individuals:
+        pos = ind.get_indicator("position", frame_num)
+        face = ind.get_indicator("face", frame_num)
+        if pos is not None and face is not None:
+            poss_tmp.append(pos)
+            faces_tmp.append(face)
+    poss = np.array(poss_tmp)
+    faces = np.array(faces_tmp)
+
+    # prepair coordinations
+    coors = np.array(
+        [
+            [x, y]
+            for y in range(0, field.shape[0], division)
+            for x in range(0, field.shape[1], division)
+        ]
+    )
+
+    # calc difference of all individuals
+    diffs_all_ind = np.array([coors - pos for pos in poss])
+
+    # calc each pixel value
+    pixcel_data = np.zeros((field.shape[1], field.shape[0]), dtype=np.float32)
+    for face, diffs in zip(faces, diffs_all_ind):
+        shitas = [
+            np.arccos(
+                np.dot(diff, face) / (np.linalg.norm(diff) * np.linalg.norm(face) + 1e-10)
+            )
+            for diff in diffs
+        ]
+        for i in range(len(diffs)):
+            if -angle_range <= shitas[i] and shitas[i] <= angle_range:
+                norm = np.linalg.norm(diffs[i])
+                if norm <= length:
+                    pixcel_data[tuple(coors[i])] += 1.0
+                else:
+                    pixcel_data[tuple(coors[i])] += gauss(norm, mu=length, sigma=sigma)
+
     data = []
-    pixcel_datas = np.zeros((field.shape[1], field.shape[0]), dtype=np.float32)
-    for x in range(0, field.shape[1], division):
-        for y in range(0, field.shape[0], division):
-            point = np.array([x, y])  # the coordination of each pixel
-            value = 0.0  # value of each pixel
-            for ind in individuals:
-                pos = ind.get_indicator("position", frame_num)
-                face_vector = ind.get_indicator("face", frame_num)
-                if pos is None or face_vector is None:
-                    continue
+    if sum_data is not None:
+        # moving average
+        total_data = sum_data + pixcel_data
 
-                # calc angle between position and point
-                diff = point - np.array(pos)
-                shita = np.arctan2(diff[1], diff[0])
+        # concat result
+        data = [
+            {
+                "frame": frame_num,
+                "point": coor,
+                "value": total_data[coor],
+            }
+            for coor in coors if total_data[coor] > 0.05
+        ]
 
-                # calc face angle
-                face_shita = np.arctan2(face_vector[1], face_vector[0])
-
-                if (
-                    face_shita - angle_range <= shita
-                    and shita <= face_shita + angle_range
-                ):
-                    # calc norm between position and point
-                    norm = np.linalg.norm(diff)
-                    if norm <= length:
-                        value += 1.0
-                    else:
-                        value += gauss(norm, mu=length, sigma=sigma)
-
-                pixcel_datas[x, y] = value  # save every frame value
-
-                if value >= 1 / seq_len:
-                    total = value
-                    if sum_data is not None:
-                        # sum all pixel data in queue
-                        total += sum_data[x, y]
-                    total /= seq_len
-
-                    data.append(
-                        {
-                            "frame": frame_num,
-                            "point": point,
-                            "value": total,
-                        }
-                    )
-
-    # push and pop queue
-    queue.append(pixcel_datas)
-    queue = queue[-seq_len:]
+        # push and pop queue
+        queue.append(pixcel_data)
+        queue = queue[-seq_len:]
 
     return data, queue
