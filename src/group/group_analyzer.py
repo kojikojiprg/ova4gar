@@ -2,6 +2,7 @@ import os
 from logging import Logger
 from typing import Any, Dict, List
 
+import torch
 from individual.visualization import visualize as individual_vis
 from numpy.typing import NDArray
 from tqdm import tqdm
@@ -22,6 +23,10 @@ class GroupAnalyzer:
         self._device = device
 
         self._visualizer = GroupVisualizer(self._keys)
+
+    def __del__(self):
+        torch.cuda.empty_cache()
+        del self._visualizer
 
     def analyze(self, data_dir: str, field: NDArray):
         # load individual data from json file
@@ -71,7 +76,9 @@ class GroupAnalyzer:
         self._logger.info(f"=> write group data to {grp_json_path}")
         json_handler.dump(group_data, grp_json_path)
 
-        del inds, group, group_data, video_capture, writers  # release memory
+        # release memory
+        torch.cuda.empty_cache()
+        del inds, group, group_data, video_capture, writers
 
     def write_video(
         self,

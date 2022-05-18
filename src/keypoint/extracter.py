@@ -3,6 +3,7 @@ from logging import Logger
 from typing import List
 
 import numpy as np
+import torch
 from numpy.typing import NDArray
 from tqdm import tqdm
 from unitrack.tracker.mot.basetrack import STrack
@@ -36,6 +37,7 @@ class Extractor:
         )
 
     def __del__(self):
+        torch.cuda.empty_cache()
         del self._detector, self._tracker, self._logger
 
     def predict(self, video_path: str, data_dir: str):
@@ -82,6 +84,7 @@ class Extractor:
         dump(json_data, json_path)
 
         # release memory
+        torch.cuda.empty_cache()
         del video_capture, video_writer, json_data
 
     @staticmethod
