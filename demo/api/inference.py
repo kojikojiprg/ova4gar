@@ -31,17 +31,17 @@ class InferenceModel:
         if self._do_keypoint:
             self.extractor = Extractor(cfg, logger, device)
         if self._do_individual:
-            self.individual_anlyzer = IndividualAnalyzer(cfg, logger)
+            self.individual_analyzer = IndividualAnalyzer(cfg, logger)
         if self._do_group:
-            self.group_anlyzer = GroupAnalyzer(cfg, logger, device)
+            self.group_analyzer = GroupAnalyzer(cfg, logger, device)
 
     def __del__(self):
-        if self.extractor is not None:
+        if hasattr(self, "extractor"):
             del self.extractor
-        if self.individual_anlyzer is not None:
-            del self.individual_anlyzer
-        if self.group_anlyzer is not None:
-            del self.group_anlyzer
+        if hasattr(self, "individual_analyzer"):
+            del self.individual_analyzer
+        if hasattr(self, "group_analyzer"):
+            del self.group_analyzer
 
     def _create_homography(self, cfg, room_num):
         homo_cfg = cfg["homography"]
@@ -57,7 +57,7 @@ class InferenceModel:
             self.extractor.predict(video_path, data_dir)
 
         if self._do_individual:
-            self.individual_anlyzer.analyze(data_dir, self._homo, self._field)
+            self.individual_analyzer.analyze(data_dir, self._homo, self._field)
 
         if self._do_group:
-            self.group_anlyzer.analyze(data_dir, self._field)
+            self.group_analyzer.analyze(data_dir, self._field)
