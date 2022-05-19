@@ -1,3 +1,4 @@
+import gc
 import os
 from logging import Logger
 from typing import List
@@ -51,46 +52,57 @@ class Extractor:
         assert (
             video_capture.is_opened
         ), f"{video_path} does not exist or is wrong file type."
-        dataloader = make_data_loader(video_capture, self._batch_size)
 
         # create video writer
         out_path = os.path.join(data_dir, "video", "keypoints.mp4")
         video_writer = Writer(out_path, video_capture.fps, video_capture.size)
 
-        json_data = []
+        kps_all = self._detect(video_capture)
+
+        self._logger.info("=> tracking keypoints")
         self._logger.info(f"=> writing video into {out_path} while processing.")
-        for frame_nums, frames in tqdm(dataloader):
-            frames = [frame.cpu().numpy() for frame in frames]
+        video_capture.set_pos_frame_count(0)  # initialize video capture
+        json_data = []
+        for frame_num, kps in enumerate(tqdm(kps_all)):
+            _, frame = video_capture.read()
 
-            # do keypoints detection and tracking
-            kps_all_batch = self._detector.predict(frames)
-            for frame_num, frame, kps in zip(frame_nums, frames, kps_all_batch):
-                kps = self._del_leaky(kps, self._cfg["th_delete"])
-                kps = self._get_unique(kps, self._cfg["th_diff"], self._cfg["th_count"])
-                tracks = self._tracker.update(frame, kps)
+            # tracking
+            tracks = self._tracker.update(frame, kps)
 
-                # write video
-                self.write_video(video_writer, frame, tracks, frame_num)
+            self.write_video(video_writer, frame, tracks, frame_num)
 
-                # append result
-                for t in tracks:
-                    data = {
-                        "frame": frame_num,
-                        "id": t.track_id,
-                        "keypoints": np.array(t.pose),
-                    }
-                    json_data.append(data)
-                    del data  # release memory
-
-                del frame, kps  # release memory
+            # append result
+            for t in tracks:
+                data = {
+                    "frame": frame_num,
+                    "id": t.track_id,
+                    "keypoints": np.array(t.pose),
+                }
+                json_data.append(data)
 
         json_path = os.path.join(data_dir, ".json", "keypoints.json")
         self._logger.info(f"=> writing json file into {json_path}.")
         dump(json_data, json_path)
 
         # release memory
+        gc.collect()
         torch.cuda.empty_cache()
-        del video_capture, video_writer, json_data
+
+    def _detect(self, video_capture):
+        self._logger.info("=> detecting keypoints")
+        dataloader = make_data_loader(video_capture, self._batch_size)
+        kps_all = []
+        for frame_nums, frames in tqdm(dataloader):
+            frames = [frame.cpu().numpy() for frame in frames]
+
+            # keypoints detection
+            kps_all_batch = self._detector.predict(frames)
+            for kps in kps_all_batch:
+                kps = self._del_leaky(kps, self._cfg["th_delete"])
+                kps = self._get_unique(kps, self._cfg["th_diff"], self._cfg["th_count"])
+                kps_all.append(kps)
+
+        return kps_all
 
     @staticmethod
     def _del_leaky(kps: NDArray, th_delete: float):

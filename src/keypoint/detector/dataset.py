@@ -18,6 +18,8 @@ class KeypointDetaset(torch.utils.data.Dataset):
 def make_data_loader(cap: Capture, batch_size):
     dataset = KeypointDetaset(cap)
 
-    loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=False)
+    loader = torch.utils.data.DataLoader(
+        dataset, batch_size=batch_size, shuffle=False, num_workers=0, pin_memory=False
+    )
 
     return loader
