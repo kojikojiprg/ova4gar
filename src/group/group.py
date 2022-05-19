@@ -42,6 +42,9 @@ class Group:
         del self._pass_clf
         del self._idc_dict, self._idc_que
 
+    def get(self, key):
+        return self._idc_dict[key]
+
     def calc_indicator(self, frame_num: int, individuals: List[Individual]):
         for key, func in self._funcs.items():
             if key == "passing":
