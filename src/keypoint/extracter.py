@@ -66,21 +66,17 @@ class Extractor:
             for frame_num, frame, kps in zip(frame_nums, frames, kps_all_batch):
                 kps = self._del_leaky(kps, self._cfg["th_delete"])
                 kps = self._get_unique(kps, self._cfg["th_diff"], self._cfg["th_count"])
-                # tracks = self._tracker.update(frame, kps)
+                tracks = self._tracker.update(frame, kps)
 
                 # write video
-                # self.write_video(video_writer, frame, tracks, frame_num)
-                frame = put_frame_num(frame, frame_num)
-                for kp in kps:
-                    frame = draw_skeleton(frame, -1, kp)
-                video_writer.write(frame)
+                self.write_video(video_writer, frame, tracks, frame_num)
 
                 # append result
-                for kp in kps:
+                for t in tracks:
                     data = {
                         "frame": frame_num,
-                        "id": -1,
-                        "keypoints": kp,
+                        "id": t.track_id,
+                        "keypoints": np.array(t.pose),
                     }
                     json_data.append(data)
                     del data  # release memory
