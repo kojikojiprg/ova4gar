@@ -15,21 +15,21 @@ sys.path.append(os.path.join(root, "submodules"))
 
 # Avoid import error.
 sys.path.append(os.path.join(root, "submodules/higher_hrnet/lib/"))
-from .api import higher_hrnet
+from .detector import higher_hrnet
 
 sys.path.remove(os.path.join(root, "submodules/higher_hrnet/lib/"))
 sys.path.append(os.path.join(root, "submodules/hrnet/lib/"))
 import models
 
 importlib.reload(models)
-from .api import hrnet
+from .detector import hrnet
 
 sys.path.remove(os.path.join(root, "submodules/hrnet/lib/"))
 sys.path.append(os.path.join(root, "submodules/unitrack/"))
 import utils
 
 importlib.reload(utils)
-from .api import unitrack
+from .tracker import unitrack
 
 sys.path.remove(os.path.join(root, "submodules/unitrack/"))
 from . import extracter

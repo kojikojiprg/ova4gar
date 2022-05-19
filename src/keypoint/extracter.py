@@ -10,9 +10,9 @@ from unitrack.tracker.mot.basetrack import STrack
 from utility.json_handler import dump
 from utility.video import Capture, Writer
 
-from keypoint.api.higher_hrnet import HigherHRNetDetecter
-from keypoint.api.hrnet import HRNetDetecter
-from keypoint.api.unitrack import UniTrackTracker
+from keypoint.detector.higher_hrnet import HigherHRNetDetecter
+from keypoint.detector.hrnet import HRNetDetecter
+from keypoint.tracker.unitrack import UniTrackTracker
 from keypoint.visualization import draw_skeleton, put_frame_num
 
 
@@ -32,6 +32,7 @@ class Extractor:
             )
         else:
             raise KeyError
+
         self._tracker = UniTrackTracker(
             self._cfg["cfg_path"]["unitrack"], logger, device
         )
