@@ -25,7 +25,7 @@ def _common_parser():
         "-g",
         "--gpu",
         type=int,
-        default=None,
+        default=0,
         help="gpu number",
     )
     parser.add_argument(
