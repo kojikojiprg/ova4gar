@@ -61,6 +61,7 @@ class Extractor:
         self._logger.info(f"=> writing video into {out_path} while processing.")
         for frame_nums, frames in tqdm(dataloader):
             frames = [frame.cpu().numpy() for frame in frames]
+
             # do keypoints detection and tracking
             kps_all_batch = self._detector.predict(frames)
             for frame_num, frame, kps in zip(frame_nums, frames, kps_all_batch):

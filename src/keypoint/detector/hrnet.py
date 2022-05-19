@@ -70,13 +70,15 @@ class HRNetDetecter:
         box_indices = [0]
         for img, pred_boxes in zip(images, pred_boxes_all_batch):
             box_indices.append(box_indices[-1] + len(pred_boxes))
-            if len(pred_boxes) >= 1:
-                for box in pred_boxes:
-                    center, scale = self._box_to_center_scale(
-                        box, cfg.MODEL.IMAGE_SIZE[0], self.cfg.MODEL.IMAGE_SIZE[1]
-                    )
-                    centers.append(center)
-                    scales.append(scale)
+            if len(pred_boxes) == 0:
+                continue
+
+            for box in pred_boxes:
+                center, scale = self._box_to_center_scale(
+                    box, cfg.MODEL.IMAGE_SIZE[0], self.cfg.MODEL.IMAGE_SIZE[1]
+                )
+                centers.append(center)
+                scales.append(scale)
                 pose_images.append(
                     (
                         img.copy()
@@ -84,9 +86,11 @@ class HRNetDetecter:
                         else img[:, :, [2, 1, 0]].copy()
                     )
                 )
+        box_indices = box_indices[1:]  # delete 0
 
         pred_poses = self._get_pose_estimation_prediction(pose_images, centers, scales)
 
+        print(pred_poses.shape, box_indices)
         return np.split(pred_poses, box_indices)
 
     def _get_person_detection_boxes(self, imgs, threshold):
