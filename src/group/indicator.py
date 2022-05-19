@@ -14,41 +14,44 @@ def passing(
     queue_dict: Dict[str, list],
     model: PassingDetector,
 ):
-    data = []
+    all_features = []
+    idx_pairs = []
     for i in range(len(individuals) - 1):
         for j in range(i + 1, len(individuals)):
             ind1 = individuals[i]
             ind2 = individuals[j]
 
             # get queue
-            pair_key = f"{ind1.id}_{ind2.id}"
-            if pair_key not in queue_dict:
-                queue_dict[pair_key] = []
-            queue = queue_dict[pair_key]
+            idx_pair = f"{ind1.id}_{ind2.id}"
+            if idx_pair not in queue_dict:
+                queue_dict[idx_pair] = []
+            queue = queue_dict[idx_pair]
 
             # push and pop queue
             queue = model.extract_feature(ind1, ind2, queue, frame_num)
-            if queue is None:
-                return None, queue_dict
 
-            # predict
-            pred = model.predict(queue)
+            idx_pairs.append([i, j])
+            all_features.append(queue)
 
-            # update queue
-            queue_dict[pair_key] = queue
+    if len(all_features) == 0:
+        return [], queue_dict
 
-            if pred == 1:
-                data.append(
-                    {
-                        "frame": frame_num,
-                        "persons": [ind1.id, ind2.id],
-                        "points": [
-                            ind1.get_indicator("position", frame_num),
-                            ind2.get_indicator("position", frame_num),
-                        ],
-                        "pred": pred,
-                    }
-                )
+    # predict
+    preds = model.predict(all_features)
+    data = []
+    for idx_pair, pred in zip(idx_pairs, preds):
+        if pred == 1:
+            data.append(
+                {
+                    "frame": frame_num,
+                    "persons": [individuals[i].id, individuals[j].id],
+                    "points": [
+                        individuals[i].get_indicator("position", frame_num),
+                        individuals[j].get_indicator("position", frame_num),
+                    ],
+                    "pred": pred,
+                }
+            )
 
     return data, queue_dict
 

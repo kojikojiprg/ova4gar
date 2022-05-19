@@ -100,13 +100,17 @@ class PassingDetector:
         feature = [distance, body_distance, arm_ave, wrist_distance]
         que.append(feature)
 
-        return que[-self._seq_len :]
+        if len(que) < self._seq_len:
+            # 0 padding
+            return que + [[0, 0, 0, 0] for _ in range(self._seq_len - len(que))]
+        else:
+            return que[-self._seq_len :]
 
     def predict(self, features):
         with torch.no_grad():
-            features = torch.Tensor(np.array([features])).float().to(self.device)
-            pred = self._model(features)
-            pred = pred.max(1)[1]
-            pred = pred.cpu().numpy()[0]
+            features = torch.Tensor(np.array(features)).float().to(self.device)
+            preds = self._model(features)
+            preds = preds.max(1)[1]
+            preds = preds.cpu().numpy()
 
-        return pred
+        return preds
