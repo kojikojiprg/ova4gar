@@ -86,11 +86,10 @@ class HRNetDetecter:
                         else img[:, :, [2, 1, 0]].copy()
                     )
                 )
-        box_indices = box_indices[1:]  # delete 0
+        box_indices = box_indices[1:-1]  # delete 0 and last
 
         pred_poses = self._get_pose_estimation_prediction(pose_images, centers, scales)
 
-        print(pred_poses.shape, box_indices)
         return np.split(pred_poses, box_indices)
 
     def _get_person_detection_boxes(self, imgs, threshold):
