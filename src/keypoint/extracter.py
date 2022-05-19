@@ -10,6 +10,7 @@ from unitrack.tracker.mot.basetrack import STrack
 from utility.json_handler import dump
 from utility.video import Capture, Writer
 
+from keypoint.detector.dataset import make_data_loader
 from keypoint.detector.higher_hrnet import HigherHRNetDetecter
 from keypoint.detector.hrnet import HRNetDetecter
 from keypoint.tracker.unitrack import UniTrackTracker
@@ -37,6 +38,8 @@ class Extractor:
             self._cfg["cfg_path"]["unitrack"], logger, device
         )
 
+        self._batch_size = self._cfg["batch_size"]
+
     def __del__(self):
         torch.cuda.empty_cache()
         del self._detector, self._tracker, self._logger
@@ -48,6 +51,7 @@ class Extractor:
         assert (
             video_capture.is_opened
         ), f"{video_path} does not exist or is wrong file type."
+        dataloader = make_data_loader(video_capture, self._batch_size)
 
         # create video writer
         out_path = os.path.join(data_dir, "video", "keypoints.mp4")
@@ -55,30 +59,33 @@ class Extractor:
 
         json_data = []
         self._logger.info(f"=> writing video into {out_path} while processing.")
-        for frame_num in tqdm(range(video_capture.frame_count)):
-            frame_num += 1  # frame_num = (1, ...)
-            _, frame = video_capture.read()
-
+        for frame_nums, frames in tqdm(dataloader):
+            frames = [frame.cpu().numpy() for frame in frames]
             # do keypoints detection and tracking
-            kps = self._detector.predict(frame)
-            kps = self._del_leaky(kps, self._cfg["th_delete"])
-            kps = self._get_unique(kps, self._cfg["th_diff"], self._cfg["th_count"])
-            tracks = self._tracker.update(frame, kps)
+            kps_all_batch = self._detector.predict(frames)
+            for frame_num, frame, kps in zip(frame_nums, frames, kps_all_batch):
+                kps = self._del_leaky(kps, self._cfg["th_delete"])
+                kps = self._get_unique(kps, self._cfg["th_diff"], self._cfg["th_count"])
+                # tracks = self._tracker.update(frame, kps)
 
-            # write video
-            self.write_video(video_writer, frame, tracks, frame_num)
+                # write video
+                # self.write_video(video_writer, frame, tracks, frame_num)
+                frame = put_frame_num(frame, frame_num)
+                for kp in kps:
+                    frame = draw_skeleton(frame, -1, kp)
+                video_writer.write(frame)
 
-            # append result
-            for t in tracks:
-                data = {
-                    "frame": frame_num,
-                    "id": t.track_id,
-                    "keypoints": np.array(t.pose),
-                }
-                json_data.append(data)
-                del data  # release memory
+                # append result
+                for kp in kps:
+                    data = {
+                        "frame": frame_num,
+                        "id": -1,
+                        "keypoints": kp,
+                    }
+                    json_data.append(data)
+                    del data  # release memory
 
-            del frame, kps, tracks  # release memory
+                del frame, kps  # release memory
 
         json_path = os.path.join(data_dir, ".json", "keypoints.json")
         self._logger.info(f"=> writing json file into {json_path}.")

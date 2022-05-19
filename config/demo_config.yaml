@@ -7,6 +7,7 @@ keypoint:
   th_delete: 0.2 # threshold of confidence score of keypoints
   th_diff: 10  # threshold of difference for finding same keypoints
   th_count: 5
+  batch_size: 4
 
 homography:
   field_path: "image/field.png"

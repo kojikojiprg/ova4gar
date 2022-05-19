@@ -9,8 +9,9 @@ from utility.logger import logger
 
 
 def main():
-
     args = file_parser()
+
+    os.environ["CUDA_VISIBLE_DEVICES"] = str(args.gpu)
 
     # create data dir
     os.makedirs(args.data_dir, exist_ok=True)

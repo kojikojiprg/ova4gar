@@ -60,57 +60,67 @@ class HRNetDetecter:
         # release memory
         del self.box_model, self.pose_model, self.logger, self.cfg
 
-    def predict(self, image: NDArray):
+    def predict(self, images: NDArray):
         # object detection box
-        pred_boxes = self._get_person_detection_boxes(image, threshold=0.7)
+        pred_boxes_all_batch = self._get_person_detection_boxes(images, threshold=0.7)
 
         # pose estimation
-        if len(pred_boxes) >= 1:
-            centers, scales = [], []
-            for box in pred_boxes:
-                center, scale = self._box_to_center_scale(
-                    box, cfg.MODEL.IMAGE_SIZE[0], self.cfg.MODEL.IMAGE_SIZE[1]
+        centers, scales = [], []
+        pose_images = []
+        box_indices = [0]
+        for img, pred_boxes in zip(images, pred_boxes_all_batch):
+            box_indices.append(box_indices[-1] + len(pred_boxes))
+            if len(pred_boxes) >= 1:
+                for box in pred_boxes:
+                    center, scale = self._box_to_center_scale(
+                        box, cfg.MODEL.IMAGE_SIZE[0], self.cfg.MODEL.IMAGE_SIZE[1]
+                    )
+                    centers.append(center)
+                    scales.append(scale)
+                pose_images.append(
+                    (
+                        img.copy()
+                        if cfg.DATASET.COLOR_RGB
+                        else img[:, :, [2, 1, 0]].copy()
+                    )
                 )
-                centers.append(center)
-                scales.append(scale)
-            image_pose = (
-                image.copy() if cfg.DATASET.COLOR_RGB else image[:, :, [2, 1, 0]].copy()
-            )
-            pred_poses = self._get_pose_estimation_prediction(
-                image_pose, centers, scales
-            )
 
-            return pred_poses
-        else:
-            return np.empty((0, 17, 3))
+        pred_poses = self._get_pose_estimation_prediction(pose_images, centers, scales)
 
-    def _get_person_detection_boxes(self, img, threshold):
-        pil_image = Image.fromarray(img)  # Load the image
-        transformed_img = self.box_transform(
-            pil_image
-        )  # Apply the transform to the image
-        pred = self.box_model([transformed_img.to(self.device)])
-        pred_classes = [
-            i for i in list(pred[0]["labels"].cpu().numpy())
-        ]  # Get the Prediction Score
-        pred_boxes = [
-            [(i[0], i[1]), (i[2], i[3])]
-            for i in list(pred[0]["boxes"].detach().cpu().numpy())
-        ]  # Bounding boxes
-        pred_score = list(pred[0]["scores"].detach().cpu().numpy())
-        if not pred_score or max(pred_score) < threshold:
-            return []
-        # Get list of index with score greater than threshold
-        pred_t = [pred_score.index(x) for x in pred_score if x > threshold][-1]
-        pred_boxes = pred_boxes[: pred_t + 1]
-        pred_classes = pred_classes[: pred_t + 1]
+        return np.split(pred_poses, box_indices)
 
-        person_boxes = []
-        for idx, box in enumerate(pred_boxes):
-            if pred_classes[idx] == 1:  # class is person
-                person_boxes.append(box)
+    def _get_person_detection_boxes(self, imgs, threshold):
+        transformed_imgs = [
+            self.box_transform(Image.fromarray(img)).to(self.device) for img in imgs
+        ]
+        preds = self.box_model(transformed_imgs)
 
-        return person_boxes
+        results = []
+        for pred in preds:
+            pred_classes = [
+                i for i in list(pred["labels"].cpu().numpy())
+            ]  # Get the Prediction Score
+            pred_boxes = [
+                [(i[0], i[1]), (i[2], i[3])]
+                for i in list(pred["boxes"].detach().cpu().numpy())
+            ]  # Bounding boxes
+            pred_score = list(pred["scores"].detach().cpu().numpy())
+
+            if not pred_score or max(pred_score) < threshold:
+                continue
+
+            # Get list of index with score greater than threshold
+            pred_t = [pred_score.index(x) for x in pred_score if x > threshold][-1]
+            pred_boxes = pred_boxes[: pred_t + 1]
+            pred_classes = pred_classes[: pred_t + 1]
+
+            person_boxes = []
+            for idx, box in enumerate(pred_boxes):
+                if pred_classes[idx] == 1:  # class is person
+                    person_boxes.append(box)
+            results.append(person_boxes)
+
+        return results
 
     def _box_to_center_scale(self, box, model_image_width, model_image_height):
         center = np.zeros((2), dtype=np.float32)
@@ -140,14 +150,14 @@ class HRNetDetecter:
 
         return center, scale
 
-    def _get_pose_estimation_prediction(self, image, centers, scales):
+    def _get_pose_estimation_prediction(self, imgs, centers, scales):
         # pose estimation transformation
         model_inputs = []
-        for center, scale in zip(centers, scales):
+        for img, center, scale in zip(imgs, centers, scales):
             trans = get_affine_transform(center, scale, 0, cfg.MODEL.IMAGE_SIZE)
             # Crop smaller image of people
             model_input = cv2.warpAffine(
-                image,
+                img,
                 trans,
                 (int(cfg.MODEL.IMAGE_SIZE[0]), int(cfg.MODEL.IMAGE_SIZE[1])),
                 flags=cv2.INTER_LINEAR,
