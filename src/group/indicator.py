@@ -22,10 +22,10 @@ def passing(
             ind2 = individuals[j]
 
             # get queue
-            idx_pair = f"{ind1.id}_{ind2.id}"
-            if idx_pair not in queue_dict:
-                queue_dict[idx_pair] = []
-            queue = queue_dict[idx_pair]
+            pair_key = f"{ind1.id}_{ind2.id}"
+            if pair_key not in queue_dict:
+                queue_dict[pair_key] = []
+            queue = queue_dict[pair_key]
 
             # push and pop queue
             queue = model.extract_feature(ind1, ind2, queue, frame_num)
@@ -40,6 +40,7 @@ def passing(
     preds = model.predict(all_features)
     data = []
     for idx_pair, pred in zip(idx_pairs, preds):
+        i, j = idx_pair
         if pred == 1:
             data.append(
                 {
