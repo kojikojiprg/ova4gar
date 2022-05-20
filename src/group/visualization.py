@@ -47,39 +47,30 @@ class GroupVisualizer:
 
         return field
 
-    def _passing(self, data, field, persons=None, alpha=0.2):
+    def _passing(self, data, field, alpha=0.2):
         for item in data:
-            is_persons = False
-            if persons is None:
-                is_persons = True
-            else:
-                is_persons = (
-                    item["persons"][0] in persons and item["persons"][1] in persons
-                )
-
             points = item["points"]
-            pred = item["pred"]
-            if is_persons and points is not None and pred == 1:
-                p1 = np.array(points[0])
-                p2 = np.array(points[1])
 
-                # 楕円を計算
-                diff = p2 - p1
-                center = p1 + diff / 2
-                major = int(np.abs(np.linalg.norm(diff))) + 20
-                minor = int(major * 0.5)
-                angle = np.rad2deg(np.arctan2(diff[1], diff[0]))
+            p1 = np.array(points[0])
+            p2 = np.array(points[1])
 
-                # 描画
-                cv2.line(field, p1, p2, color=(255, 165, 0), thickness=1)
-                copy = field.copy()
-                cv2.ellipse(
-                    copy,
-                    (center, (major, minor), angle),
-                    color=(200, 200, 255),
-                    thickness=-1,
-                )
-                field = cv2.addWeighted(copy, alpha, field, 1 - alpha, 0)
+            # 楕円を計算
+            diff = p2 - p1
+            center = p1 + diff / 2
+            major = int(np.abs(np.linalg.norm(diff))) + 20
+            minor = int(major * 0.5)
+            angle = np.rad2deg(np.arctan2(diff[1], diff[0]))
+
+            # 描画
+            cv2.line(field, p1, p2, color=(255, 165, 0), thickness=1)
+            copy = field.copy()
+            cv2.ellipse(
+                copy,
+                (center, (major, minor), angle),
+                color=(200, 200, 255),
+                thickness=-1,
+            )
+            field = cv2.addWeighted(copy, alpha, field, 1 - alpha, 0)
 
         return field
 

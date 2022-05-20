@@ -4,14 +4,15 @@ from typing import Any, Dict, List
 from individual.individual import Individual
 from numpy.typing import NDArray
 
-from group.indicator import attention, passing
+from group.indicator import attention as func_attention
+from group.indicator import passing as func_passing
 from group.passing.passing_detector import PassingDetector
 
 
 class Group:
     def __init__(self, cfg: dict, field: NDArray, logger: Logger, device: str):
         self._keys = list(cfg["indicator"].keys())
-        self._funcs = {k: eval(k) for k in self._keys}
+        self._funcs = {k: eval(f"func_{k}") for k in self._keys}
         self._defs: Dict[str, Any] = self.load_default(cfg)
 
         self._field = field
@@ -44,6 +45,22 @@ class Group:
 
     def get(self, key):
         return self._idc_dict[key]
+
+    @property
+    def passing(self) -> Dict[str, List[int]]:
+        data = self._idc_dict["passing"]
+
+        data_dict: Dict[str, List[int]] = {}
+        for raw in data:
+            frame_num = raw["frame"]
+            persons = raw["persons"]
+
+            pair_key = f"{persons[0]}_{persons[1]}"
+            if pair_key not in data_dict:
+                data_dict[pair_key] = []
+            data_dict[pair_key].append(frame_num)
+
+        return data_dict
 
     def calc_indicator(self, frame_num: int, individuals: List[Individual]):
         for key, func in self._funcs.items():

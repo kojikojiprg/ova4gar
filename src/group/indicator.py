@@ -50,7 +50,6 @@ def passing(
                         individuals[i].get_indicator("position", frame_num),
                         individuals[j].get_indicator("position", frame_num),
                     ],
-                    "pred": pred,
                 }
             )
 
