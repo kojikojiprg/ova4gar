@@ -32,8 +32,8 @@ def init_model(cfg_path, defs, device):
     return model
 
 
-def update_model(model: PassingDetector, model_cfg):
-    new_model = LSTMModel(**model_cfg)
+def update_model(model: PassingDetector, model_cfg, device):
+    new_model = LSTMModel(**model_cfg).to(device)
     model.model = new_model
     return model
 
