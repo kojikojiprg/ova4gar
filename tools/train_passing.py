@@ -7,6 +7,7 @@ from glob import glob
 import numpy as np
 import torch
 import yaml
+from group.passing.lstm_model import LSTMModel
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
 from torch import nn, optim
 
@@ -26,10 +27,14 @@ def _setup_parser():
     return parser.parse_args()
 
 
-def init_model(cfg_path, defs, device, model=None):
-    if isinstance(model, PassingDetector):
-        del model
+def init_model(cfg_path, defs, device):
     model = PassingDetector(cfg_path, defs, device)
+    return model
+
+
+def update_model(model: PassingDetector, model_cfg):
+    new_model = LSTMModel(**model_cfg)
+    model.model = new_model
     return model
 
 
