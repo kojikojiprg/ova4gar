@@ -82,6 +82,7 @@ def make_data_loaders(
     train_len = int(len(x_dict) * train_ratio)
     val_len = int(len(x_dict) * val_ratio)
 
+    np.random.seed(cfg["random_seed"])
     random_keys = np.random.choice(list(x_dict.keys()), size=len(x_dict), replace=False)
 
     train_keys = random_keys[:train_len]
@@ -139,7 +140,7 @@ def make_all_data(
 
                         # extract feature
                         feature_que = passing_detector.extract_feature(
-                            ind1, ind2, feature_que, frame_num
+                            ind1, ind2, feature_que, frame_num, with_padding=False
                         )
 
                         # save data
