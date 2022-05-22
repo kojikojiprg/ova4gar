@@ -88,6 +88,9 @@ class HRNetDetecter:
                 )
         box_indices = box_indices[1:-1]  # delete 0 and last
 
+        if len(pose_images) == 0:
+            return [np.empty((0, 17, 3)) for _ in range(len(images))]
+
         pred_poses = self._get_pose_estimation_prediction(pose_images, centers, scales)
 
         return np.split(pred_poses, box_indices)
