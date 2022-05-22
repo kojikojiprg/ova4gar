@@ -59,7 +59,12 @@ class PassingDetector:
         return ret
 
     def extract_feature(
-        self, ind1: Individual, ind2: Individual, que: list, frame_num: int
+        self,
+        ind1: Individual,
+        ind2: Individual,
+        que: list,
+        frame_num: int,
+        with_padding: bool = True,
     ):
         # get indicator
         ind1_data = self._get_indicators(ind1, frame_num)
@@ -102,7 +107,10 @@ class PassingDetector:
 
         if len(que) < self._seq_len:
             # 0 padding
-            return que + [[0, 0, 0, 0] for _ in range(self._seq_len - len(que))]
+            if with_padding:
+                return que + [[0, 0, 0, 0] for _ in range(self._seq_len - len(que))]
+            else:
+                return que
         else:
             return que[-self._seq_len :]
 

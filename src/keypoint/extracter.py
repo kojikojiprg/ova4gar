@@ -65,6 +65,7 @@ class Extractor:
         video_capture.set_pos_frame_count(0)  # initialize video capture
         json_data = []
         for frame_num, kps in enumerate(tqdm(kps_all)):
+            frame_num += 1  # frame_num = (1, ...)
             _, frame = video_capture.read()
 
             # tracking
