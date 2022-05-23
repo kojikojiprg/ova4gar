@@ -1,19 +1,18 @@
-group:
-  indicator:
-    passing:
-      default:
-        gauss_mu: 200  # 距離に対するガウス分布の平均
-        gauss_sig: 100  # 距離に対するガウス分布の分散
-        wrist_gauss_mu: 100  # 手首の距離に対するガウス分布の平均
-        wrist_gauss_sig: 80  # 手首の距離に対するガウス分布の分散
-        seq_len: 30  # sequence length of LSTM input
-      cfg_path: "config/passing/pass_model_lstm.yaml"
-    attention:
-      default:
-        angle: 10  # 視野角
-        division: 20  # 計算するピクセル幅
-        length: 150  # 視野の長さ
-        sigma: 50  # 視野の長さを超えた範囲の分散
-        seq_len: 30
-        angle_th: 10
-        count_th: 2
+passing:
+  default:
+    gauss_mu: 200  # 距離に対するガウス分布の平均
+    gauss_sig: 100  # 距離に対するガウス分布の分散
+    wrist_gauss_mu: 100  # 手首の距離に対するガウス分布の平均
+    wrist_gauss_sig: 80  # 手首の距離に対するガウス分布の分散
+    seq_len: 30  # sequence length of LSTM input
+  cfg_path: "config/passing/pass_model_lstm.yaml"
+
+attention:
+  default:
+    angle: 10  # 視野角
+    division: 20  # 計算するピクセル幅
+    length: 150  # 視野の長さ
+    sigma: 50  # 視野の長さを超えた範囲の分散
+    seq_len: 30
+    angle_th: 10
+    count_th: 2
