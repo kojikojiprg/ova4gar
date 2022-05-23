@@ -1,0 +1,16 @@
+device: cuda:0
+dropouts:
+- 0
+- 0
+hidden_dims:
+- 128
+- 8
+n_classes: 2
+n_linears: 2
+n_rnns: 2
+pretrained_path: models/passing/pass_model_lstm_new.pth
+rnn_dropout: 0.1
+rnn_hidden_dim: 512
+seq_len: 30
+size: 4
+weight: 16
