@@ -1,4 +1,4 @@
-device: cuda:0
+device: cuda
 dropouts: [0, 0]
 hidden_dims: [128, 8]
 n_classes: 2
