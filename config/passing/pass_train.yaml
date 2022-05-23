@@ -10,8 +10,8 @@ optim:
 
 dataset:
   batch_size: 4096
-  train_ratio: 0.75
-  val_ratio: 0.05
+  train_ratio: 0.8
+  val_ratio: 0.0
   random_seed: 128
   setting:
     "02":
