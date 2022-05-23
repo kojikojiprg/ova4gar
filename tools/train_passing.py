@@ -92,12 +92,15 @@ def train(
             # validate
             model.eval()
             val_losses = []
-            with torch.no_grad():
-                for x, y in val_loader:
-                    pred = model(x)
+            if len(val_loader) > 0:
+                with torch.no_grad():
+                    for x, y in val_loader:
+                        pred = model(x)
 
-                    loss = criterion(pred.requires_grad_(), y)
-                    val_losses.append(loss.item())
+                        loss = criterion(pred.requires_grad_(), y)
+                        val_losses.append(loss.item())
+            else:
+                val_losses.append(np.nan)
 
             te = time.time()
             train_loss = np.mean(train_losses)
