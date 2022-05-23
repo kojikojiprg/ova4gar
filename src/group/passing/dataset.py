@@ -1,13 +1,14 @@
 import os
 from logging import Logger
+from types import SimpleNamespace
 from typing import Any, Dict
 
 import numpy as np
 import torch
-from group.passing.passing_detector import PassingDetector
 from individual.individual import Individual
 from tqdm import tqdm
 from utility import json_handler
+from utility.functions import cos_similarity, gauss
 
 
 class PassingDataset(torch.utils.data.Dataset):
@@ -64,17 +65,16 @@ def make_data_loader(
 
 
 def make_data_loaders(
-    passing_detector: PassingDetector,
     individuals: Dict[str, Individual],
     cfg: dict,
+    passing_defs: dict,
     logger: Logger,
     device: str,
 ):
-    x_dict, y_dict = make_all_data(
-        passing_detector, individuals, cfg["setting"], logger
-    )
+    # transform dataset setting into time series data
+    x_dict, y_dict = make_all_data(individuals, cfg["setting"], passing_defs, logger)
 
-    seq_len = passing_detector.cfg["seq_len"]
+    seq_len = passing_defs["seq_len"]
     batch_size = cfg["batch_size"]
 
     train_ratio = cfg["train_ratio"]
@@ -111,9 +111,9 @@ def make_data_loaders(
 
 
 def make_all_data(
-    passing_detector: PassingDetector,
     individuals: Dict[str, Individual],
     dataset_cfg: dict,
+    passing_defs: dict,
     logger: Logger,
 ):
     x_dict: Dict[str, Any] = {}
@@ -139,8 +139,13 @@ def make_all_data(
                         feature_que = queue_dict[pair_key]
 
                         # extract feature
-                        feature_que = passing_detector.extract_feature(
-                            ind1, ind2, feature_que, frame_num, with_padding=False
+                        feature_que = extract_feature(
+                            ind1,
+                            ind2,
+                            feature_que,
+                            frame_num,
+                            passing_defs,
+                            with_padding=False,
                         )
 
                         # save data
@@ -219,3 +224,72 @@ def _make_time_series_from_cfg(dataset_cfg: dict, logger: Logger):
             room_data[surgery_num] = surgery_data
         ret_data[room_num] = room_data
     return ret_data
+
+
+def _get_indicators(ind: Individual, frame_num: int):
+    pos = ind.get_indicator("position", frame_num)
+    body = ind.get_indicator("body", frame_num)
+    arm = ind.get_indicator("arm", frame_num)
+    wrist = (
+        ind.get_keypoints("LWrist", frame_num),
+        ind.get_keypoints("RWrist", frame_num),
+    )
+    ret = SimpleNamespace(**{"pos": pos, "body": body, "arm": arm, "wrist": wrist})
+    return ret
+
+
+def extract_feature(
+    ind1: Individual,
+    ind2: Individual,
+    que: list,
+    frame_num: int,
+    defs: dict,
+    with_padding: bool = True,
+):
+    # get indicator
+    ind1_data = _get_indicators(ind1, frame_num)
+    ind2_data = _get_indicators(ind2, frame_num)
+
+    if None in ind1_data.__dict__.values() or None in ind2_data.__dict__.values():
+        return que
+
+    # calc distance of position
+    p1_pos = np.array(ind1_data.pos)
+    p2_pos = np.array(ind2_data.pos)
+
+    norm = np.linalg.norm(p1_pos - p2_pos, ord=2)
+    distance = gauss(norm, mu=defs["dist_mu"], sigma=defs["dist_sig"])
+
+    p1p2 = p2_pos - p1_pos
+    p2p1 = p1_pos - p2_pos
+
+    p1p2_sim = cos_similarity(ind1_data.body, p1p2)
+    p2p1_sim = cos_similarity(ind2_data.body, p2p1)
+    body_distance = (np.average([p1p2_sim, p2p1_sim]) + 1) / 2
+
+    # calc arm average
+    arm_ave = np.average([ind1_data.arm, ind2_data.arm])
+
+    # calc wrist distance
+    min_norm = np.inf
+    for i in range(2):
+        for j in range(2):
+            norm = np.linalg.norm(
+                np.array(ind1_data.wrist[i]) - np.array(ind2_data.wrist[j]), ord=2
+            )
+            min_norm = float(norm) if norm < min_norm else min_norm
+
+    wrist_distance = gauss(min_norm, mu=defs["wrist_mu"], sigma=defs["wrist_sig"])
+
+    # concatnate to feature
+    feature = [distance, body_distance, arm_ave, wrist_distance]
+    que.append(feature)
+
+    if len(que) < defs["seq_len"]:
+        # 0 padding
+        if with_padding:
+            return que + [[0, 0, 0, 0] for _ in range(defs["seq_len"] - len(que))]
+        else:
+            return que
+    else:
+        return que[-defs["seq_len"] :]

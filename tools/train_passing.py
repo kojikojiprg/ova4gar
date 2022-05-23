@@ -7,13 +7,12 @@ from glob import glob
 import numpy as np
 import torch
 import yaml
-from group.passing.lstm_model import LSTMModel
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
 from torch import nn, optim
 
 sys.path.append("src")
 from group.passing.dataset import make_data_loaders
-from group.passing.passing_detector import PassingDetector
+from group.passing.lstm_model import LSTMModel
 from utility.activity_loader import load_individuals
 from utility.logger import logger
 
@@ -23,18 +22,13 @@ def _setup_parser():
     parser.add_argument(
         "-c", "--cfg_path", type=str, default="config/passing/pass_train.yaml"
     )
+    parser.add_argument("-g", "--gpu", type=int, default=0)
 
     return parser.parse_args()
 
 
-def init_model(cfg_path, defs, device):
-    model = PassingDetector(cfg_path, defs, device)
-    return model
-
-
-def update_model(model: PassingDetector, model_cfg, device):
-    new_model = LSTMModel(**model_cfg).to(device)
-    model.model = new_model
+def init_model(model_cfg, device):
+    model = LSTMModel(**model_cfg).to(device)
     return model
 
 
@@ -143,50 +137,62 @@ def test(model, test_loader):
 
 def main():
     args = _setup_parser()
-    with open(args.cfg_path, "r") as f:
-        cfg = yaml.safe_load(f)
 
+    # load configs
+    with open(args.cfg_path, "r") as f:
+        train_cfg = yaml.safe_load(f)
+    with open(train_cfg["config_path"]["individual"], "r") as f:
+        ind_cfg = yaml.safe_load(f)
+    with open(train_cfg["config_path"]["group"], "r") as f:
+        grp_cfg = yaml.safe_load(f)
+    mdl_cfg_path = grp_cfg["passing"]["cfg_path"]
+    with open(mdl_cfg_path, "r") as f:
+        mdl_cfg = yaml.safe_load(f)
+
+    # set cuda and device
     os.environ["CUDA_VISIBLE_DEVICES"] = str(args.gpu)
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
+    # get data directories
     data_dirs_all = {}
-    for room_num, surgery_data in cfg["dataset"]["setting"].items():
+    for room_num, surgery_data in train_cfg["dataset"]["setting"].items():
         for surgery_num in surgery_data.keys():
             dirs = sorted(
                 glob(os.path.join("data", room_num, surgery_num, "passing", "*"))
             )
             data_dirs_all[f"{room_num}_{surgery_num}"] = dirs
 
+    # load individual data
     logger.info(f"=> loading individuals from {data_dirs_all}")
     inds = {}
     for key_prefix, dirs in data_dirs_all.items():
         for model_path in dirs:
             num = model_path.split("/")[-1]
             json_path = os.path.join(model_path, ".json", "individual.json")
-            tmp_inds, _ = load_individuals(json_path, cfg["individual"])
+            tmp_inds, _ = load_individuals(json_path, ind_cfg)
             for pid, ind in tmp_inds.items():
                 inds[f"{key_prefix}_{num}_{pid}"] = ind
 
     # create model
-    model_cfg_path = cfg["group"]["indicator"]["passing"]["cfg_path"]
-    grp_defs = cfg["group"]["indicator"]["passing"]["default"]
-    detector = init_model(model_cfg_path, grp_defs, device, model=None)
+    model = init_model(mdl_cfg, device)
 
     # create data loader
+    dataset_cfg = train_cfg["dataset"]
+    passing_defs = grp_cfg["passing"]["default"]
     train_loader, val_loader, test_loader = make_data_loaders(
-        detector, inds, cfg["dataset"], logger, device
+        inds, dataset_cfg, passing_defs, logger, device
     )
 
     # init optimizer
-    criterion = init_loss(cfg["optim"]["pos_weight"], detector.device)
+    criterion = init_loss(train_cfg["optim"]["pos_weight"], device)
     optimizer, scheduler = init_optim(
-        detector.model, cfg["optim"]["lr"], cfg["optim"]["lr_rate"]
+        model, train_cfg["optim"]["lr"], train_cfg["optim"]["lr_rate"]
     )
 
     # train and test
-    epoch_len = cfg["optim"]["epoch"]
-    detector.model, epoch, history = train(
-        detector.model,
+    epoch_len = train_cfg["optim"]["epoch"]
+    model, epoch, history = train(
+        model,
         train_loader,
         val_loader,
         criterion,
@@ -195,12 +201,14 @@ def main():
         epoch_len,
         logger,
     )
-    acc, pre, rcl, f1 = test(detector.model, test_loader)
+    test(model, test_loader)
 
     # save model
     model_path = os.path.join("models", "passing", f"pass_model_ep{epoch}.pth")
     logger.info(f"=> saving model params to {model_path}")
-    torch.save(detector.model.state_dict(), model_path)
+    torch.save(model.state_dict(), model_path)
+
+    torch.cuda.empty_cache()
 
 
 if __name__ == "__main__":
