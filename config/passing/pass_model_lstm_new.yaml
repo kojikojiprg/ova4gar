@@ -1,6 +1,6 @@
 device: cuda
 dropouts:
-- 0
+- 0.1
 - 0
 hidden_dims:
 - 128
