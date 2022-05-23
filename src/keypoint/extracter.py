@@ -19,10 +19,10 @@ from keypoint.visualization import draw_skeleton, put_frame_num
 
 
 class Extractor:
-    def __init__(self, cfg: dict, logger: Logger, device: str):
+    def __init__(self, keypoint_cfg: dict, logger: Logger, device: str):
         self._logger = logger
 
-        self._cfg = cfg["keypoint"]
+        self._cfg = keypoint_cfg
         detector_name = self._cfg["detector"]
         if detector_name == "higher_hrnet":
             self._detector = HigherHRNetDetecter(

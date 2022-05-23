@@ -1,18 +1,22 @@
 from typing import Dict, List
 
 import numpy as np
+import torch
 from individual.individual import Individual
 from numpy.typing import NDArray
 from utility.functions import gauss
 
-from group.passing.passing_detector import PassingDetector
+from group.passing.dataset import extract_feature
+from group.passing.lstm_model import LSTMModel
 
 
 def passing(
     frame_num: int,
     individuals: List[Individual],
     queue_dict: Dict[str, list],
-    model: PassingDetector,
+    passing_defs: dict,
+    model: LSTMModel,
+    device: str,
 ):
     all_features = []
     idx_pairs = []
@@ -28,7 +32,7 @@ def passing(
             queue = queue_dict[pair_key]
 
             # push and pop queue
-            queue = model.extract_feature(ind1, ind2, queue, frame_num)
+            queue = extract_feature(ind1, ind2, queue, frame_num, passing_defs)
 
             idx_pairs.append([i, j])
             all_features.append(queue)
@@ -37,7 +41,12 @@ def passing(
         return [], queue_dict
 
     # predict
-    preds = model.predict(all_features)
+    with torch.no_grad():
+        features = torch.Tensor(np.array(all_features)).float().to(device)
+        preds = model(features)
+        preds = preds.max(1)[1]
+        preds = preds.cpu().numpy()
+
     data = []
     for idx_pair, pred in zip(idx_pairs, preds):
         i, j = idx_pair

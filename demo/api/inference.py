@@ -17,6 +17,12 @@ class InferenceModel:
         # open config file
         with open(args.cfg_path) as f:
             cfg = yaml.safe_load(f)
+        with open(cfg["config_path"]["keypoint"]) as f:
+            kps_cfg = yaml.safe_load(f)
+        with open(cfg["config_path"]["individual"]) as f:
+            ind_cfg = yaml.safe_load(f)
+        with open(cfg["config_path"]["group"]) as f:
+            grp_cfg = yaml.safe_load(f)
 
         # homography
         self._homo, self._field = self._create_homography(cfg, args.room_num)
@@ -27,11 +33,11 @@ class InferenceModel:
 
         device = "cuda" if torch.cuda.is_available() else "cpu"
         if self._do_keypoint:
-            self.extractor = Extractor(cfg, logger, device)
+            self.extractor = Extractor(kps_cfg, logger, device)
         if self._do_individual:
-            self.individual_analyzer = IndividualAnalyzer(cfg, logger)
+            self.individual_analyzer = IndividualAnalyzer(ind_cfg, logger)
         if self._do_group:
-            self.group_analyzer = GroupAnalyzer(cfg, logger, device)
+            self.group_analyzer = GroupAnalyzer(grp_cfg, ind_cfg, logger, device)
 
     def __del__(self):
         if hasattr(self, "extractor"):

@@ -13,10 +13,9 @@ from individual.visualization import visualize
 
 
 class IndividualAnalyzer:
-    def __init__(self, cfg: dict, logger: Logger):
+    def __init__(self, ind_cfg: dict, logger: Logger):
         # load config
-        cfg = cfg["individual"]
-        self._defaults: Dict[str, Dict[str, Any]] = self.load_default(cfg)
+        self._defaults: Dict[str, Dict[str, Any]] = self.load_default(ind_cfg)
 
         self._logger = logger
 

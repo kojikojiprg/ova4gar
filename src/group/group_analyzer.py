@@ -15,10 +15,10 @@ from group.visualization import GroupVisualizer
 
 
 class GroupAnalyzer:
-    def __init__(self, cfg: dict, logger: Logger, device: str):
-        self._ind_cfg = cfg["individual"]
-        self._cfg = cfg["group"]
-        self._keys = list(self._cfg["indicator"].keys())
+    def __init__(self, grp_cfg: dict, ind_cfg: dict, logger: Logger, device: str):
+        self._ind_cfg = ind_cfg
+        self._grp_cfg = grp_cfg
+        self._keys = list(self._grp_cfg.keys())
         self._logger = logger
         self._device = device
 
@@ -36,7 +36,7 @@ class GroupAnalyzer:
 
         # create group class
         self._logger.info(f"=> construct group activity model for {data_dir}")
-        group = Group(self._cfg, field, self._logger, self._device)
+        group = Group(self._grp_cfg, field, self._logger, self._device)
 
         # create video capture
         video_path = os.path.join(data_dir, "video", "keypoints.mp4")
