@@ -1,9 +1,9 @@
 passing:
   default:
-    gauss_mu: 200  # 距離に対するガウス分布の平均
-    gauss_sig: 100  # 距離に対するガウス分布の分散
-    wrist_gauss_mu: 100  # 手首の距離に対するガウス分布の平均
-    wrist_gauss_sig: 80  # 手首の距離に対するガウス分布の分散
+    dist_mu: 200  # 距離に対するガウス分布の平均
+    dist_sig: 100  # 距離に対するガウス分布の分散
+    wrist_mu: 100  # 手首の距離に対するガウス分布の平均
+    wrist_sig: 80  # 手首の距離に対するガウス分布の分散
     seq_len: 30  # sequence length of LSTM input
   cfg_path: "config/passing/pass_model_lstm.yaml"
 
