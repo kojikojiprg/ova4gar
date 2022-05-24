@@ -12,7 +12,7 @@ from utility.functions import cos_similarity, gauss
 
 
 class PassingDataset(torch.utils.data.Dataset):
-    def __init__(self, x_dict, y_dict, seq_len, logger, device):
+    def __init__(self, x_dict, y_dict, seq_len, logger):
         self.x, self.y = [], []
         logger.info("=> create dataset")
         for key in tqdm(x_dict.keys()):
@@ -22,14 +22,10 @@ class PassingDataset(torch.utils.data.Dataset):
             self.x += x_seq
             self.y += y_seq
 
-        self.device = device
-
     def __getitem__(self, index):
         return (
-            torch.tensor(self.x[index]).float().to(self.device),
-            torch.tensor(np.identity(2)[self.y[index]])
-            .float()
-            .to(self.device),  # one-hot
+            torch.tensor(self.x[index]).float(),
+            torch.tensor(np.identity(2)[self.y[index]]).float(),  # one-hot
         )
 
     def __len__(self):
@@ -54,11 +50,10 @@ def make_data_loader(
     batch_size: int,
     shuffle: bool,
     logger: Logger,
-    device: str,
 ):
-    dataset = PassingDataset(x_dict, y_dict, seq_len, logger, device)
+    dataset = PassingDataset(x_dict, y_dict, seq_len, logger)
     loader = torch.utils.data.DataLoader(
-        dataset, batch_size=batch_size, shuffle=shuffle
+        dataset, batch_size=batch_size, shuffle=shuffle, num_workers=8, pin_memory=True
     )
 
     return loader
@@ -69,7 +64,6 @@ def make_data_loaders(
     cfg: dict,
     passing_defs: dict,
     logger: Logger,
-    device: str,
 ):
     # transform dataset setting into time series data
     x_dict, y_dict = make_all_data(individuals, cfg["setting"], passing_defs, logger)
@@ -92,20 +86,16 @@ def make_data_loaders(
     x_train_dict = {key: x_dict[key] for key in train_keys}
     y_train_dict = {key: y_dict[key] for key in train_keys}
     train_loader = make_data_loader(
-        x_train_dict, y_train_dict, seq_len, batch_size, True, logger, device
+        x_train_dict, y_train_dict, seq_len, batch_size, True, logger
     )
 
     x_val_dict = {key: x_dict[key] for key in val_keys}
     y_val_dict = {key: y_dict[key] for key in val_keys}
-    val_loader = make_data_loader(
-        x_val_dict, y_val_dict, seq_len, 1, False, logger, device
-    )
+    val_loader = make_data_loader(x_val_dict, y_val_dict, seq_len, 1, False, logger)
 
     x_test_dict = {key: x_dict[key] for key in test_keys}
     y_test_dict = {key: y_dict[key] for key in test_keys}
-    test_loader = make_data_loader(
-        x_test_dict, y_test_dict, seq_len, 1, False, logger, device
-    )
+    test_loader = make_data_loader(x_test_dict, y_test_dict, seq_len, 1, False, logger)
 
     return train_loader, val_loader, test_loader
 

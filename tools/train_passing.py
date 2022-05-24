@@ -46,10 +46,10 @@ def init_optim(model, lr, rate):
     return optimizer, scheduler
 
 
-def scores(model, loader):
+def scores(model, loader, device):
     preds, y_all = [], []
     for x, y in loader:
-        pred = model(x)
+        pred = model(x.to(device))
         pred = pred.max(1)[1]
         pred = pred.cpu().numpy().tolist()
         y = y.cpu().numpy().T[1].astype(int).tolist()
@@ -64,7 +64,15 @@ def scores(model, loader):
 
 
 def train(
-    model, train_loader, val_loader, criterion, optimizer, scheduler, epoch_len, logger
+    model,
+    train_loader,
+    val_loader,
+    criterion,
+    optimizer,
+    scheduler,
+    epoch_len,
+    logger,
+    device,
 ):
     logger.info("=> start training")
     history = dict(train=[], val=[])
@@ -79,7 +87,7 @@ def train(
             for x, y in train_loader:
                 optimizer.zero_grad()
 
-                pred = model(x)
+                pred = model(x.to(device))
 
                 loss = criterion(pred.requires_grad_(), y)
                 loss.backward()
@@ -95,7 +103,7 @@ def train(
             if len(val_loader) > 0:
                 with torch.no_grad():
                     for x, y in val_loader:
-                        pred = model(x)
+                        pred = model(x.to(device))
 
                         loss = criterion(pred.requires_grad_(), y)
                         val_losses.append(loss.item())
@@ -118,7 +126,7 @@ def train(
     logger.info("=> end training")
 
     logger.info("=> calculating train scores")
-    acc, pre, rcl, f1 = scores(model, train_loader)
+    acc, pre, rcl, f1 = scores(model, train_loader, device)
     logger.info(
         f"=> train score\naccuracy: {acc}\npresision: {pre}\nrecall: {rcl}\nf1: {f1}"
     )
@@ -126,11 +134,11 @@ def train(
     return model, epoch, history
 
 
-def test(model, test_loader):
+def test(model, test_loader, logger, device):
     model.eval()
     with torch.no_grad():
         logger.info("=> calculating test scores")
-        acc, pre, rcl, f1 = scores(model, test_loader)
+        acc, pre, rcl, f1 = scores(model, test_loader, device)
         logger.info(
             f"=> test score\naccuracy: {acc}\npresision: {pre}\nrecall: {rcl}\nf1: {f1}"
         )
@@ -183,7 +191,7 @@ def main():
     dataset_cfg = train_cfg["dataset"]
     passing_defs = grp_cfg["passing"]["default"]
     train_loader, val_loader, test_loader = make_data_loaders(
-        inds, dataset_cfg, passing_defs, logger, device
+        inds, dataset_cfg, passing_defs, logger
     )
 
     # init optimizer
@@ -203,8 +211,9 @@ def main():
         scheduler,
         epoch_len,
         logger,
+        device,
     )
-    test(model, test_loader)
+    test(model, test_loader, logger, device)
 
     # save model
     model_path = os.path.join("models", "passing", f"pass_model_ep{epoch}.pth")
