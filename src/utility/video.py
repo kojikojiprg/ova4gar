@@ -1,3 +1,4 @@
+import gc
 import os
 
 import cv2
@@ -20,6 +21,7 @@ class Capture:
 
     def __del__(self):
         self._cap.release()
+        gc.collect()
 
     @property
     def frame_count(self):
@@ -68,6 +70,7 @@ class Writer:
 
     def __del__(self):
         self._writer.release()
+        gc.collect()
 
     def write(self, frame):
         frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)  # RGB to BGR

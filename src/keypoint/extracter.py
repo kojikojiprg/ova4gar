@@ -42,9 +42,9 @@ class Extractor:
         self._batch_size = self._cfg["batch_size"]
 
     def __del__(self):
-        gc.collect()
         torch.cuda.empty_cache()
         del self._detector, self._tracker, self._logger
+        gc.collect()
 
     def predict(self, video_path: str, data_dir: str):
         # create video capture

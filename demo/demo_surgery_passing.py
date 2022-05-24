@@ -1,3 +1,4 @@
+import gc
 import os
 import sys
 from glob import glob
@@ -28,6 +29,9 @@ def main():
         model = InferenceModel(args, logger)
         logger.info(f"=> processing {video_path}")
         model.inference(video_path, data_dir)
+
+        del model
+        gc.collect()
 
 
 if __name__ == "__main__":

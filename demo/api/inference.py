@@ -1,3 +1,4 @@
+import gc
 import sys
 from logging import Logger
 
@@ -46,6 +47,7 @@ class InferenceModel:
             del self.individual_analyzer
         if hasattr(self, "group_analyzer"):
             del self.group_analyzer
+        gc.collect()
 
     def _create_homography(self, cfg, room_num):
         homo_cfg = cfg["homography"]
