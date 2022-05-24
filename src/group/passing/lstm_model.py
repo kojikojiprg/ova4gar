@@ -9,7 +9,10 @@ class LSTMModel(nn.Module):
         in_dim = config["size"]
         out_dim = config["rnn_hidden_dim"]
         n_rnns = config["n_rnns"]
-        rnn_dropout = config["rnn_dropout"]
+        if n_rnns > 1:
+            rnn_dropout = config["rnn_dropout"]
+        else:
+            rnn_dropout = 0
         self.rnn = nn.LSTM(
             in_dim, out_dim, num_layers=n_rnns, dropout=rnn_dropout, batch_first=True
         )
