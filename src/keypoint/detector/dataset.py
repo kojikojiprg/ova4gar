@@ -1,3 +1,5 @@
+import os
+
 import torch
 from utility.video import Capture
 
@@ -19,7 +21,7 @@ def make_data_loader(cap: Capture, batch_size):
     dataset = KeypointDetaset(cap)
 
     loader = torch.utils.data.DataLoader(
-        dataset, batch_size=batch_size, shuffle=False, num_workers=0, pin_memory=False
+        dataset, batch_size=batch_size, shuffle=False, num_workers=4, pin_memory=True
     )
 
     return loader
