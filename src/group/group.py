@@ -1,6 +1,8 @@
+import gc
 from logging import Logger
 from typing import Any, Dict, List
 
+import numpy as np
 import torch
 import yaml
 from individual.individual import Individual
@@ -52,6 +54,7 @@ class Group:
         del self._field, self._logger
         del self._pass_model
         del self._idc_dict, self._idc_que
+        gc.collect()
 
     def get(self, key):
         return self._idc_dict[key]
@@ -61,9 +64,9 @@ class Group:
         data = self._idc_dict["passing"]
 
         data_dict: Dict[str, List[int]] = {}
-        for raw in data:
-            frame_num = raw["frame"]
-            persons = raw["persons"]
+        for row in data:
+            frame_num = row["frame"]
+            persons = row["persons"]
 
             pair_key = f"{persons[0]}_{persons[1]}"
             if pair_key not in data_dict:
@@ -72,6 +75,31 @@ class Group:
             data_dict[pair_key].append(frame_num)
 
         return data_dict
+
+    @property
+    def attention(self) -> NDArray:
+        all_data = self._idc_dict["attention"]
+
+        shape = tuple(
+            np.array(self._field.shape[1::-1]) // self._defs["attention"]["division"]
+        )
+
+        heatmap_lst = []
+        max_frame_num = max([data["frame"] for data in all_data])
+        for frame_num in range(max_frame_num):
+            frame_data = [data for data in all_data if data["frame_nun"] == frame_num]
+
+            # init heatmap
+            heatmap = np.zeros(shape, dtype=np.float32)
+            for data in frame_data:
+                coor = tuple(
+                    np.array(data["point"]) // self._defs["attention"]["division"]
+                )
+                value = data["value"]
+                heatmap[coor] = value
+            heatmap_lst.append(heatmap)
+
+        return np.array(heatmap_lst)
 
     def calc_indicator(self, frame_num: int, individuals: List[Individual]):
         for key, func in self._funcs.items():
