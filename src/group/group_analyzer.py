@@ -30,7 +30,7 @@ class GroupAnalyzer:
         del self._visualizer
         gc.collect()
 
-    def analyze(self, data_dir: str, field: NDArray, with_write_video: bool = False):
+    def analyze(self, data_dir: str, field: NDArray, writing_video: bool = False):
         # load individual data from json file
         ind_json_path = os.path.join(data_dir, ".json", "individual.json")
         self._logger.info(f"=> load individual data from {ind_json_path}")
@@ -40,7 +40,7 @@ class GroupAnalyzer:
         self._logger.info(f"=> construct group activity model for {data_dir}")
         group = Group(self._grp_cfg, field, self._logger, self._device)
 
-        if with_write_video:
+        if writing_video:
             # create video capture
             video_path = os.path.join(data_dir, "video", "keypoints.mp4")
             self._logger.info(f"=> loading video from {video_path}.")
@@ -70,7 +70,7 @@ class GroupAnalyzer:
 
             group.calc_indicator(frame_num, inds_per_frame)
 
-            if with_write_video:
+            if writing_video:
                 inds_video_data = [ind.to_dict(frame_num) for ind in inds_per_frame]
                 _, frame = video_capture.read()
                 self.write_video(
@@ -86,7 +86,7 @@ class GroupAnalyzer:
         # release memory
         torch.cuda.empty_cache()
         del inds, group, group_data
-        if with_write_video:
+        if writing_video:
             del video_capture, writers
         gc.collect()
 

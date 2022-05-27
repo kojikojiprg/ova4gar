@@ -46,8 +46,8 @@ class Extractor:
         del self._detector, self._tracker, self._logger
         gc.collect()
 
-    def predict(self, video_path: str, data_dir: str, with_write_video: bool = False):
-        if with_write_video:
+    def predict(self, video_path: str, data_dir: str, writing_video: bool = False):
+        if writing_video:
             # create video capture
             self._logger.info(f"=> loading video from {video_path}.")
             video_capture = Capture(video_path)
@@ -62,7 +62,7 @@ class Extractor:
         kps_all = self._detect(video_capture)
 
         self._logger.info("=> tracking keypoints")
-        if with_write_video:
+        if writing_video:
             self._logger.info(f"=> writing video into {out_path} while processing.")
             video_capture.set_pos_frame_count(0)  # initialize video capture
         json_data = []
@@ -73,7 +73,7 @@ class Extractor:
             # tracking
             tracks = self._tracker.update(frame, kps)
 
-            if with_write_video:
+            if writing_video:
                 self.write_video(video_writer, frame, tracks, frame_num)
 
             # append result
@@ -95,7 +95,7 @@ class Extractor:
         # release memory
         torch.cuda.empty_cache()
         del kps_all, json_data
-        if with_write_video:
+        if writing_video:
             del video_capture, video_writer
         gc.collect()
 

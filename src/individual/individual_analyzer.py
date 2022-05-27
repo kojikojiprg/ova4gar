@@ -36,14 +36,14 @@ class IndividualAnalyzer:
         data_dir: str,
         homo: Homography,
         field: NDArray,
-        with_write_video: bool = False,
+        writing_video: bool = False,
     ):
         # load keypoints data from json file
         kps_json_path = os.path.join(data_dir, ".json", "keypoints.json")
         self._logger.info(f"=> loading keypoint data from {kps_json_path}")
         keypoints_data = json_handler.load(kps_json_path)
 
-        if with_write_video:
+        if writing_video:
             # create video capture
             video_path = os.path.join(data_dir, "video", "keypoints.mp4")
             self._logger.info(f"=> loading video from {video_path}.")
@@ -83,7 +83,7 @@ class IndividualAnalyzer:
 
             # when frame next, write video frame
             if pre_frame_num < frame_num:
-                if with_write_video:
+                if writing_video:
                     video_data = [
                         ind.to_dict(pre_frame_num)
                         for ind in individuals.values()
@@ -94,7 +94,7 @@ class IndividualAnalyzer:
                     del video_data  # release memory
                 pre_frame_num = frame_num  # update pre_frame_num
         else:
-            if with_write_video:
+            if writing_video:
                 video_data = [
                     ind.to_dict(frame_num)
                     for ind in individuals.values()
@@ -111,7 +111,7 @@ class IndividualAnalyzer:
 
         # release memory
         del keypoints_data, individuals, json_data
-        if with_write_video:
+        if writing_video:
             del video_capture, video_writer
         gc.collect()
 

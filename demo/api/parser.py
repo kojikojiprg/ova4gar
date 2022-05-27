@@ -33,21 +33,28 @@ def _common_parser():
         "--without_keypoint",
         default=False,
         action="store_true",
-        help="without keypoint extraction.",
+        help="without keypoint extraction",
     )
     parser.add_argument(
         "-wi",
         "--without_individual",
         default=False,
         action="store_true",
-        help="without idividual analyzation.",
+        help="without idividual analyzation",
     )
     parser.add_argument(
         "-wg",
         "--without_group",
         default=False,
         action="store_true",
-        help="without group analyzation.",
+        help="without group analyzation",
+    )
+    parser.add_argument(
+        "-v",
+        "--video",
+        default=False,
+        action="store_true",
+        help="writing video while processing",
     )
     return parser
 
