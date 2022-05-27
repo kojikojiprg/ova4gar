@@ -47,14 +47,14 @@ class Extractor:
         gc.collect()
 
     def predict(self, video_path: str, data_dir: str, writing_video: bool = False):
-        if writing_video:
-            # create video capture
-            self._logger.info(f"=> loading video from {video_path}.")
-            video_capture = Capture(video_path)
-            assert (
-                video_capture.is_opened
-            ), f"{video_path} does not exist or is wrong file type."
+        # create video capture
+        self._logger.info(f"=> loading video from {video_path}.")
+        video_capture = Capture(video_path)
+        assert (
+            video_capture.is_opened
+        ), f"{video_path} does not exist or is wrong file type."
 
+        if writing_video:
             # create video writer
             out_path = os.path.join(data_dir, "video", "keypoints.mp4")
             video_writer = Writer(out_path, video_capture.fps, video_capture.size)
