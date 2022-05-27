@@ -64,7 +64,8 @@ class Extractor:
         self._logger.info("=> tracking keypoints")
         if writing_video:
             self._logger.info(f"=> writing video into {out_path} while processing.")
-            video_capture.set_pos_frame_count(0)  # initialize video capture
+
+        video_capture.set_pos_frame_count(0)  # initialize video capture
         json_data = []
         for frame_num, kps in enumerate(tqdm(kps_all)):
             frame_num += 1  # frame_num = (1, ...)
