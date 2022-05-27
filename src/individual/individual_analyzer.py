@@ -1,3 +1,4 @@
+import gc
 import os
 from logging import Logger
 from typing import Any, Dict, List
@@ -30,31 +31,39 @@ class IndividualAnalyzer:
             defaults["keypoint"][key] = val
         return defaults
 
-    def analyze(self, data_dir: str, homo: Homography, field: NDArray):
-        # create video capture
-        video_path = os.path.join(data_dir, "video", "keypoints.mp4")
-        self._logger.info(f"=> loading video from {video_path}.")
-        video_capture = Capture(video_path)
-        assert (
-            video_capture.is_opened
-        ), f"{video_path} does not exist or is wrong file type."
-
-        # create video writer
-        cmb_img = concat_field_with_frame(video_capture.read()[1], field)
-        video_capture.set_pos_frame_count(0)
-        size = cmb_img.shape[1::-1]
-        out_path = os.path.join(data_dir, "video", "individual.mp4")
-        video_writer = Writer(out_path, video_capture.fps, size)
-
+    def analyze(
+        self,
+        data_dir: str,
+        homo: Homography,
+        field: NDArray,
+        with_write_video: bool = False,
+    ):
         # load keypoints data from json file
         kps_json_path = os.path.join(data_dir, ".json", "keypoints.json")
         self._logger.info(f"=> loading keypoint data from {kps_json_path}")
         keypoints_data = json_handler.load(kps_json_path)
 
+        if with_write_video:
+            # create video capture
+            video_path = os.path.join(data_dir, "video", "keypoints.mp4")
+            self._logger.info(f"=> loading video from {video_path}.")
+            video_capture = Capture(video_path)
+            assert (
+                video_capture.is_opened
+            ), f"{video_path} does not exist or is wrong file type."
+
+            # create video writer
+            cmb_img = concat_field_with_frame(video_capture.read()[1], field)
+            video_capture.set_pos_frame_count(0)
+            size = cmb_img.shape[1::-1]
+            out_path = os.path.join(data_dir, "video", "individual.mp4")
+            video_writer = Writer(out_path, video_capture.fps, size)
+
+            self._logger.info(f"=> writing video into {out_path} while processing")
+
         individuals: Dict[int, Individual] = {}
         json_data: List[Dict[str, Any]] = []
         pre_frame_num = 1
-        self._logger.info(f"=> writing video into {out_path} while processing")
         for data in tqdm(keypoints_data):
             frame_num = data["frame"]
             pid = data["id"]
@@ -74,24 +83,26 @@ class IndividualAnalyzer:
 
             # when frame next, write video frame
             if pre_frame_num < frame_num:
+                if with_write_video:
+                    video_data = [
+                        ind.to_dict(pre_frame_num)
+                        for ind in individuals.values()
+                        if ind.exists_on_frame(pre_frame_num)
+                    ]
+                    _, frame = video_capture.read()
+                    self.write_video(video_writer, video_data, frame, field)
+                    del video_data  # release memory
+                pre_frame_num = frame_num  # update pre_frame_num
+        else:
+            if with_write_video:
                 video_data = [
-                    ind.to_dict(pre_frame_num)
+                    ind.to_dict(frame_num)
                     for ind in individuals.values()
-                    if ind.exists_on_frame(pre_frame_num)
+                    if ind.exists_on_frame(frame_num)
                 ]
                 _, frame = video_capture.read()
                 self.write_video(video_writer, video_data, frame, field)
                 del video_data  # release memory
-                pre_frame_num = frame_num  # update pre_frame_num
-        else:
-            video_data = [
-                ind.to_dict(frame_num)
-                for ind in individuals.values()
-                if ind.exists_on_frame(frame_num)
-            ]
-            _, frame = video_capture.read()
-            self.write_video(video_writer, video_data, frame, field)
-            del video_data  # release memory
 
         # write json
         ind_json_path = os.path.join(data_dir, ".json", "individual.json")
@@ -99,7 +110,10 @@ class IndividualAnalyzer:
         json_handler.dump(json_data, ind_json_path)
 
         # release memory
-        del video_capture, video_writer, keypoints_data, individuals, json_data
+        del keypoints_data, individuals, json_data
+        if with_write_video:
+            del video_capture, video_writer
+        gc.collect()
 
     @staticmethod
     def write_video(

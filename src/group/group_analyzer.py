@@ -30,7 +30,7 @@ class GroupAnalyzer:
         del self._visualizer
         gc.collect()
 
-    def analyze(self, data_dir: str, field: NDArray):
+    def analyze(self, data_dir: str, field: NDArray, with_write_video: bool = False):
         # load individual data from json file
         ind_json_path = os.path.join(data_dir, ".json", "individual.json")
         self._logger.info(f"=> load individual data from {ind_json_path}")
@@ -40,27 +40,29 @@ class GroupAnalyzer:
         self._logger.info(f"=> construct group activity model for {data_dir}")
         group = Group(self._grp_cfg, field, self._logger, self._device)
 
-        # create video capture
-        video_path = os.path.join(data_dir, "video", "keypoints.mp4")
-        self._logger.info(f"=> loading video from {video_path}.")
-        video_capture = Capture(video_path)
-        assert (
-            video_capture.is_opened
-        ), f"{video_path} does not exist or is wrong file type."
+        if with_write_video:
+            # create video capture
+            video_path = os.path.join(data_dir, "video", "keypoints.mp4")
+            self._logger.info(f"=> loading video from {video_path}.")
+            video_capture = Capture(video_path)
+            assert (
+                video_capture.is_opened
+            ), f"{video_path} does not exist or is wrong file type."
 
-        # create video writer
-        cmb_img = concat_field_with_frame(video_capture.read()[1], field)
-        video_capture.set_pos_frame_count(0)
-        size = cmb_img.shape[1::-1]
-        writers: Dict[str, Writer] = {}
-        out_paths = []
-        for key in self._keys:
-            out_path = os.path.join(data_dir, "video", f"{key}.mp4")
-            out_paths.append(out_path)
-            video_writer = Writer(out_path, video_capture.fps, size)
-            writers[key] = video_writer
+            # create video writer
+            cmb_img = concat_field_with_frame(video_capture.read()[1], field)
+            video_capture.set_pos_frame_count(0)
+            size = cmb_img.shape[1::-1]
+            writers: Dict[str, Writer] = {}
+            out_paths = []
+            for key in self._keys:
+                out_path = os.path.join(data_dir, "video", f"{key}.mp4")
+                out_paths.append(out_path)
+                video_writer = Writer(out_path, video_capture.fps, size)
+                writers[key] = video_writer
 
-        self._logger.info(f"=> writing video into {out_paths} while processing")
+            self._logger.info(f"=> writing video into {out_paths} while processing")
+
         for frame_num in tqdm(range(last_frame_num)):
             inds_per_frame = [
                 ind for ind in inds.values() if ind.exists_on_frame(frame_num)
@@ -68,9 +70,12 @@ class GroupAnalyzer:
 
             group.calc_indicator(frame_num, inds_per_frame)
 
-            inds_video_data = [ind.to_dict(frame_num) for ind in inds_per_frame]
-            _, frame = video_capture.read()
-            self.write_video(writers, frame_num, frame, field, inds_video_data, group)
+            if with_write_video:
+                inds_video_data = [ind.to_dict(frame_num) for ind in inds_per_frame]
+                _, frame = video_capture.read()
+                self.write_video(
+                    writers, frame_num, frame, field, inds_video_data, group
+                )
 
         # write json
         group_data = group.to_dict()
@@ -80,7 +85,10 @@ class GroupAnalyzer:
 
         # release memory
         torch.cuda.empty_cache()
-        del inds, group, group_data, video_capture, writers
+        del inds, group, group_data
+        if with_write_video:
+            del video_capture, writers
+        gc.collect()
 
     def write_video(
         self,

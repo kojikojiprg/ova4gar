@@ -46,23 +46,25 @@ class Extractor:
         del self._detector, self._tracker, self._logger
         gc.collect()
 
-    def predict(self, video_path: str, data_dir: str):
-        # create video capture
-        self._logger.info(f"=> loading video from {video_path}.")
-        video_capture = Capture(video_path)
-        assert (
-            video_capture.is_opened
-        ), f"{video_path} does not exist or is wrong file type."
+    def predict(self, video_path: str, data_dir: str, with_write_video: bool = False):
+        if with_write_video:
+            # create video capture
+            self._logger.info(f"=> loading video from {video_path}.")
+            video_capture = Capture(video_path)
+            assert (
+                video_capture.is_opened
+            ), f"{video_path} does not exist or is wrong file type."
 
-        # create video writer
-        out_path = os.path.join(data_dir, "video", "keypoints.mp4")
-        video_writer = Writer(out_path, video_capture.fps, video_capture.size)
+            # create video writer
+            out_path = os.path.join(data_dir, "video", "keypoints.mp4")
+            video_writer = Writer(out_path, video_capture.fps, video_capture.size)
 
         kps_all = self._detect(video_capture)
 
         self._logger.info("=> tracking keypoints")
-        self._logger.info(f"=> writing video into {out_path} while processing.")
-        video_capture.set_pos_frame_count(0)  # initialize video capture
+        if with_write_video:
+            self._logger.info(f"=> writing video into {out_path} while processing.")
+            video_capture.set_pos_frame_count(0)  # initialize video capture
         json_data = []
         for frame_num, kps in enumerate(tqdm(kps_all)):
             frame_num += 1  # frame_num = (1, ...)
@@ -71,7 +73,8 @@ class Extractor:
             # tracking
             tracks = self._tracker.update(frame, kps)
 
-            self.write_video(video_writer, frame, tracks, frame_num)
+            if with_write_video:
+                self.write_video(video_writer, frame, tracks, frame_num)
 
             # append result
             for t in tracks:
@@ -82,13 +85,19 @@ class Extractor:
                 }
                 json_data.append(data)
 
+            del tracks
+            gc.collect()
+
         json_path = os.path.join(data_dir, ".json", "keypoints.json")
         self._logger.info(f"=> writing json file into {json_path}.")
         dump(json_data, json_path)
 
         # release memory
-        gc.collect()
         torch.cuda.empty_cache()
+        del kps_all, json_data
+        if with_write_video:
+            del video_capture, video_writer
+        gc.collect()
 
     def _detect(self, video_capture):
         self._logger.info("=> detecting keypoints")
