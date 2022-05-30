@@ -7,6 +7,7 @@ import torch
 import yaml
 from individual.individual import Individual
 from numpy.typing import NDArray
+from tqdm import tqdm
 
 from group.indicator import attention as func_attention
 from group.indicator import passing as func_passing
@@ -77,29 +78,27 @@ class Group:
         return data_dict
 
     @property
-    def attention(self) -> NDArray:
+    def attention(self) -> Dict[int, NDArray]:
+        self._logger.info("=> loading attention result")
         all_data = self._idc_dict["attention"]
 
         shape = tuple(
             np.array(self._field.shape[1::-1]) // self._defs["attention"]["division"]
+            + 1
         )
 
-        heatmap_lst = []
-        max_frame_num = max([data["frame"] for data in all_data])
-        for frame_num in range(max_frame_num):
-            frame_data = [data for data in all_data if data["frame_nun"] == frame_num]
+        heatmap_dict = {}
+        for data in tqdm(all_data):
+            frame_num = data["frame"]
 
-            # init heatmap
-            heatmap = np.zeros(shape, dtype=np.float32)
-            for data in frame_data:
-                coor = tuple(
-                    np.array(data["point"]) // self._defs["attention"]["division"]
-                )
-                value = data["value"]
-                heatmap[coor] = value
-            heatmap_lst.append(heatmap)
+            if frame_num not in heatmap_dict:
+                heatmap_dict[frame_num] = np.zeros(shape, dtype=np.float32)
+            heatmap = heatmap_dict[frame_num]
 
-        return np.array(heatmap_lst)
+            coor = tuple(np.array(data["point"]) // self._defs["attention"]["division"])
+            heatmap[coor] = data["value"]
+
+        return heatmap_dict
 
     def calc_indicator(self, frame_num: int, individuals: List[Individual]):
         for key, func in self._funcs.items():
