@@ -4,14 +4,15 @@ from logging import Logger
 from typing import Dict
 
 import cv2
-import numpy as np
 import yaml
+from group.group import Group
 from group.group_analyzer import GroupAnalyzer
 from individual.individual_analyzer import IndividualAnalyzer
-from keypoint.visualization import draw_skeleton, put_frame_num
 from tqdm import tqdm
 from utility import json_handler
 from utility.video import Capture, Writer, concat_field_with_frame
+
+from visualize import keypoint
 
 
 class Visalizer:
@@ -19,7 +20,9 @@ class Visalizer:
         # open config file
         with open(args.cfg_path) as f:
             cfg = yaml.safe_load(f)
-        self._group_keys = cfg["group"]["indicator"].keys()
+        with open(cfg["config_path"]["group"]) as f:
+            self._grp_cfg = yaml.safe_load(f)
+        self._group_keys = self._grp_cfg.keys()
         self._logger = logger
 
         # homography
@@ -59,39 +62,36 @@ class Visalizer:
         kps_data = self._load_json(data_dir, "keypoints")
         ind_data = self._load_json(data_dir, "individual")
         grp_data = self._load_json(data_dir, "group")
+        group = Group(self._grp_cfg, self._field, self._logger, "cpu")
+        group.from_json(grp_data)
 
         self._logger.info(f"=> loading video from {video_path}.")
         self._logger.info(f"=> writing video into {out_path} while processing.")
         for frame_num in tqdm(range(video_capture.frame_count)):
             frame_num += 1  # frame_num = (1, ...)
-            frame = video_capture.read()
+            ret, frame = video_capture.read()
 
             # write keypoint video
-            kps_data_each_frame = [
-                kps for kps in kps_data if kps["frame"] == frame_num
-            ]
-            frame = put_frame_num(frame, frame_num)
-            for kps in kps_data_each_frame:
-                frame = draw_skeleton(frame, kps["id"], np.array(kps["keypoints"]))
+            frame = keypoint.write_frame(frame, kps_data, frame_num)
             if self._do_keypoint:
                 kps_video_writer.write(frame)
 
             # write individual video
+            ind_data_each_frame = [kps for kps in ind_data if kps["frame"] == frame_num]
             if self._do_individual:
-                ind_data_each_frame = [
-                    kps for kps in ind_data if kps["frame"] == frame_num
-                ]
                 IndividualAnalyzer.write_video(
                     ind_video_writer, ind_data_each_frame, frame, self._field
                 )
 
             # write group video
             if self._do_group:
-                grp_data_each_frame = [
-                    kps for kps in grp_data if kps["frame"] == frame_num
-                ]
                 GroupAnalyzer.write_video(
-                    grp_writers, grp_data_each_frame, frame, self._field
+                    grp_writers,
+                    frame_num,
+                    frame,
+                    self._field,
+                    ind_data_each_frame,
+                    group,
                 )
 
         # release memory
