@@ -1,17 +1,52 @@
-from typing import List
+import gc
+import os
+import sys
+from typing import Any, Dict, List
 
 import cv2
 import numpy as np
 from numpy.typing import NDArray
+from tqdm import tqdm
+
+sys.path.append("src")
+from utility.json_handler import load
+from utility.video import Capture, Writer
 
 
-def get_color(idx: int):
-    idx = idx * 17
-    color = ((37 * idx) % 255, (17 * idx) % 255, (29 * idx) % 255)
-    return color
+def write_video(video_path, data_dir, start_frame_num, end_frame_num):
+    # create video capture
+    cap = Capture(video_path)
+
+    # create video writer
+    out_path = os.path.join(data_dir, "video", "keypoints.mp4")
+    wrt = Writer(out_path, cap.fps, cap.size)
+
+    # load json file
+    json_path = os.path.join(data_dir, ".json", "keypoints.json")
+    kps_data = load(json_path)
+
+    # write video
+    cap.set_pos_frame_count(start_frame_num - 1)
+    for frame_num in tqdm(range(start_frame_num, end_frame_num + 1)):
+        ret, frame = cap.read()
+        frame = write_frame(wrt, frame, kps_data, frame_num)
+        wrt.write(frame)
+
+    del cap, wrt, kps_data
+    gc.collect()
 
 
-def put_frame_num(img: NDArray, frame_num: int):
+def write_frame(frame: NDArray, kps_data: List[Dict[str, Any]], frame_num: int):
+    # add keypoints to image
+    frame = _put_frame_num(frame, frame_num)
+    for kps in kps_data:
+        if kps["frame"] == frame_num:
+            frame = _draw_skeleton(frame, kps["id"], np.array(kps["keypoints"]))
+
+    return frame
+
+
+def _put_frame_num(img: NDArray, frame_num: int):
     return cv2.putText(
         img,
         "Frame:{}".format(frame_num),
@@ -22,7 +57,7 @@ def put_frame_num(img: NDArray, frame_num: int):
     )
 
 
-def draw_skeleton(frame: NDArray, t_id: int, kp: NDArray, vis_thresh: float = 0.2):
+def _draw_skeleton(frame: NDArray, t_id: int, kp: NDArray, vis_thresh: float = 0.2):
     l_pair = [
         (0, 1),
         (0, 2),

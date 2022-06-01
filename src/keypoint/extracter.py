@@ -1,21 +1,18 @@
 import gc
 import os
 from logging import Logger
-from typing import List
 
 import numpy as np
 import torch
 from numpy.typing import NDArray
 from tqdm import tqdm
-from unitrack.tracker.mot.basetrack import STrack
 from utility.json_handler import dump
-from utility.video import Capture, Writer
+from utility.video import Capture
 
 from keypoint.detector.dataset import make_data_loader
 from keypoint.detector.higher_hrnet import HigherHRNetDetecter
 from keypoint.detector.hrnet import HRNetDetecter
 from keypoint.tracker.unitrack import UniTrackTracker
-from keypoint.visualization import draw_skeleton, put_frame_num
 
 
 class Extractor:
@@ -46,7 +43,7 @@ class Extractor:
         del self._detector, self._tracker, self._logger
         gc.collect()
 
-    def predict(self, video_path: str, data_dir: str, writing_video: bool = False):
+    def predict(self, video_path: str, data_dir: str):
         # create video capture
         self._logger.info(f"=> loading video from {video_path}.")
         video_capture = Capture(video_path)
@@ -54,17 +51,9 @@ class Extractor:
             video_capture.is_opened
         ), f"{video_path} does not exist or is wrong file type."
 
-        if writing_video:
-            # create video writer
-            out_path = os.path.join(data_dir, "video", "keypoints.mp4")
-            video_writer = Writer(out_path, video_capture.fps, video_capture.size)
-
         kps_all = self._detect(video_capture)
 
         self._logger.info("=> tracking keypoints")
-        if writing_video:
-            self._logger.info(f"=> writing video into {out_path} while processing.")
-
         video_capture.set_pos_frame_count(0)  # initialize video capture
         json_data = []
         for frame_num, kps in enumerate(tqdm(kps_all)):
@@ -73,9 +62,6 @@ class Extractor:
 
             # tracking
             tracks = self._tracker.update(frame, kps)
-
-            if writing_video:
-                self.write_video(video_writer, frame, tracks, frame_num)
 
             # append result
             for t in tracks:
@@ -95,9 +81,7 @@ class Extractor:
 
         # release memory
         torch.cuda.empty_cache()
-        del kps_all, json_data
-        if writing_video:
-            del video_capture, video_writer
+        del video_capture, kps_all, json_data
         gc.collect()
 
     def _detect(self, video_capture):
@@ -141,14 +125,3 @@ class Extractor:
                 unique_kps = np.append(unique_kps, [kps[i]], axis=0)
 
         return unique_kps
-
-    @staticmethod
-    def write_video(
-        writer: Writer, frame: NDArray, tracks: List[STrack], frame_num: int
-    ):
-        # add keypoints to image
-        frame = put_frame_num(frame, frame_num)
-        for t in tracks:
-            frame = draw_skeleton(frame, t.track_id, np.array(t.pose))
-
-        writer.write(frame)
