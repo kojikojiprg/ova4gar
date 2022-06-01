@@ -1,3 +1,4 @@
+import gc
 import os
 import sys
 from typing import Any, Dict, List
@@ -46,7 +47,9 @@ def write_video(data_dir, field, start_frame_num, end_frame_num):
         frame = write_frame(ind_data_each_frame, frame, field)
         wrt.write(frame)
 
-    del ind_data_each_frame  # release memory
+    # release memory
+    del cap, wrt, ind_data_each_frame
+    gc.collect()
 
 
 def write_frame(
