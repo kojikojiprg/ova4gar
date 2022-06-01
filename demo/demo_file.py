@@ -1,8 +1,8 @@
 import os
 import sys
 
-from api.inference import InferenceModel
-from api.parser import file_parser
+from demo.inference import InferenceModel
+from demo.parser import file_parser
 
 sys.path.append("src")
 from utility.logger import logger

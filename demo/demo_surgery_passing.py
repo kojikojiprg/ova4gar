@@ -3,8 +3,8 @@ import os
 import sys
 from glob import glob
 
-from api.inference import InferenceModel
-from api.parser import surgery_parser
+from demo.inference import InferenceModel
+from demo.parser import surgery_parser
 
 sys.path.append("src")
 from utility.logger import logger

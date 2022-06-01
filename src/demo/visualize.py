@@ -1,3 +1,4 @@
+import gc
 import os
 from logging import Logger
 from typing import Dict
@@ -95,6 +96,7 @@ class Visalizer:
 
         # release memory
         del video_capture, kps_video_writer, ind_video_writer, grp_writers
+        gc.collect()
 
     def _load_json(self, data_dir: str, name: str):
         json_path = os.path.join(data_dir, ".json", f"{name}.json")

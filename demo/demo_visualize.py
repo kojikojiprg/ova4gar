@@ -2,8 +2,8 @@ import os
 import sys
 from glob import glob
 
-from api.parser import surgery_parser
-from api.visualize import Visalizer
+from demo.parser import surgery_parser
+from demo.visualize import Visalizer
 
 sys.path.append("src")
 from utility.logger import logger
