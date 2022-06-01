@@ -7,10 +7,8 @@ from numpy.typing import NDArray
 from tqdm import tqdm
 from utility import json_handler
 from utility.transform import Homography
-from utility.video import Capture, Writer, concat_field_with_frame
 
 from individual.individual import Individual
-from individual.visualization import visualize
 
 
 class IndividualAnalyzer:
@@ -35,31 +33,11 @@ class IndividualAnalyzer:
         self,
         data_dir: str,
         homo: Homography,
-        field: NDArray,
-        writing_video: bool = False,
     ):
         # load keypoints data from json file
         kps_json_path = os.path.join(data_dir, ".json", "keypoints.json")
         self._logger.info(f"=> loading keypoint data from {kps_json_path}")
         keypoints_data = json_handler.load(kps_json_path)
-
-        if writing_video:
-            # create video capture
-            video_path = os.path.join(data_dir, "video", "keypoints.mp4")
-            self._logger.info(f"=> loading video from {video_path}.")
-            video_capture = Capture(video_path)
-            assert (
-                video_capture.is_opened
-            ), f"{video_path} does not exist or is wrong file type."
-
-            # create video writer
-            cmb_img = concat_field_with_frame(video_capture.read()[1], field)
-            video_capture.set_pos_frame_count(0)
-            size = cmb_img.shape[1::-1]
-            out_path = os.path.join(data_dir, "video", "individual.mp4")
-            video_writer = Writer(out_path, video_capture.fps, size)
-
-            self._logger.info(f"=> writing video into {out_path} while processing")
 
         individuals: Dict[int, Individual] = {}
         json_data: List[Dict[str, Any]] = []
@@ -83,26 +61,7 @@ class IndividualAnalyzer:
 
             # when frame next, write video frame
             if pre_frame_num < frame_num:
-                if writing_video:
-                    video_data = [
-                        ind.to_dict(pre_frame_num)
-                        for ind in individuals.values()
-                        if ind.exists_on_frame(pre_frame_num)
-                    ]
-                    _, frame = video_capture.read()
-                    self.write_video(video_writer, video_data, frame, field)
-                    del video_data  # release memory
                 pre_frame_num = frame_num  # update pre_frame_num
-        else:
-            if writing_video:
-                video_data = [
-                    ind.to_dict(frame_num)
-                    for ind in individuals.values()
-                    if ind.exists_on_frame(frame_num)
-                ]
-                _, frame = video_capture.read()
-                self.write_video(video_writer, video_data, frame, field)
-                del video_data  # release memory
 
         # write json
         ind_json_path = os.path.join(data_dir, ".json", "individual.json")
@@ -111,17 +70,4 @@ class IndividualAnalyzer:
 
         # release memory
         del keypoints_data, individuals, json_data
-        if writing_video:
-            del video_capture, video_writer
         gc.collect()
-
-    @staticmethod
-    def write_video(
-        writer: Writer,
-        data: List[Dict[str, Any]],
-        frame: NDArray,
-        field: NDArray,
-    ):
-        field_tmp = visualize(data, field.copy())
-        frame = concat_field_with_frame(frame, field_tmp)
-        writer.write(frame)

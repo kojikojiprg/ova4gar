@@ -1,8 +1,15 @@
+import os
+import sys
 from typing import Any, Dict, List
 
 import cv2
 import numpy as np
 from numpy.typing import NDArray
+from tqdm import tqdm
+
+sys.path.append("src")
+from utility.json_handler import load
+from utility.video import Capture, Writer, concat_field_with_frame
 
 # size, color, thickness
 ID_SETTING = (3, (20, 20, 20), 2)
@@ -13,6 +20,43 @@ VECTOR_SETTING_LIST = {
     "face": [25, (255, 0, 0), 1.0],
     "body": [40, (0, 0, 255), 1.5],
 }
+
+
+def write_video(data_dir, field, start_frame_num, end_frame_num):
+    # create video capture
+    kps_video_path = os.path.join(data_dir, "video", "keypoints.mp4")
+    cap = Capture(kps_video_path)
+
+    # create video writer
+    cmb_img = concat_field_with_frame(cap.read()[1], field)
+    size = cmb_img.shape[1::-1]
+    out_path = os.path.join(data_dir, "video", "individual.mp4")
+    wrt = Writer(out_path, cap.fps, size)
+
+    # load json file
+    json_path = os.path.join(data_dir, ".json", "individual.json")
+    ind_data = load(json_path)
+
+    cap.set_pos_frame_count(start_frame_num - 1)
+    for frame_num in tqdm(range(start_frame_num, end_frame_num + 1)):
+        ind_data_each_frame = [
+            ind.to_dict(frame_num) for ind in ind_data if ind.exists_on_frame(frame_num)
+        ]
+        _, frame = cap.read()
+        frame = write_frame(ind_data_each_frame, frame, field)
+        wrt.write(frame)
+
+    del ind_data_each_frame  # release memory
+
+
+def write_frame(
+    data: List[Dict[str, Any]],
+    frame: NDArray,
+    field: NDArray,
+):
+    field_tmp = visualize(data, field.copy())
+    frame = concat_field_with_frame(frame, field_tmp)
+    return frame
 
 
 def visualize(inds_data: List[Dict[str, Any]], field: NDArray):
