@@ -1,12 +1,12 @@
 import os
 import sys
 from glob import glob
-
-from demo.parser import surgery_parser
-from demo.visualize import Visalizer
+from parser import surgery_parser
 
 sys.path.append("src")
 from utility.logger import logger
+
+from demo.visualizer import Visalizer
 
 
 def main():
@@ -27,7 +27,7 @@ def main():
 
     for video_path, data_dir in zip(video_paths, data_dirs):
         logger.info(f"=> processing {video_path}")
-        viser.visualize(video_path, data_dir)
+        viser.write_video(video_path, data_dir)
 
 
 if __name__ == "__main__":

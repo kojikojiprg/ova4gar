@@ -7,12 +7,12 @@ import cv2
 import yaml
 from group.group import Group
 from group.group_analyzer import GroupAnalyzer
-from individual.individual_analyzer import IndividualAnalyzer
 from tqdm import tqdm
 from utility import json_handler
 from utility.video import Capture, Writer, concat_field_with_frame
-
-from visualize import keypoint
+from visualize import individual as ind_vis
+from visualize import keypoint as kps_vis
+from visualize.group import GroupVisualizer
 
 
 class Visalizer:
@@ -28,11 +28,14 @@ class Visalizer:
         # homography
         self._field = cv2.imread(cfg["homography"]["field_path"])
 
+        # group visualizer
+        self._grp_vis = GroupVisualizer(self._group_keys)
+
         self._do_keypoint = not args.without_keypoint
         self._do_individual = not args.without_individual
         self._do_group = not args.without_group
 
-    def visualize(self, video_path: str, data_dir: str):
+    def write_video(self, video_path: str, data_dir: str):
         # create video capture
         video_capture = Capture(video_path)
         assert (
@@ -62,8 +65,6 @@ class Visalizer:
         kps_data = self._load_json(data_dir, "keypoints")
         ind_data = self._load_json(data_dir, "individual")
         grp_data = self._load_json(data_dir, "group")
-        group = Group(self._grp_cfg, self._field, self._logger, "cpu")
-        group.from_json(grp_data)
 
         self._logger.info(f"=> loading video from {video_path}.")
         self._logger.info(f"=> writing video into {out_path} while processing.")
@@ -72,27 +73,24 @@ class Visalizer:
             ret, frame = video_capture.read()
 
             # write keypoint video
-            frame = keypoint.write_frame(frame, kps_data, frame_num)
+            frame = kps_vis.write_frame(frame, kps_data, frame_num)
             if self._do_keypoint:
                 kps_video_writer.write(frame)
 
             # write individual video
-            ind_data_each_frame = [kps for kps in ind_data if kps["frame"] == frame_num]
+            field = ind_vis.write_field(ind_data, self._field.copy(), frame_num)
             if self._do_individual:
-                IndividualAnalyzer.write_video(
-                    ind_video_writer, ind_data_each_frame, frame, self._field
-                )
+                frame_tmp = concat_field_with_frame(frame.copy(), field)
+                ind_video_writer.write(frame_tmp)
 
             # write group video
             if self._do_group:
-                GroupAnalyzer.write_video(
-                    grp_writers,
-                    frame_num,
-                    frame,
-                    self._field,
-                    ind_data_each_frame,
-                    group,
-                )
+                for key in self._group_keys:
+                    field_tmp = self._grp_vis.write_field(
+                        key, frame_num, grp_data, field.copy()
+                    )
+                    frame_tmp = concat_field_with_frame(frame.copy(), field_tmp)
+                    grp_writers[key].write(frame_tmp)
 
         # release memory
         del video_capture, kps_video_writer, ind_video_writer, grp_writers

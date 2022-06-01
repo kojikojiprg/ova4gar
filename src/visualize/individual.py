@@ -12,6 +12,8 @@ sys.path.append("src")
 from utility.json_handler import load
 from utility.video import Capture, Writer, concat_field_with_frame
 
+from visualize.keypoint import write_frame as kps_write_frame
+
 # size, color, thickness
 ID_SETTING = (3, (20, 20, 20), 2)
 
@@ -35,55 +37,54 @@ def write_video(data_dir, field, start_frame_num, end_frame_num):
     wrt = Writer(out_path, cap.fps, size)
 
     # load json file
+    json_path = os.path.join(data_dir, ".json", "keypoints.json")
+    kps_data = load(json_path)
     json_path = os.path.join(data_dir, ".json", "individual.json")
     ind_data = load(json_path)
 
     cap.set_pos_frame_count(start_frame_num - 1)
     for frame_num in tqdm(range(start_frame_num, end_frame_num + 1)):
-        ind_data_each_frame = [
-            ind.to_dict(frame_num) for ind in ind_data if ind.exists_on_frame(frame_num)
-        ]
         _, frame = cap.read()
-        frame = write_frame(ind_data_each_frame, frame, field)
+        frame = kps_write_frame(frame, kps_data, frame_num)
+        frame = write_frame(ind_data, frame, field, frame_num)
         wrt.write(frame)
 
     # release memory
-    del cap, wrt, ind_data_each_frame
+    del cap, wrt, kps_data, ind_data
     gc.collect()
 
 
 def write_frame(
-    data: List[Dict[str, Any]],
-    frame: NDArray,
-    field: NDArray,
+    data: List[Dict[str, Any]], frame: NDArray, field: NDArray, frame_num: int
 ):
-    field_tmp = visualize(data, field.copy())
-    frame = concat_field_with_frame(frame, field_tmp)
+    field_tmp = write_field(data, field.copy(), frame_num)
+    frame = concat_field_with_frame(frame.copy(), field_tmp)
     return frame
 
 
-def visualize(inds_data: List[Dict[str, Any]], field: NDArray):
-    field = _vis_body_face(inds_data, field)
-    # field = _vis_arm(inds_data, field)
-    field = _vis_id(inds_data, field)
+def write_field(inds_data: List[Dict[str, Any]], field: NDArray, frame_num: int):
+    for data in inds_data:
+        if data["frame"] == frame_num:
+            field = _vis_body_face(data, field)
+            # field = _vis_arm(data, field)
+            field = _vis_id(data, field)
 
     return field
 
 
-def _vis_id(inds_data: List[Dict[str, Any]], field: NDArray):
-    for data in inds_data:
-        ind_id = data["id"]
-        position = data["position"]
-        if position is not None:
-            cv2.putText(
-                field,
-                str(ind_id),
-                tuple(position),
-                cv2.FONT_HERSHEY_PLAIN,
-                ID_SETTING[0],
-                ID_SETTING[1],
-                ID_SETTING[2],
-            )
+def _vis_id(data: Dict[str, Any], field: NDArray):
+    ind_id = data["id"]
+    position = data["position"]
+    if position is not None:
+        cv2.putText(
+            field,
+            str(ind_id),
+            tuple(position),
+            cv2.FONT_HERSHEY_PLAIN,
+            ID_SETTING[0],
+            ID_SETTING[1],
+            ID_SETTING[2],
+        )
     return field
 
 
@@ -110,30 +111,28 @@ def __vis_arrow(key: str, data: Dict[str, Any], field: NDArray):
     return field
 
 
-def _vis_body_face(inds_data: List[Dict[str, Any]], field: NDArray):
-    for data in inds_data:
-        # face vector
-        field = __vis_arrow("face", data, field)
-        # body vector
-        field = __vis_arrow("body", data, field)
+def _vis_body_face(data: Dict[str, Any], field: NDArray):
+    # face vector
+    field = __vis_arrow("face", data, field)
+    # body vector
+    field = __vis_arrow("body", data, field)
 
     return field
 
 
-def _vis_arm(inds_data: List[Dict[str, Any]], field: NDArray):
-    for data in inds_data:
-        position = data["position"]
-        arm = data["arm"]
-        if arm is not None:
-            arm = np.round(arm, decimals=3)
-            cv2.putText(
-                field,
-                str(arm),
-                tuple(position),
-                cv2.FONT_HERSHEY_PLAIN,
-                2,
-                (0, 255, 0),
-                2,
-            )
+def _vis_arm(data: Dict[str, Any], field: NDArray):
+    position = data["position"]
+    arm = data["arm"]
+    if arm is not None:
+        arm = np.round(arm, decimals=3)
+        cv2.putText(
+            field,
+            str(arm),
+            tuple(position),
+            cv2.FONT_HERSHEY_PLAIN,
+            2,
+            (0, 255, 0),
+            2,
+        )
 
     return field
