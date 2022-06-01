@@ -67,13 +67,13 @@ class Visalizer:
             frame = video_capture.read()
 
             # write keypoint video
+            kps_data_each_frame = [
+                kps for kps in kps_data if kps["frame"] == frame_num
+            ]
+            frame = put_frame_num(frame, frame_num)
+            for kps in kps_data_each_frame:
+                frame = draw_skeleton(frame, kps["id"], np.array(kps["keypoints"]))
             if self._do_keypoint:
-                kps_data_each_frame = [
-                    kps for kps in kps_data if kps["frame"] == frame_num
-                ]
-                frame = put_frame_num(frame, frame_num)
-                for kps in kps_data_each_frame:
-                    frame = draw_skeleton(frame, kps["id"], np.array(kps["keypoints"]))
                 kps_video_writer.write(frame)
 
             # write individual video
