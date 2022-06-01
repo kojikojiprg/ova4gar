@@ -31,7 +31,6 @@ class InferenceModel:
         self._do_keypoint = not args.without_keypoint
         self._do_individual = not args.without_individual
         self._do_group = not args.without_group
-        self._writing_video = args.video
 
         device = "cuda" if torch.cuda.is_available() else "cpu"
         if self._do_keypoint:
@@ -61,12 +60,10 @@ class InferenceModel:
 
     def inference(self, video_path, data_dir):
         if self._do_keypoint:
-            self.extractor.predict(video_path, data_dir, self._writing_video)
+            self.extractor.predict(video_path, data_dir)
 
         if self._do_individual:
-            self.individual_analyzer.analyze(
-                data_dir, self._homo, self._field, self._writing_video
-            )
+            self.individual_analyzer.analyze(data_dir, self._homo, self._field)
 
         if self._do_group:
-            self.group_analyzer.analyze(data_dir, self._field, self._writing_video)
+            self.group_analyzer.analyze(data_dir, self._field)

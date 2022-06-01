@@ -2,10 +2,9 @@ import os
 import sys
 from glob import glob
 
-from demo.parser import surgery_parser
-
 sys.path.append("src")
 from demo_api.inference import InferenceModel
+from demo_api.parser import surgery_parser
 from utility.logger import logger
 
 

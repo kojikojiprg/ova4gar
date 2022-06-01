@@ -49,13 +49,6 @@ def _common_parser():
         action="store_true",
         help="without group analyzation",
     )
-    parser.add_argument(
-        "-v",
-        "--video",
-        default=False,
-        action="store_true",
-        help="writing video while processing",
-    )
     return parser
 
 
