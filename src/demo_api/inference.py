@@ -63,7 +63,7 @@ class InferenceModel:
             self.extractor.predict(video_path, data_dir)
 
         if self._do_individual:
-            self.individual_analyzer.analyze(data_dir, self._homo, self._field)
+            self.individual_analyzer.analyze(data_dir, self._homo)
 
         if self._do_group:
             self.group_analyzer.analyze(data_dir, self._field)

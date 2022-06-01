@@ -24,7 +24,6 @@ class GroupAnalyzer:
 
     def __del__(self):
         torch.cuda.empty_cache()
-        del self._visualizer
         gc.collect()
 
     def analyze(self, data_dir: str, field: NDArray):
