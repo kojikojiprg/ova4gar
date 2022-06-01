@@ -4,9 +4,8 @@ from glob import glob
 from parser import surgery_parser
 
 sys.path.append("src")
+from demo_api.visualizer import Visalizer
 from utility.logger import logger
-
-from demo.visualizer import Visalizer
 
 
 def main():

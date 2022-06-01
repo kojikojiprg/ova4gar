@@ -1,10 +1,10 @@
 import os
 import sys
 
-from demo.inference import InferenceModel
 from demo.parser import file_parser
 
 sys.path.append("src")
+from demo_api.inference import InferenceModel
 from utility.logger import logger
 
 
