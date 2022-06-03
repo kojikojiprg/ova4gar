@@ -86,7 +86,7 @@ class GroupVisualizer:
         frame_num: int,
         group_indicator_data: Dict[str, List[Dict[str, Any]]],
         field: NDArray,
-        alpha: float = 0.2,
+        alpha: float = 0.3,
     ) -> NDArray:
         data = group_indicator_data[key]
 
