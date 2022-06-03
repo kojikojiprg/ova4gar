@@ -34,7 +34,7 @@ class PassingAnalyzer:
         passing_dict = group.passing
 
         result_dict: Dict[str, list] = {}
-        for pair_key, passing_frame_nums in tqdm(passing_dict.items()):
+        for pair_key, passing_frame_nums in passing_dict.items():
             result_dict[pair_key] = []
 
             pre_frame_num = start_frame_num = passing_frame_nums[0]
@@ -53,6 +53,9 @@ class PassingAnalyzer:
                 if pre_frame_num - start_frame_num > th_duration:
                     # append result beyond with duration
                     result_dict[pair_key].append((start_frame_num, pre_frame_num))
+
+            if len(result_dict[pair_key]) == 0:
+                del result_dict[pair_key]
 
         return result_dict
 
