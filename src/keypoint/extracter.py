@@ -51,12 +51,14 @@ class Extractor:
             video_capture.is_opened
         ), f"{video_path} does not exist or is wrong file type."
 
-        kps_all = self._detect(video_capture)
+        kps_all, max_frame_num = self._detect(video_capture)
 
         self._logger.info("=> tracking keypoints")
         video_capture.set_pos_frame_count(0)  # initialize video capture
         json_data = []
-        for frame_num, kps in enumerate(tqdm(kps_all)):
+        for frame_num in tqdm(range(max_frame_num)):
+            kps = kps_all[frame_num]
+
             frame_num += 1  # frame_num = (1, ...)
             _, frame = video_capture.read()
 
@@ -88,6 +90,7 @@ class Extractor:
         self._logger.info("=> detecting keypoints")
         dataloader = make_data_loader(video_capture, self._batch_size)
         kps_all = []
+        max_frame_num = 0
         for frame_nums, frames in tqdm(dataloader):
             frames = [frame.cpu().numpy() for frame in frames]
 
@@ -97,8 +100,9 @@ class Extractor:
                 kps = self._del_leaky(kps, self._cfg["th_delete"])
                 kps = self._get_unique(kps, self._cfg["th_diff"], self._cfg["th_count"])
                 kps_all.append(kps)
+            max_frame_num = max([max_frame_num] + frame_nums.cpu().numpy().tolist())
 
-        return kps_all
+        return kps_all, max_frame_num
 
     @staticmethod
     def _del_leaky(kps: NDArray, th_delete: float):
