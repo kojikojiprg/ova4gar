@@ -83,6 +83,9 @@ class PassingAnalyzer:
                 )
                 results.append(self._calc_start2end(group, th_duration, th_interval))
 
+                del group
+                gc.collect()
+
         return results
 
     @staticmethod
@@ -157,5 +160,5 @@ class PassingAnalyzer:
 
                     del wrt
 
-            del cap
+            del kps_data, ind_data, grp_data, cap
             gc.collect()
