@@ -20,5 +20,5 @@ models/
 .ipynb_checkpoints
 .mypy_cache
 
-notebook/
+notebooks/
 requirements-dev.txt
