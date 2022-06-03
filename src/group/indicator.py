@@ -1,19 +1,25 @@
 from typing import Dict, List
 
 import numpy as np
+import torch
 from individual.individual import Individual
+from numpy.typing import NDArray
 from utility.functions import gauss
 
-from group.passing_detector import PassingDetector
+from group.passing.dataset import extract_feature
+from group.passing.lstm_model import LSTMModel
 
 
 def passing(
     frame_num: int,
     individuals: List[Individual],
     queue_dict: Dict[str, list],
-    model: PassingDetector,
+    passing_defs: dict,
+    model: LSTMModel,
+    device: str,
 ):
-    data = []
+    all_features = []
+    idx_pairs = []
     for i in range(len(individuals) - 1):
         for j in range(i + 1, len(individuals)):
             ind1 = individuals[i]
@@ -26,28 +32,35 @@ def passing(
             queue = queue_dict[pair_key]
 
             # push and pop queue
-            queue = model.extract_feature(ind1, ind2, queue, frame_num)
-            if queue is None:
-                return None, queue_dict
+            queue = extract_feature(ind1, ind2, queue, frame_num, passing_defs)
 
-            # predict
-            pred = model.predict(queue)
+            idx_pairs.append([i, j])
+            all_features.append(queue)
 
-            # update queue
-            queue_dict[pair_key] = queue
+    if len(all_features) == 0:
+        return [], queue_dict
 
-            if pred == 1:
-                data.append(
-                    {
-                        "frame": frame_num,
-                        "persons": [ind1.id, ind2.id],
-                        "points": [
-                            ind1.get_indicator("position", frame_num),
-                            ind2.get_indicator("position", frame_num),
-                        ],
-                        "pred": pred,
-                    }
-                )
+    # predict
+    with torch.no_grad():
+        features = torch.Tensor(np.array(all_features)).float().to(device)
+        preds = model(features)
+        preds = preds.max(1)[1]
+        preds = preds.cpu().numpy()
+
+    data = []
+    for idx_pair, pred in zip(idx_pairs, preds):
+        i, j = idx_pair
+        if pred == 1:
+            data.append(
+                {
+                    "frame": frame_num,
+                    "persons": [individuals[i].id, individuals[j].id],
+                    "points": [
+                        individuals[i].get_indicator("position", frame_num),
+                        individuals[j].get_indicator("position", frame_num),
+                    ],
+                }
+            )
 
     return data, queue_dict
 
@@ -56,7 +69,7 @@ def attention(
     frame_num,
     individuals: List[Individual],
     queue: list,
-    field: np.typing.NDArray,
+    field: NDArray,
     defs: dict,
 ):
     angle_range = defs["angle"]
@@ -73,55 +86,66 @@ def attention(
     else:
         sum_data = None
 
-    data = []
-    pixcel_datas = np.zeros((field.shape[1], field.shape[0]), dtype=np.float32)
-    for x in range(0, field.shape[1], division):
-        for y in range(0, field.shape[0], division):
-            point = np.array([x, y])  # the coordination of each pixel
-            value = 0.0  # value of each pixel
-            for ind in individuals:
-                pos = ind.get_indicator("position", frame_num)
-                face_vector = ind.get_indicator("face", frame_num)
-                if pos is None or face_vector is None:
-                    continue
+    # extract position and face vector
+    poss_tmp, faces_tmp = [], []
+    for ind in individuals:
+        pos = ind.get_indicator("position", frame_num)
+        face = ind.get_indicator("face", frame_num)
+        if pos is not None and face is not None:
+            poss_tmp.append(pos)
+            faces_tmp.append(face)
+    poss = np.array(poss_tmp)
+    faces = np.array(faces_tmp)
 
-                # calc angle between position and point
-                diff = point - np.array(pos)
-                shita = np.arctan2(diff[1], diff[0])
+    # prepair coordinations
+    coors = np.array(
+        [
+            [x, y]
+            for y in range(0, field.shape[0], division)
+            for x in range(0, field.shape[1], division)
+        ]
+    )
 
-                # calc face angle
-                face_shita = np.arctan2(face_vector[1], face_vector[0])
+    # calc difference of all individuals
+    diffs_all_ind = np.array([coors - pos for pos in poss])
 
-                if (
-                    face_shita - angle_range <= shita
-                    and shita <= face_shita + angle_range
-                ):
-                    # calc norm between position and point
-                    norm = np.linalg.norm(diff)
-                    if norm <= length:
-                        value += 1.0
-                    else:
-                        value += gauss(norm, mu=length, sigma=sigma)
+    # calc each pixel value
+    pixcel_data = np.zeros((field.shape[1], field.shape[0]), dtype=np.float32)
+    for face, diffs in zip(faces, diffs_all_ind):
+        shitas = [
+            np.arccos(
+                np.dot(diff, face)
+                / (np.linalg.norm(diff) * np.linalg.norm(face) + 1e-10)
+            )
+            for diff in diffs
+        ]
+        for i in range(len(diffs)):
+            if -angle_range <= shitas[i] and shitas[i] <= angle_range:
+                norm = np.linalg.norm(diffs[i])
+                if norm <= length:
+                    pixcel_data[tuple(coors[i])] += 1.0
+                else:
+                    pixcel_data[tuple(coors[i])] += gauss(norm, mu=length, sigma=sigma)
 
-                pixcel_datas[x, y] = value  # save every frame value
+    if sum_data is not None:
+        # moving average
+        ave = (sum_data + pixcel_data) / seq_len
 
-                if value >= 1 / seq_len:
-                    total = value
-                    if sum_data is not None:
-                        # sum all pixel data in queue
-                        total += sum_data[x, y]
-                    total /= seq_len
-
-                    data.append(
-                        {
-                            "frame": frame_num,
-                            "point": point,
-                            "value": total,
-                        }
-                    )
+        # concat result
+        data = [
+            {
+                "frame": frame_num,
+                "point": coor,
+                "value": ave[tuple(coor)],
+            }
+            for coor in coors
+            if pixcel_data[tuple(coor)] > 1 / seq_len
+        ]
+    else:
+        data = []
 
     # push and pop queue
-    queue.append(pixcel_datas)
+    queue.append(pixcel_data)
     queue = queue[-seq_len:]
 
     return data, queue

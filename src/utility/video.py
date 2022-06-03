@@ -1,7 +1,9 @@
+import gc
 import os
 
 import cv2
 import numpy as np
+from numpy.typing import NDArray
 
 
 class Capture:
@@ -19,6 +21,7 @@ class Capture:
 
     def __del__(self):
         self._cap.release()
+        gc.collect()
 
     @property
     def frame_count(self):
@@ -67,6 +70,7 @@ class Writer:
 
     def __del__(self):
         self._writer.release()
+        gc.collect()
 
     def write(self, frame):
         frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)  # RGB to BGR
@@ -78,7 +82,7 @@ class Writer:
             self._writer.write(frame)
 
 
-def concat_field_with_frame(frame: np.typing.NDArray, field: np.typing.NDArray):
+def concat_field_with_frame(frame: NDArray, field: NDArray):
     ratio = 1 - (field.shape[0] - frame.shape[0]) / field.shape[0]
     size = [round(field.shape[1] * ratio), round(field.shape[0] * ratio)]
     # if frame.shape[0] != size[1]:

@@ -1,14 +1,18 @@
-keypoint:
-  detector: "hrnet"
-  cfg_path:
-    higher_hrnet: "config/higher-hrnet/w32_512_adam_lr1e-3.yaml"
-    hrnet: "config/hrnet/w32_384x288.yaml"
-    unitrack: "config/unitrack/barlowtwins.yaml"
+config_path:
+  keypoint: "config/keypoint.yaml"
+  individual: "config/individual.yaml"
+  group: "config/group.yaml"
 
 homography:
-  field_path: "demo/field.png"
+  field_path: "image/field.png"
   "02":
     video: [[426, 553], [494, 510], [773, 638], [718, 692]]
+    field: [[271, 255], [321, 255], [321, 412], [271, 412]]
+  "05":
+    video: [[480, 548], [532, 509], [840, 586], [812, 640]]
+    field: [[271, 255], [321, 255], [321, 412], [271, 412]]
+  "07":
+    video: [[670, 465], [735, 491], [485, 640], [424, 600]]
     field: [[271, 255], [321, 255], [321, 412], [271, 412]]
   "08":
     video: [[737, 517], [799, 537], [583, 698], [509, 656]]
@@ -16,51 +20,6 @@ homography:
   "09":
     video: [[738, 277], [801, 300], [567, 462], [497, 430]]
     field: [[271, 255], [321, 255], [321, 412], [271, 412]]
-
-individual:
-  indicator:
-    position:
-      default:
-        th_ankle: 0.5  # threshold of ankle confidence score
-        ratio: 1.2
-        que_size: 30
-        th_std: 1  # threshold of outlier
-    face:
-      default:
-        ratio: 2.7  # eres position / difference between shoulder and hip
-        que_size: 20
-        th_std: 1
-    body:
-      default:
-        ratio: 2.2  # shoulder position / difference between shoulder and hip
-        que_size: 20
-        th_std: 1
-    arm:
-      default:
-        que_size: 5
-        th_std: 1
-  keypoint:
-    default:
-      que_size: 10
-      th_std: 1
-      window: 3  # the moving average length for filling nan
-      th_conf: 0.0  # threshold of confidence score
-
-group:
-  indicator:
-    passing:
-      default:
-        gauss_mu: 200  # 距離に対するガウス分布の平均
-        gauss_sig: 100  # 距離に対するガウス分布の分散
-        wrist_gauss_mu: 100  # 手首の距離に対するガウス分布の平均
-        wrist_gauss_sig: 80  # 手首の距離に対するガウス分布の分散
-      cfg_path: "config/passing/pass_model_lstm.yaml"
-    attention:
-      default:
-        angle: 10  # 視野角
-        division: 20  # 計算するピクセル幅
-        length: 150  # 視野の長さ
-        sigma: 50  # 視野の長さを超えた範囲の分散
-        seq_len: 30
-        angle_th: 10
-        count_th: 2
+  "test":  # copied from 02, 001, passing, 10.mp4
+    video: [[426, 553], [494, 510], [773, 638], [718, 692]]
+    field: [[271, 255], [321, 255], [321, 412], [271, 412]]

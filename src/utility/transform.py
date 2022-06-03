@@ -4,6 +4,7 @@ from typing import Any, Tuple
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
+from numpy.typing import NDArray
 from tqdm import tqdm
 
 from utility import json_handler
@@ -16,10 +17,10 @@ class Homography:
         self.M = cv2.getPerspectiveTransform(p_src, p_dst)
         self.size = dst_size[1::-1]
 
-    def transform_image(self, src: np.typing.NDArray):
+    def transform_image(self, src: NDArray):
         return cv2.warpPerspective(src, self.M, self.size)
 
-    def transform_point(self, point: np.typing.NDArray):
+    def transform_point(self, point: NDArray):
         point = np.append(point, 1)
         result = np.dot(self.M, point)
         return np.array(

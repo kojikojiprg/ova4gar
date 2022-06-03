@@ -20,7 +20,7 @@ from higher_hrnet.lib.utils.transforms import (
 
 
 class HigherHRNetDetecter:
-    def __init__(self, cfg_path: str, logger: Logger, opts: list = []):
+    def __init__(self, cfg_path: str, logger: Logger, device: str, opts: list = []):
         # update config
         args = SimpleNamespace(**{"cfg": cfg_path, "opts": opts})
         self.cfg = cfg
@@ -28,24 +28,19 @@ class HigherHRNetDetecter:
         check_config(self.cfg)
 
         self.logger: Logger = logger
+        self.device = device
 
         # cudnn related setting
         torch.backends.cudnn.benchmark = self.cfg.CUDNN.BENCHMARK
         torch.backends.cudnn.deterministic = self.cfg.CUDNN.DETERMINISTIC
         torch.backends.cudnn.enabled = self.cfg.CUDNN.ENABLED
 
-        model = pose_higher_hrnet.get_pose_net(self.cfg, is_train=False)
-
         self.logger.info(
             "=> loading hrnet model from {}".format(self.cfg.TEST.MODEL_FILE)
         )
-        model.load_state_dict(torch.load(self.cfg.TEST.MODEL_FILE), strict=True)
-
-        if torch.cuda.is_available():
-            self.model = torch.nn.DataParallel(model, device_ids=self.cfg.GPUS)
-            self.model.cuda()
-        else:
-            self.model.cpu()
+        self.model = pose_higher_hrnet.get_pose_net(self.cfg, is_train=False)
+        self.model.load_state_dict(torch.load(self.cfg.TEST.MODEL_FILE), strict=True)
+        self.model.to(device)
 
         self.model.eval()
 
@@ -84,7 +79,7 @@ class HigherHRNetDetecter:
                     image, input_size, s, min(self.cfg.TEST.SCALE_FACTOR)
                 )
                 image_resized = self.transforms(image_resized)
-                image_resized = image_resized.unsqueeze(0).cuda()
+                image_resized = image_resized.unsqueeze(0).to(self.device)
 
                 outputs, heatmaps, tags = get_multi_stage_outputs(
                     self.cfg,
@@ -111,27 +106,5 @@ class HigherHRNetDetecter:
             scale,
             [final_heatmaps.size(3), final_heatmaps.size(2)],
         )
-        kps = self._get_unique(grouped)
-        return kps
-
-    @staticmethod
-    def _get_unique(grouped):
         kps = np.array(grouped)[:, :, :3]
-        unique_kps = np.empty((0, 17, 3))
-
-        for i in range(len(kps)):
-            found_overlap = False
-
-            for j in range(len(unique_kps)):
-                found_overlap = True in (kps[i, :, :2] == unique_kps[j, :, :2])
-                if found_overlap:
-                    if np.mean(kps[i, :, 2]) > np.mean(unique_kps[j, :, 2]):
-                        # select one has more confidence score
-                        unique_kps[j] = kps[i]
-                    break
-
-            if not found_overlap:
-                # if there aren't overlapped
-                unique_kps = np.append(unique_kps, [kps[i]], axis=0)
-
-        return unique_kps
+        return kps
