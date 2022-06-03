@@ -34,7 +34,7 @@ class PassingAnalyzer:
         passing_dict = group.passing
 
         result_dict: Dict[str, list] = {}
-        for pair_key, passing_frame_nums in passing_dict.items():
+        for pair_key, passing_frame_nums in tqdm(passing_dict.items()):
             result_dict[pair_key] = []
 
             pre_frame_num = start_frame_num = passing_frame_nums[0]
@@ -106,6 +106,12 @@ class PassingAnalyzer:
             self._logger.info(f"=> load json files from {data_dir}")
             kps_data, ind_data, grp_data = self._load_jsons(data_dir)
 
+            # delete previous files
+            self._logger.info("=> delete files extracted previous process")
+            for p in glob(os.path.join(data_dir, "video", "passing", "*.mp4")):
+                if os.path.isfile(p):
+                    os.remove(p)
+
             # create capture
             self._logger.info(f"=> load surgery {i:02d}.mp4")
             video_path = os.path.join("video", room_num, surgery_num, f"{i:02d}.mp4")
@@ -117,9 +123,9 @@ class PassingAnalyzer:
 
             pair_keys = list(result_dict.keys())
             for pair_key in pair_keys:
-                rslts = result_dict[pair_key]
-                self._logger.info("=> write passing result", pair_key, rslts)
-                for j, (start_num, end_num) in enumerate(rslts):
+                pair_result = result_dict[pair_key]
+                self._logger.info(f"=> write passing result {pair_key}: {pair_result}")
+                for j, (start_num, end_num) in enumerate(pair_result):
                     j += 1
 
                     # create video writer
