@@ -15,7 +15,14 @@ from group.passing.lstm_model import LSTMModel
 
 
 class Group:
-    def __init__(self, cfg: dict, field: NDArray, logger: Logger, device: str):
+    def __init__(
+        self,
+        cfg: dict,
+        field: NDArray,
+        logger: Logger,
+        device: str = "cuda",
+        only_data_loading: bool = False,
+    ):
         self._keys = list(cfg.keys())
         self._funcs = {k: eval(f"func_{k}") for k in self._keys}
         self._defs: Dict[str, Any] = self.load_default(cfg)
@@ -23,24 +30,25 @@ class Group:
         self._field = field
         self._logger = logger
 
-        # load passing model
-        pass_model_cfg_path = cfg["passing"]["cfg_path"]
-        self._logger.info(f"=> load passing detector from {pass_model_cfg_path}")
-        with open(pass_model_cfg_path) as f:
-            model_cfg = yaml.safe_load(f)
-        self._pass_model = LSTMModel(**model_cfg)
-        param = torch.load(model_cfg["pretrained_path"])
-        self._pass_model.load_state_dict(param)
-        self._pass_model.to(device)
-        self._pass_model.eval()
-        self._device = device
-
         # dcreate indicator values
         self._idc_dict: Dict[str, List[Dict[str, Any]]] = {k: [] for k in self._keys}
         self._idc_que: Dict[str, Any] = {
             "attention": [],
             "passing": {},
         }
+
+        if not only_data_loading:
+            # load passing model
+            pass_model_cfg_path = cfg["passing"]["cfg_path"]
+            self._logger.info(f"=> load passing detector from {pass_model_cfg_path}")
+            with open(pass_model_cfg_path) as f:
+                model_cfg = yaml.safe_load(f)
+            self._pass_model = LSTMModel(**model_cfg)
+            param = torch.load(model_cfg["pretrained_path"])
+            self._pass_model.load_state_dict(param)
+            self._pass_model.to(device)
+            self._pass_model.eval()
+            self._device = device
 
     @staticmethod
     def load_default(cfg: dict) -> Dict[str, Any]:
@@ -53,8 +61,9 @@ class Group:
 
     def __del__(self):
         del self._field, self._logger
-        del self._pass_model
         del self._idc_dict, self._idc_que
+        if hasattr(self, "_pass_model"):
+            del self._pass_model
         gc.collect()
 
     def get(self, key):

@@ -117,13 +117,13 @@ class GroupVisualizer:
         angle = np.rad2deg(np.arctan2(diff[1], diff[0]))
 
         # 描画
-        cv2.line(field, p1, p2, color=(255, 165, 0), thickness=1)
         cv2.ellipse(
             field,
             (center, (major, minor), angle),
             color=(200, 200, 255),
             thickness=-1,
         )
+        cv2.line(field, p1, p2, color=(185, 105, 0), thickness=3)
 
         return field
 
