@@ -12,6 +12,8 @@ from individual.individual_analyzer import IndividualAnalyzer
 from keypoint.extracter import Extractor
 from utility.transform import Homography
 
+from demo_api.visualizer import Visalizer
+
 
 class InferenceModel:
     def __init__(self, args, logger: Logger):
@@ -31,6 +33,7 @@ class InferenceModel:
         self._do_keypoint = not args.without_keypoint
         self._do_individual = not args.without_individual
         self._do_group = not args.without_group
+        self._write_video = args.video
 
         device = "cuda" if torch.cuda.is_available() else "cpu"
         if self._do_keypoint:
@@ -39,6 +42,8 @@ class InferenceModel:
             self.individual_analyzer = IndividualAnalyzer(ind_cfg, logger)
         if self._do_group:
             self.group_analyzer = GroupAnalyzer(grp_cfg, ind_cfg, logger, device)
+        if self._write_video:
+            self.visualizer = Visalizer(args, logger)
 
     def __del__(self):
         if hasattr(self, "extractor"):
@@ -47,6 +52,8 @@ class InferenceModel:
             del self.individual_analyzer
         if hasattr(self, "group_analyzer"):
             del self.group_analyzer
+        if hasattr(self, "visualizer"):
+            del self.visualizer
         gc.collect()
 
     def _create_homography(self, cfg, room_num):
@@ -67,3 +74,6 @@ class InferenceModel:
 
         if self._do_group:
             self.group_analyzer.analyze(data_dir, self._field)
+
+        if self._write_video:
+            self.visualizer.write_video(video_path, data_dir)
