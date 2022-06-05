@@ -12,9 +12,8 @@ from utility.functions import cos_similarity, gauss
 
 
 class PassingDataset(torch.utils.data.Dataset):
-    def __init__(self, x_dict, y_dict, seq_len, logger):
+    def __init__(self, x_dict, y_dict, seq_len):
         self.x, self.y = [], []
-        logger.info("=> create dataset")
         for key in tqdm(x_dict.keys()):
             x_lst = x_dict[key]
             y_lst = y_dict[key]
@@ -49,9 +48,8 @@ def make_data_loader(
     seq_len: int,
     batch_size: int,
     shuffle: bool,
-    logger: Logger,
 ):
-    dataset = PassingDataset(x_dict, y_dict, seq_len, logger)
+    dataset = PassingDataset(x_dict, y_dict, seq_len)
     loader = torch.utils.data.DataLoader(
         dataset, batch_size=batch_size, shuffle=shuffle, num_workers=8, pin_memory=True
     )
@@ -88,7 +86,7 @@ def make_data_loaders(
         x_train_dict = {key: x_dict[key] for key in train_keys}
         y_train_dict = {key: y_dict[key] for key in train_keys}
         train_loader = make_data_loader(
-            x_train_dict, y_train_dict, seq_len, batch_size, True, logger
+            x_train_dict, y_train_dict, seq_len, batch_size, True
         )
     else:
         logger.info("=> skip creating train loader")
@@ -98,7 +96,7 @@ def make_data_loaders(
         logger.info("=> create val loader")
         x_val_dict = {key: x_dict[key] for key in val_keys}
         y_val_dict = {key: y_dict[key] for key in val_keys}
-        val_loader = make_data_loader(x_val_dict, y_val_dict, seq_len, 1, False, logger)
+        val_loader = make_data_loader(x_val_dict, y_val_dict, seq_len, 1, False)
     else:
         logger.info("=> skip creating val loader")
         val_loader = None
@@ -107,9 +105,7 @@ def make_data_loaders(
         logger.info("=> create test loader")
         x_test_dict = {key: x_dict[key] for key in test_keys}
         y_test_dict = {key: y_dict[key] for key in test_keys}
-        test_loader = make_data_loader(
-            x_test_dict, y_test_dict, seq_len, 1, False, logger
-        )
+        test_loader = make_data_loader(x_test_dict, y_test_dict, seq_len, 1, False)
     else:
         logger.info("=> skip creating test loader")
         test_loader = None
