@@ -83,19 +83,36 @@ def make_data_loaders(
     val_keys = random_keys[train_len : train_len + val_len]
     test_keys = random_keys[train_len + val_len :]
 
-    x_train_dict = {key: x_dict[key] for key in train_keys}
-    y_train_dict = {key: y_dict[key] for key in train_keys}
-    train_loader = make_data_loader(
-        x_train_dict, y_train_dict, seq_len, batch_size, True, logger
-    )
+    if len(train_keys) > 0:
+        logger.info("=> create train loader")
+        x_train_dict = {key: x_dict[key] for key in train_keys}
+        y_train_dict = {key: y_dict[key] for key in train_keys}
+        train_loader = make_data_loader(
+            x_train_dict, y_train_dict, seq_len, batch_size, True, logger
+        )
+    else:
+        logger.info("=> skip creating train loader")
+        train_loader = None
 
-    x_val_dict = {key: x_dict[key] for key in val_keys}
-    y_val_dict = {key: y_dict[key] for key in val_keys}
-    val_loader = make_data_loader(x_val_dict, y_val_dict, seq_len, 1, False, logger)
+    if len(val_keys) > 0:
+        logger.info("=> create val loader")
+        x_val_dict = {key: x_dict[key] for key in val_keys}
+        y_val_dict = {key: y_dict[key] for key in val_keys}
+        val_loader = make_data_loader(x_val_dict, y_val_dict, seq_len, 1, False, logger)
+    else:
+        logger.info("=> skip creating val loader")
+        val_loader = None
 
-    x_test_dict = {key: x_dict[key] for key in test_keys}
-    y_test_dict = {key: y_dict[key] for key in test_keys}
-    test_loader = make_data_loader(x_test_dict, y_test_dict, seq_len, 1, False, logger)
+    if len(test_keys) > 0:
+        logger.info("=> create test loader")
+        x_test_dict = {key: x_dict[key] for key in test_keys}
+        y_test_dict = {key: y_dict[key] for key in test_keys}
+        test_loader = make_data_loader(
+            x_test_dict, y_test_dict, seq_len, 1, False, logger
+        )
+    else:
+        logger.info("=> skip creating test loader")
+        test_loader = None
 
     return train_loader, val_loader, test_loader
 
