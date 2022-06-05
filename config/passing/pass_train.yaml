@@ -3,7 +3,7 @@ config_path:
   group: "config/group.yaml"
 
 optim:
-  epoch: 50
+  epoch: 120
   lr: 0.001
   lr_rate: 1.0
   pos_weight: [1, 16]
