@@ -89,7 +89,7 @@ def train(
 
                 pred = model(x.to(device))
 
-                loss = criterion(pred.requires_grad_(), y)
+                loss = criterion(pred.requires_grad_(), y.to(device))
                 loss.backward()
                 train_losses.append(loss.item())
 
@@ -105,7 +105,7 @@ def train(
                     for x, y in val_loader:
                         pred = model(x.to(device))
 
-                        loss = criterion(pred.requires_grad_(), y)
+                        loss = criterion(pred.requires_grad_(), y.to(device))
                         val_losses.append(loss.item())
             else:
                 val_losses.append(np.nan)
