@@ -100,7 +100,7 @@ def train(
             # validate
             model.eval()
             val_losses = []
-            if len(val_loader) > 0:
+            if val_loader is not None:
                 with torch.no_grad():
                     for x, y in val_loader:
                         pred = model(x.to(device))
