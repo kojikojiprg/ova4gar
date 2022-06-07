@@ -56,6 +56,9 @@ def _common_parser():
         action="store_true",
         help="with writing video",
     )
+    parser.add_argument(
+        "-dh", "--delete_height", default=20, type=int, help="delete hight for time bar"
+    )
     return parser
 
 
