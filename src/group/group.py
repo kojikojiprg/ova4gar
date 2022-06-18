@@ -88,7 +88,6 @@ class Group:
 
     @property
     def attention(self) -> Dict[int, NDArray]:
-        self._logger.info("=> load attention result")
         all_data = self._idc_dict["attention"]
 
         shape = tuple(

@@ -72,7 +72,7 @@ class AttentionAnalyzer:
 
         results = []
         for data_dir in data_dirs:
-            self._logger.info(f"=> load passing result from {data_dir}")
+            self._logger.info(f"=> load attention result from {data_dir}")
             json_path = os.path.join(data_dir, ".json", "group.json")
             if os.path.exists(json_path):
                 group = load_group(
