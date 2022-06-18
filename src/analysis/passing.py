@@ -19,8 +19,6 @@ from visualize.keypoint import write_frame as kps_write_frame
 class PassingAnalyzer:
     def __init__(self, cfg_path: str, logger: Logger):
         with open(cfg_path, "r") as f:
-            cfg = yaml.safe_load(f)
-        with open(cfg["config_path"]["group"], "r") as f:
             self._grp_cfg = yaml.safe_load(f)
 
         self._field = cv2.imread("image/field.png")
