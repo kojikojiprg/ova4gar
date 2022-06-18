@@ -103,10 +103,10 @@ class AttentionAnalyzer:
         self,
         room_num: str,
         surgery_num: str,
-        results: List[Dict[str, list]],
+        results: List[List[Tuple[int, int]]],
         margin_frame_num: int,
     ):
-        for i, result_dict in enumerate(results):
+        for i, result_lst in enumerate(results):
             i += 1
             # load json
             data_dir = os.path.join("data", room_num, surgery_num, f"{i:02d}")
@@ -128,40 +128,37 @@ class AttentionAnalyzer:
             cmb_img = concat_field_with_frame(cap.read()[1], self._field)
             size = cmb_img.shape[1::-1]
 
-            pair_keys = list(result_dict.keys())
-            for pair_key in pair_keys:
-                pair_result = result_dict[pair_key]
-                self._logger.info(
-                    f"=> write attention result {pair_key}: {pair_result}"
+            self._logger.info(
+                f"=> write attention result: {result_lst}"
+            )
+            for j, (start_num, end_num) in enumerate(result_lst):
+                j += 1
+
+                # create video writer
+                out_path = os.path.join(
+                    data_dir, "video", "attention", f"{j:02d}.mp4"
                 )
-                for j, (start_num, end_num) in enumerate(pair_result):
-                    j += 1
+                wrt = Writer(out_path, cap.fps, size)
 
-                    # create video writer
-                    out_path = os.path.join(
-                        data_dir, "video", "attention", f"{pair_key}_{j:2d}.mp4"
+                start_num = max(1, start_num - margin_frame_num)
+                end_num = min(cap.frame_count, end_num + margin_frame_num)
+
+                # write video
+                cap.set_pos_frame_count(start_num - 1)
+                for frame_num in tqdm(range(start_num, end_num + 1)):
+                    ret, frame = cap.read()
+
+                    frame = kps_write_frame(frame, kps_data, frame_num)
+                    field_tmp = ind_write_field(
+                        ind_data, self._field.copy(), frame_num
                     )
-                    wrt = Writer(out_path, cap.fps, size)
+                    field_tmp = self._grp_vis.write_field(
+                        "attention", frame_num, grp_data, field_tmp
+                    )
+                    frame = concat_field_with_frame(frame.copy(), field_tmp)
+                    wrt.write(frame)
 
-                    start_num = max(1, start_num - margin_frame_num)
-                    end_num = min(cap.frame_count, end_num + margin_frame_num)
-
-                    # write video
-                    cap.set_pos_frame_count(start_num - 1)
-                    for frame_num in tqdm(range(start_num, end_num + 1)):
-                        ret, frame = cap.read()
-
-                        frame = kps_write_frame(frame, kps_data, frame_num)
-                        field_tmp = ind_write_field(
-                            ind_data, self._field.copy(), frame_num
-                        )
-                        field_tmp = self._grp_vis.write_field(
-                            "attention", frame_num, grp_data, field_tmp
-                        )
-                        frame = concat_field_with_frame(frame.copy(), field_tmp)
-                        wrt.write(frame)
-
-                    del wrt
+                del wrt
 
             del kps_data, ind_data, grp_data, cap
             gc.collect()
