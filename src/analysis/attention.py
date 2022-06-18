@@ -107,6 +107,9 @@ class AttentionAnalyzer:
         margin_frame_num: int,
     ):
         for i, result_lst in enumerate(results):
+            if len(result_lst) == 0:
+                continue
+
             i += 1
             # load json
             data_dir = os.path.join("data", room_num, surgery_num, f"{i:02d}")
