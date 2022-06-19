@@ -105,8 +105,13 @@ class PassingAnalyzer:
     ):
         for i, result_dict in enumerate(results):
             i += 1
-            # load json
             data_dir = os.path.join("data", room_num, surgery_num, f"{i:02d}")
+
+            if len(result_dict) == 0:
+                self._logger.info(f"=> skip writing result {data_dir}")
+                continue
+
+            # load json
             self._logger.info(f"=> load json files from {data_dir}")
             kps_data, ind_data, grp_data = self._load_jsons(data_dir)
 
@@ -145,6 +150,8 @@ class PassingAnalyzer:
                     cap.set_pos_frame_count(start_num - 1)
                     for frame_num in tqdm(range(start_num, end_num + 1)):
                         ret, frame = cap.read()
+                        if not ret:
+                            break
 
                         frame = kps_write_frame(frame, kps_data, frame_num)
                         field_tmp = ind_write_field(

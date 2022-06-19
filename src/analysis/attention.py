@@ -29,12 +29,12 @@ class AttentionAnalyzer:
         self._grp_vis = GroupVisualizer(["attention"])
 
     def _calc_peaks(
-        self, group: Group, th_duration: int, th_interval: int, height: float = 3.5
+        self, group: Group, th_interval: int, th_max_val: float
     ) -> List[Tuple[int, int]]:
         attention_dict = group.attention
         heatmaps = list(attention_dict.values())
         max_val = np.max(np.max(heatmaps, axis=1), axis=1)
-        peaks = signal.find_peaks(max_val, height=height)[0]
+        peaks = signal.find_peaks(max_val, height=th_max_val)[0]
         if len(peaks) == 0:
             return []
 
@@ -45,23 +45,18 @@ class AttentionAnalyzer:
 
             if frame_num - pre_frame_num > th_interval:
                 # difference between current and previous is over interval
-                if pre_frame_num - start_frame_num > th_duration:
-                    # append result beyond with duration
-                    result_lst.append((start_frame_num, pre_frame_num))
-
+                result_lst.append((start_frame_num, pre_frame_num))
                 start_frame_num = frame_num  # update start frame number
 
             pre_frame_num = frame_num  # update previous frame number
         else:
             # process for last frame number
-            if pre_frame_num - start_frame_num > th_duration:
-                # append result beyond with duration
-                result_lst.append((start_frame_num, pre_frame_num))
+            result_lst.append((start_frame_num, pre_frame_num))
 
         return result_lst
 
     def extract_results(
-        self, room_num: str, surgery_num: str, th_duration: int, th_interval: int
+        self, room_num: str, surgery_num: str, th_interval: int, th_max_val: float = 3.5
     ) -> List[List[Tuple[int, int]]]:
         data_dir = os.path.join("data", room_num, surgery_num)
         data_dirs = sorted(glob(os.path.join(data_dir, "*")))
@@ -82,7 +77,7 @@ class AttentionAnalyzer:
                     self._logger,
                     only_data_loading=True,
                 )
-                results.append(self._calc_peaks(group, th_duration, th_interval))
+                results.append(self._calc_peaks(group, th_interval, th_max_val))
 
                 del group
                 gc.collect()
@@ -107,12 +102,14 @@ class AttentionAnalyzer:
         margin_frame_num: int,
     ):
         for i, result_lst in enumerate(results):
+            i += 1
+            data_dir = os.path.join("data", room_num, surgery_num, f"{i:02d}")
+
             if len(result_lst) == 0:
+                self._logger.info(f"=> skip writing result {data_dir}")
                 continue
 
-            i += 1
             # load json
-            data_dir = os.path.join("data", room_num, surgery_num, f"{i:02d}")
             self._logger.info(f"=> load json files from {data_dir}")
             kps_data, ind_data, grp_data = self._load_jsons(data_dir)
 
@@ -139,7 +136,7 @@ class AttentionAnalyzer:
 
                 # create video writer
                 out_path = os.path.join(
-                    data_dir, "video", "attention", f"{j:02d}.mp4"
+                    data_dir, "video", "attention", f"{i:02d}_{j:02d}.mp4"
                 )
                 wrt = Writer(out_path, cap.fps, size)
 
@@ -150,6 +147,8 @@ class AttentionAnalyzer:
                 cap.set_pos_frame_count(start_num - 1)
                 for frame_num in tqdm(range(start_num, end_num + 1)):
                     ret, frame = cap.read()
+                    if not ret:
+                        break
 
                     frame = kps_write_frame(frame, kps_data, frame_num)
                     field_tmp = ind_write_field(
