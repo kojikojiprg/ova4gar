@@ -26,6 +26,7 @@ class Capture:
     @property
     def frame_count(self):
         # cv2.CAP_PROP_FRAME_COUNT is not correct.
+        self.set_pos_frame_count(0)  # initialize
         count: int = 0
         ret, frame = self._cap.read()
         while ret:
