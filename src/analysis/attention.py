@@ -7,10 +7,10 @@ from typing import Dict, List, Tuple
 import cv2
 import numpy as np
 import yaml
-from group.group import Group
 from scipy import signal
 from tqdm import tqdm
 from utility.activity_loader import load_group
+from utility.functions import moving_agerage
 from utility.json_handler import load
 from utility.video import Capture, Writer, concat_field_with_frame
 from visualize.group import GroupVisualizer
@@ -29,13 +29,17 @@ class AttentionAnalyzer:
         self._logger = logger
         self._grp_vis = GroupVisualizer(["attention"])
 
-    def _calc_peaks(
-        self, group: Group, th_interval: int, th_max_val: float
+    def _find_peaks(
+        self,
+        attention_dict: Dict[int, np.ndarray],
+        th_interval: int,
+        ma_size: int = 1800,
+        prominence: float = 0.5,
     ) -> List[Tuple[int, int]]:
-        attention_dict = group.attention
         heatmaps = list(attention_dict.values())
         max_val = np.max(np.max(heatmaps, axis=1), axis=1)
-        peaks = signal.find_peaks(max_val, height=th_max_val)[0]
+        max_val_ma = moving_agerage(max_val, ma_size)
+        peaks = signal.find_peaks(max_val_ma, prominence=prominence)[0]
         if len(peaks) == 0:
             return []
 
@@ -78,7 +82,10 @@ class AttentionAnalyzer:
                     self._logger,
                     only_data_loading=True,
                 )
-                results.append(self._calc_peaks(group, th_interval, th_max_val))
+                attention_dict = group.attention
+                results.append(
+                    self._find_peaks(attention_dict, th_interval, th_max_val)
+                )
 
                 del group
                 gc.collect()
@@ -130,9 +137,7 @@ class AttentionAnalyzer:
             tmp_frame = delete_time_bar(tmp_frame)
             size = get_size(tmp_frame, self._field)
 
-            self._logger.info(
-                f"=> write attention result: {result_lst}"
-            )
+            self._logger.info(f"=> write attention result: {result_lst}")
             for j, (start_num, end_num) in enumerate(result_lst):
                 j += 1
 
@@ -154,9 +159,7 @@ class AttentionAnalyzer:
 
                     frame = delete_time_bar(frame)
                     frame = kps_write_frame(frame, kps_data, frame_num)
-                    field_tmp = ind_write_field(
-                        ind_data, self._field.copy(), frame_num
-                    )
+                    field_tmp = ind_write_field(ind_data, self._field.copy(), frame_num)
                     field_tmp = self._grp_vis.write_field(
                         "attention", frame_num, grp_data, field_tmp
                     )

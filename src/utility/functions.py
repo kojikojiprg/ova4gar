@@ -57,3 +57,16 @@ def rotation(vec, rad):
         [np.sin(rad), np.cos(rad)]])
 
     return np.dot(R, vec)
+
+
+def moving_agerage(data, size):
+    data_mean = np.convolve(data, np.ones(size) / size, mode="same")
+    n_conv = size // 2
+
+    # correction
+    data_mean[0] *= size / n_conv
+    for i in range(1, n_conv):
+        data_mean[i] *= size / (i + n_conv)
+        data_mean[-i] *= size / (i + n_conv - (size % 2))
+
+    return data_mean
