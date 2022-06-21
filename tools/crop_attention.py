@@ -24,7 +24,8 @@ def _setup_parser():
     )
     parser.add_argument("-c", "--cfg_path", type=str, default="config/group.yaml")
     parser.add_argument("-ti", "--th_interval", type=int, default=1800)
-    parser.add_argument("-tm", "--th_min_val", type=float, default=3.5)
+    parser.add_argument("-ms", "--ma_size", type=int, default=1800)
+    parser.add_argument("-tm", "--peak_prominence", type=float, default=0.5)
     parser.add_argument("-mfn", "--margin_frame_num", type=int, default=900)
 
     return parser.parse_args()
@@ -34,7 +35,11 @@ def main():
     args = _setup_parser()
     analyzer = AttentionAnalyzer(args.cfg_path, logger)
     results = analyzer.extract_results(
-        args.room_num, args.surgery_num, args.th_interval, args.th_min_val
+        args.room_num,
+        args.surgery_num,
+        args.th_interval,
+        args.ma_size,
+        args.peak_prominence,
     )
     analyzer.crop_videos(
         args.room_num, args.surgery_num, results, args.margin_frame_num

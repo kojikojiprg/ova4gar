@@ -2,11 +2,12 @@ import gc
 import os
 from glob import glob
 from logging import Logger
-from typing import Dict, List, Tuple
+from typing import List, Tuple
 
 import cv2
 import numpy as np
 import yaml
+from numpy.typing import NDArray
 from scipy import signal
 from tqdm import tqdm
 from utility.activity_loader import load_group
@@ -31,14 +32,14 @@ class AttentionAnalyzer:
 
     def _find_peaks(
         self,
-        attention_dict: Dict[int, np.ndarray],
+        heatmaps: List[NDArray],
         th_interval: int,
         ma_size: int = 1800,
         prominence: float = 0.5,
     ) -> List[Tuple[int, int]]:
-        heatmaps = list(attention_dict.values())
         max_val = np.max(np.max(heatmaps, axis=1), axis=1)
         max_val_ma = moving_agerage(max_val, ma_size)
+
         peaks = signal.find_peaks(max_val_ma, prominence=prominence)[0]
         if len(peaks) == 0:
             return []
@@ -46,7 +47,7 @@ class AttentionAnalyzer:
         result_lst: List[Tuple[int, int]] = []
         pre_frame_num = start_frame_num = peaks[0] + 1
         for frame_num in peaks[1:]:
-            frame_num += 1
+            frame_num = frame_num + 1
 
             if frame_num - pre_frame_num > th_interval:
                 # difference between current and previous is over interval
@@ -61,8 +62,13 @@ class AttentionAnalyzer:
         return result_lst
 
     def extract_results(
-        self, room_num: str, surgery_num: str, th_interval: int, th_max_val: float = 3.5
-    ) -> List[List[Tuple[int, int]]]:
+        self,
+        room_num: str,
+        surgery_num: str,
+        th_interval: int,
+        ma_size: int = 1800,
+        prominence: float = 0.5,
+    ) -> List[Tuple[int, int]]:
         data_dir = os.path.join("data", room_num, surgery_num)
         data_dirs = sorted(glob(os.path.join(data_dir, "*")))
         for i in range(len(data_dirs)):
@@ -70,7 +76,7 @@ class AttentionAnalyzer:
                 del data_dirs[i]
         self._logger.info(f"=> data directories: {data_dirs}")
 
-        results = []
+        heatmaps = []
         for data_dir in data_dirs:
             self._logger.info(f"=> load attention result from {data_dir}")
             json_path = os.path.join(data_dir, ".json", "group.json")
@@ -83,14 +89,12 @@ class AttentionAnalyzer:
                     only_data_loading=True,
                 )
                 attention_dict = group.attention
-                results.append(
-                    self._find_peaks(attention_dict, th_interval, th_max_val)
-                )
+                heatmaps += list(attention_dict.values())
 
-                del group
+                del group, attention_dict
                 gc.collect()
 
-        return results
+        return self._find_peaks(heatmaps, th_interval, ma_size, prominence)
 
     @staticmethod
     def _load_jsons(data_dir):
@@ -106,67 +110,95 @@ class AttentionAnalyzer:
         self,
         room_num: str,
         surgery_num: str,
-        results: List[List[Tuple[int, int]]],
+        peak_results: List[Tuple[int, int]],
         margin_frame_num: int,
+        frame_total: int = 54000,
     ):
-        for i, result_lst in enumerate(results):
-            i += 1
-            data_dir = os.path.join("data", room_num, surgery_num, f"{i:02d}")
-
-            if len(result_lst) == 0:
-                self._logger.info(f"=> skip writing result {data_dir}")
+        # delete previous files
+        self._logger.info("=> delete files extracted previous process")
+        for data_dir in sorted(glob(os.path.join("data", room_num, surgery_num, "*"))):
+            if data_dir.endswith("passing") or data_dir.endswith("attention"):
                 continue
-
-            # load json
-            self._logger.info(f"=> load json files from {data_dir}")
-            kps_data, ind_data, grp_data = self._load_jsons(data_dir)
-
-            # delete previous files
-            self._logger.info("=> delete files extracted previous process")
             for p in glob(os.path.join(data_dir, "video", "attention", "*.mp4")):
                 if os.path.isfile(p):
                     os.remove(p)
 
-            # create capture
-            self._logger.info(f"=> load surgery {i:02d}.mp4")
-            video_path = os.path.join("video", room_num, surgery_num, f"{i:02d}.mp4")
-            cap = Capture(video_path)
+        pre_s_file_num = 0
+        for s_frame_num, e_frame_num in peak_results:
+            # add margin
+            s_frame_num = max(1, s_frame_num - margin_frame_num)
+            e_frame_num += margin_frame_num
 
-            # calc output size
-            tmp_frame = cap.read()[1]
-            tmp_frame = delete_time_bar(tmp_frame)
-            size = get_size(tmp_frame, self._field)
+            # calc file num and frame num
+            s_file_num = s_frame_num // frame_total + 1
+            e_file_num = e_frame_num // frame_total + 1
+            s_frame_num = s_frame_num % frame_total + 1
+            e_frame_num = (e_frame_num % frame_total + 1) + (
+                e_file_num - s_file_num
+            ) * frame_total
 
-            self._logger.info(f"=> write attention result: {result_lst}")
-            for j, (start_num, end_num) in enumerate(result_lst):
-                j += 1
-
-                # create video writer
-                out_path = os.path.join(
-                    data_dir, "video", "attention", f"{i:02d}_{j:02d}.mp4"
+            if pre_s_file_num < s_file_num:
+                data_dir = os.path.join(
+                    "data", room_num, surgery_num, f"{s_file_num:02d}"
                 )
-                wrt = Writer(out_path, cap.fps, size)
+                # load json
+                self._logger.info(f"=> load json files from {data_dir}")
+                kps_data, ind_data, grp_data = self._load_jsons(data_dir)
+                # create capture
+                self._logger.info(f"=> load surgery {s_file_num:02d}.mp4")
+                video_path = os.path.join(
+                    "video", room_num, surgery_num, f"{s_file_num:02d}.mp4"
+                )
+                cap = Capture(video_path)
+                # calc output size
+                tmp_frame = cap.read()[1]
+                tmp_frame = delete_time_bar(tmp_frame)
+                size = get_size(tmp_frame, self._field)
 
-                start_num = max(1, start_num - margin_frame_num)
-                end_num = min(cap.frame_count, end_num + margin_frame_num)
+            # create video writer
+            out_path = os.path.join(
+                data_dir,
+                "video",
+                "attention",
+                f"{s_file_num:02d}_{s_frame_num}_{e_frame_num}.mp4",
+            )
+            wrt = Writer(out_path, cap.fps, size)
 
-                # write video
-                cap.set_pos_frame_count(start_num - 1)
-                for frame_num in tqdm(range(start_num, end_num + 1)):
-                    ret, frame = cap.read()
-                    if not ret:
-                        break
+            # write video
+            cap.set_pos_frame_count(s_frame_num - 1)
+            self._logger.info(
+                f"=> writing video file_num: {s_file_num}, frame: {s_frame_num}, {e_frame_num}"
+            )
+            for frame_num in tqdm(range(s_frame_num, e_frame_num)):
+                ret, frame = cap.read()
 
-                    frame = delete_time_bar(frame)
-                    frame = kps_write_frame(frame, kps_data, frame_num)
-                    field_tmp = ind_write_field(ind_data, self._field.copy(), frame_num)
-                    field_tmp = self._grp_vis.write_field(
-                        "attention", frame_num, grp_data, field_tmp
+                if not ret:
+                    # load next data and video
+                    del kps_data, ind_data, grp_data, cap
+                    gc.collect()
+
+                    # load json
+                    self._logger.info(f"=> load json files from {data_dir}")
+                    kps_data, ind_data, grp_data = self._load_jsons(data_dir)
+                    # create capture
+                    self._logger.info(f"=> load surgery {s_file_num:02d}.mp4")
+                    video_path = os.path.join(
+                        "video", room_num, surgery_num, f"{s_file_num:02d}.mp4"
                     )
-                    frame = concat_field_with_frame(frame.copy(), field_tmp)
-                    wrt.write(frame)
+                    cap = Capture(video_path)
+                    _, frame = cap.read()
 
-                del wrt
+                frame = delete_time_bar(frame)
+                frame = kps_write_frame(frame, kps_data, frame_num)
+                field_tmp = ind_write_field(ind_data, self._field.copy(), frame_num)
+                field_tmp = self._grp_vis.write_field(
+                    "attention", frame_num, grp_data, field_tmp
+                )
+                frame = concat_field_with_frame(frame.copy(), field_tmp)
+                wrt.write(frame)
 
-            del kps_data, ind_data, grp_data, cap
-            gc.collect()
+            del wrt
+            pre_s_file_num = s_file_num
+
+        del kps_data, ind_data, grp_data, cap
+        gc.collect()
