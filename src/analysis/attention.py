@@ -167,7 +167,7 @@ class AttentionAnalyzer:
             # write video
             cap.set_pos_frame_count(s_frame_num - 1)
             self._logger.info(
-                f"=> writing video file_num: {s_file_num}, frame: {s_frame_num}, {e_frame_num}"
+                f"=> writing video file_num: {s_file_num}, frame: {s_frame_num}->{e_frame_num}"
             )
             for frame_num in tqdm(range(s_frame_num, e_frame_num)):
                 ret, frame = cap.read()
