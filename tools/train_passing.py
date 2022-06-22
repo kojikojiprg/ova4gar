@@ -180,7 +180,7 @@ def main():
         for model_path in dirs:
             num = model_path.split("/")[-1]
             json_path = os.path.join(model_path, ".json", "individual.json")
-            tmp_inds, _ = load_individuals(json_path, ind_cfg)
+            tmp_inds = load_individuals(json_path, ind_cfg)
             for pid, ind in tmp_inds.items():
                 inds[f"{key_prefix}_{num}_{pid}"] = ind
 

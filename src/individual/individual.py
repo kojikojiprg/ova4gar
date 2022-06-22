@@ -5,7 +5,6 @@ from keypoint.keypoint import PARTS, Keypoints
 from numpy.typing import NDArray
 from utility.transform import Homography
 
-from individual.indicator import arm, body, face, position
 from individual.individual_que import KeypointQue, Que
 
 
