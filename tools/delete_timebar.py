@@ -45,8 +45,8 @@ def main():
 
     for video_file in video_files:
         cap = Capture(video_file)
-        write_video_file = video_file.replace(".mp4", "_new.mp4")
 
+        write_video_file = video_file.replace(".mp4", "_new.mp4")
         size = (cap.size[0], cap.size[1] - args.timebar_height)
         wrt = Writer(write_video_file, cap.fps, size)
 
@@ -60,7 +60,7 @@ def main():
         del cap, wrt
         os.remove(video_file)
         os.rename(write_video_file, video_file)
-        logger.info(f"=> rename {video_file} to {video_files}")
+        logger.info(f"=> rename {video_file} to {write_video_file}")
 
 
 if __name__ == "__main__":
