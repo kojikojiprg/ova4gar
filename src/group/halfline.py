@@ -2,8 +2,8 @@ class HalfLine:
     def __init__(self, point, vector):
         self.x0 = point[0]
         self.y0 = point[1]
-        self.a = vector[1] / vector[0]              # 傾き
-        self.b = -1 * self.a * self.x0 + self.y0    # 切片
+        self.a = vector[1] / vector[0]  # 傾き
+        self.b = -1 * self.a * self.x0 + self.y0  # 切片
 
         # 象限
         if vector[0] > 0 and vector[1] >= 0:
@@ -51,7 +51,7 @@ def calc_cross(l1, l2):
     d_b = l2.b - l1.b
     ad_bc = l1.a * l2.b - l1.b * l2.a
 
-    if abs(a_c) < 1e-5 or abs(d_b) > 1e+5 or abs(ad_bc) > 1e+5:
+    if abs(a_c) < 1e-5 or abs(d_b) > 1e5 or abs(ad_bc) > 1e5:
         return None
     else:
         x = d_b / a_c

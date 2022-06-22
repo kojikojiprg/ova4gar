@@ -12,7 +12,7 @@ def mahalanobis(x, data):
 
 
 def gauss(x, a=1, mu=1, sigma=1):
-    return a * np.exp(-(x - mu)**2 / (2 * sigma**2))
+    return a * np.exp(-((x - mu) ** 2) / (2 * sigma**2))
 
 
 def euclidean(a, b, axis=None):
@@ -52,9 +52,7 @@ def cos_similarity(vec1, vec2):
 
 
 def rotation(vec, rad):
-    R = np.array([
-        [np.cos(rad), -np.sin(rad)],
-        [np.sin(rad), np.cos(rad)]])
+    R = np.array([[np.cos(rad), -np.sin(rad)], [np.sin(rad), np.cos(rad)]])
 
     return np.dot(R, vec)
 
