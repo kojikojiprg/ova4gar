@@ -173,20 +173,27 @@ class AttentionAnalyzer:
                 ret, frame = cap.read()
 
                 if not ret:
-                    # load next data and video
                     del kps_data, ind_data, grp_data, cap
-                    gc.collect()
 
-                    # load json
-                    self._logger.info(f"=> load json files from {data_dir}")
-                    kps_data, ind_data, grp_data = self._load_jsons(data_dir)
-                    # create capture
-                    self._logger.info(f"=> load surgery {s_file_num:02d}.mp4")
-                    video_path = os.path.join(
-                        "video", room_num, surgery_num, f"{s_file_num:02d}.mp4"
+                    # load next data and video
+                    s_file_num += 1
+                    data_dir = os.path.join(
+                        "data", room_num, surgery_num, f"{s_file_num:02d}"
                     )
-                    cap = Capture(video_path)
-                    _, frame = cap.read()
+
+                    if os.path.exists(data_dir):
+                        # load json
+                        self._logger.info(f"=> load json files from {data_dir}")
+                        kps_data, ind_data, grp_data = self._load_jsons(data_dir)
+                        # create capture
+                        self._logger.info(f"=> load surgery {s_file_num:02d}.mp4")
+                        video_path = os.path.join(
+                            "video", room_num, surgery_num, f"{s_file_num:02d}.mp4"
+                        )
+                        cap = Capture(video_path)
+                        _, frame = cap.read()
+                    else:
+                        break
 
                 frame_num %= frame_total
                 frame = delete_time_bar(frame)
