@@ -13,11 +13,10 @@ from tqdm import tqdm
 from utility.activity_loader import load_group
 from utility.functions import moving_agerage
 from utility.json_handler import load
-from utility.video import Capture, Writer, concat_field_with_frame
+from utility.video import Capture, Writer, concat_field_with_frame, get_size
 from visualize.group import GroupVisualizer
 from visualize.individual import write_field as ind_write_field
 from visualize.keypoint import write_frame as kps_write_frame
-from visualize.util import delete_time_bar, get_size
 
 
 class AttentionAnalyzer:
@@ -152,7 +151,6 @@ class AttentionAnalyzer:
                 cap = Capture(video_path)
                 # calc output size
                 tmp_frame = cap.read()[1]
-                tmp_frame = delete_time_bar(tmp_frame)
                 size = get_size(tmp_frame, self._field)
 
             # create video writer
@@ -196,7 +194,6 @@ class AttentionAnalyzer:
                         break
 
                 frame_num %= frame_total
-                frame = delete_time_bar(frame)
                 frame = kps_write_frame(frame, kps_data, frame_num)
                 field_tmp = ind_write_field(ind_data, self._field.copy(), frame_num)
                 field_tmp = self._grp_vis.write_field(

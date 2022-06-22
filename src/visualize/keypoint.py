@@ -40,15 +40,12 @@ def write_frame(
     frame: NDArray,
     kps_data: List[Dict[str, Any]],
     frame_num: int,
-    delete_height: int = 20,
 ):
     # add keypoints to image
     frame = _put_frame_num(frame, frame_num)
     for kps in kps_data:
         if kps["frame"] == frame_num:
-            frame = _draw_skeleton(
-                frame, kps["id"], np.array(kps["keypoints"]), delete_height
-            )
+            frame = _draw_skeleton(frame, kps["id"], np.array(kps["keypoints"]))
 
     return frame
 
@@ -64,9 +61,7 @@ def _put_frame_num(img: NDArray, frame_num: int):
     )
 
 
-def _draw_skeleton(
-    frame: NDArray, t_id: int, kp: NDArray, delete_height, vis_thresh: float = 0.2
-):
+def _draw_skeleton(frame: NDArray, t_id: int, kp: NDArray, vis_thresh: float = 0.2):
     l_pair = [
         (0, 1),
         (0, 2),
@@ -132,7 +127,7 @@ def _draw_skeleton(
     for n in range(len(kp)):
         if kp[n, 2] <= vis_thresh:
             continue
-        cor_x, cor_y = int(kp[n, 0]), int(kp[n, 1]) - delete_height
+        cor_x, cor_y = int(kp[n, 0]), int(kp[n, 1])
         part_line[n] = (cor_x, cor_y)
         cv2.circle(img, (cor_x, cor_y), 3, p_color[n], -1)
 

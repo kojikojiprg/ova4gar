@@ -7,11 +7,10 @@ import cv2
 import yaml
 from tqdm import tqdm
 from utility import json_handler
-from utility.video import Capture, Writer, concat_field_with_frame
+from utility.video import Capture, Writer, concat_field_with_frame, get_size
 from visualize import individual as ind_vis
 from visualize import keypoint as kps_vis
 from visualize.group import GroupVisualizer
-from visualize.util import delete_time_bar, get_size
 
 
 class Visalizer:
@@ -34,8 +33,6 @@ class Visalizer:
         self._do_individual = not args.without_individual
         self._do_group = not args.without_group
 
-        self._delete_height = args.delete_height
-
     def write_video(self, video_path: str, data_dir: str):
         # load data from json file
         kps_data = self._load_json(data_dir, "keypoints")
@@ -52,7 +49,6 @@ class Visalizer:
         # delete time bar
         tmp_frame = video_capture.read()[1]
         video_capture.set_pos_frame_count(0)
-        tmp_frame = delete_time_bar(tmp_frame, self._delete_height)
 
         out_paths = []
         # create video writer for keypoints results
@@ -86,10 +82,9 @@ class Visalizer:
         for frame_num in tqdm(range(video_capture.frame_count)):
             frame_num += 1  # frame_num = (1, ...)
             ret, frame = video_capture.read()
-            frame = delete_time_bar(frame, self._delete_height)
 
             # write keypoint video
-            frame = kps_vis.write_frame(frame, kps_data, frame_num, self._delete_height)
+            frame = kps_vis.write_frame(frame, kps_data, frame_num)
             if self._do_keypoint:
                 kps_video_writer.write(frame)
 
