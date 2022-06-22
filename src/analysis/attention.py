@@ -188,6 +188,7 @@ class AttentionAnalyzer:
                     cap = Capture(video_path)
                     _, frame = cap.read()
 
+                frame_num %= frame_total
                 frame = delete_time_bar(frame)
                 frame = kps_write_frame(frame, kps_data, frame_num)
                 field_tmp = ind_write_field(ind_data, self._field.copy(), frame_num)
