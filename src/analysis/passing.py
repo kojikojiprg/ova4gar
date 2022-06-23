@@ -8,7 +8,7 @@ import cv2
 import yaml
 from group.group import Group
 from tqdm import tqdm
-from utility.activity_loader import load_group
+from utility.activity_loader import get_data_dirs, load_group
 from utility.json_handler import load
 from utility.video import Capture, Writer, concat_field_with_frame, get_size
 from visualize.group import GroupVisualizer
@@ -60,11 +60,7 @@ class PassingAnalyzer:
     def extract_results(
         self, room_num: str, surgery_num: str, th_duration: int, th_interval: int
     ) -> List[Dict[str, list]]:
-        data_dir = os.path.join("data", room_num, surgery_num)
-        data_dirs = sorted(glob(os.path.join(data_dir, "*")))
-        for i in range(len(data_dirs)):
-            if data_dirs[i].endswith("passing") or data_dirs[i].endswith("attention"):
-                del data_dirs[i]
+        data_dirs = get_data_dirs(room_num, surgery_num)
         self._logger.info(f"=> data directories: {data_dirs}")
 
         results = []

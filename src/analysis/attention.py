@@ -10,7 +10,7 @@ import yaml
 from numpy.typing import NDArray
 from scipy import signal
 from tqdm import tqdm
-from utility.activity_loader import load_group
+from utility.activity_loader import get_data_dirs, load_group
 from utility.functions import moving_agerage
 from utility.json_handler import load
 from utility.video import Capture, Writer, concat_field_with_frame, get_size
@@ -68,11 +68,7 @@ class AttentionAnalyzer:
         ma_size: int = 1800,
         prominence: float = 0.5,
     ) -> List[Tuple[int, int]]:
-        data_dir = os.path.join("data", room_num, surgery_num)
-        data_dirs = sorted(glob(os.path.join(data_dir, "*")))
-        for i in range(len(data_dirs)):
-            if data_dirs[i].endswith("passing") or data_dirs[i].endswith("attention"):
-                del data_dirs[i]
+        data_dirs = get_data_dirs(room_num, surgery_num)
         self._logger.info(f"=> data directories: {data_dirs}")
 
         heatmaps = []
