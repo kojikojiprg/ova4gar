@@ -34,11 +34,14 @@ def _setup_parser():
 
 def main():
     args = _setup_parser()
-    data_dirs = sorted(
+    data_dirs = []
+    for data_dir in sorted(
         glob(
             os.path.join("data", args.room_num, args.surgery_num, args.expand_name, "*")
         )
-    )
+    ):
+        if not data_dir.endswith("passing") and not data_dir.endswith("attention"):
+            data_dirs.append(data_dir)
     logger.info(f"=> {data_dirs}")
 
     for data_dir in data_dirs:
