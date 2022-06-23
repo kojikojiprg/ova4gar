@@ -28,7 +28,7 @@ class GroupAnalyzer:
         ind_json_path = os.path.join(data_dir, ".json", "individual.json")
         self._logger.info(f"=> load individual data from {ind_json_path}")
         inds = load_individuals(ind_json_path, self._ind_cfg)
-        last_frame_num = max([ind.to_dict["keypoints"].keys() for ind in inds])
+        last_frame_num = max([ind.last_frame_num for ind in inds.values()])
 
         # create group class
         self._logger.info(f"=> construct group activity model for {data_dir}")
