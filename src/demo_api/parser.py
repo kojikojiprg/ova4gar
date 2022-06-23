@@ -74,6 +74,9 @@ def surgery_parser():
         help="surgery number of each room",
     )
 
+    # options
+    parser.add_argument("-ex", "--expand_name", type=str, default="")
+
     return parser.parse_args()
 
 
