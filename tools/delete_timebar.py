@@ -28,6 +28,7 @@ def _setup_parser():
         help="surgery number of each room",
     )
     parser.add_argument("-tl", "--timebar_height", type=int, default=20)
+    parser.add_argument("-ex", "--expand_name", type=str, default="")
 
     return parser.parse_args()
 
@@ -39,7 +40,11 @@ def _delete_time_bar(frame: NDArray, delete_hight: int = 20):
 def main():
     args = _setup_parser()
     video_files = sorted(
-        glob(os.path.join("video", args.room_num, args.surgery_num, "*.mp4"))
+        glob(
+            os.path.join(
+                "video", args.room_num, args.surgery_num, args.expand_name, "*"
+            )
+        )
     )
     logger.info(f"=> {video_files}")
 
