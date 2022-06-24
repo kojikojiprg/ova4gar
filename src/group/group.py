@@ -74,7 +74,7 @@ class Group:
         data = self._idc_dict["passing"]
 
         data_dict: Dict[str, List[int]] = {}
-        for row in data:
+        for row in tqdm(data):
             frame_num = row["frame"]
             persons = row["persons"]
 
