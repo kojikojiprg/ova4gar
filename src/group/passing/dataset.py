@@ -237,7 +237,7 @@ def _get_indicators(ind: Individual, frame_num: int):
         ind.get_keypoints("LWrist", frame_num),
         ind.get_keypoints("RWrist", frame_num),
     )
-    ret = SimpleNamespace(**{"pos": pos, "body": body, "arm": arm, "wrist": wrist})
+    ret = {"pos": pos, "body": body, "arm": arm, "wrist": wrist}
     return ret
 
 
@@ -253,40 +253,41 @@ def extract_feature(
     ind1_data = _get_indicators(ind1, frame_num)
     ind2_data = _get_indicators(ind2, frame_num)
 
-    if None in ind1_data.__dict__.values() or None in ind2_data.__dict__.values():
-        return que
+    if not (None in ind1_data.values() or None in ind2_data.values()):
+        ind1_data = SimpleNamespace(**ind1_data)
+        ind2_data = SimpleNamespace(**ind2_data)
 
-    # calc distance of position
-    p1_pos = np.array(ind1_data.pos)
-    p2_pos = np.array(ind2_data.pos)
+        # calc distance of position
+        p1_pos = np.array(ind1_data.pos)
+        p2_pos = np.array(ind2_data.pos)
 
-    norm = np.linalg.norm(p1_pos - p2_pos, ord=2)
-    distance = gauss(norm, mu=defs["dist_mu"], sigma=defs["dist_sig"])
+        norm = np.linalg.norm(p1_pos - p2_pos, ord=2)
+        distance = gauss(norm, mu=defs["dist_mu"], sigma=defs["dist_sig"])
 
-    p1p2 = p2_pos - p1_pos
-    p2p1 = p1_pos - p2_pos
+        p1p2 = p2_pos - p1_pos
+        p2p1 = p1_pos - p2_pos
 
-    p1p2_sim = cos_similarity(ind1_data.body, p1p2)
-    p2p1_sim = cos_similarity(ind2_data.body, p2p1)
-    body_distance = (np.average([p1p2_sim, p2p1_sim]) + 1) / 2
+        p1p2_sim = cos_similarity(ind1_data.body, p1p2)
+        p2p1_sim = cos_similarity(ind2_data.body, p2p1)
+        body_distance = (np.average([p1p2_sim, p2p1_sim]) + 1) / 2
 
-    # calc arm average
-    arm_ave = np.average([ind1_data.arm, ind2_data.arm])
+        # calc arm average
+        arm_ave = np.average([ind1_data.arm, ind2_data.arm])
 
-    # calc wrist distance
-    min_norm = np.inf
-    for i in range(2):
-        for j in range(2):
-            norm = np.linalg.norm(
-                np.array(ind1_data.wrist[i]) - np.array(ind2_data.wrist[j]), ord=2
-            )
-            min_norm = float(norm) if norm < min_norm else min_norm
+        # calc wrist distance
+        min_norm = np.inf
+        for i in range(2):
+            for j in range(2):
+                norm = np.linalg.norm(
+                    np.array(ind1_data.wrist[i]) - np.array(ind2_data.wrist[j]), ord=2
+                )
+                min_norm = float(norm) if norm < min_norm else min_norm
 
-    wrist_distance = gauss(min_norm, mu=defs["wrist_mu"], sigma=defs["wrist_sig"])
+        wrist_distance = gauss(min_norm, mu=defs["wrist_mu"], sigma=defs["wrist_sig"])
 
-    # concatnate to feature
-    feature = [distance, body_distance, arm_ave, wrist_distance]
-    que.append(feature)
+        # concatnate to feature
+        feature = [distance, body_distance, arm_ave, wrist_distance]
+        que.append(feature)
 
     if len(que) < defs["seq_len"]:
         # 0 padding
