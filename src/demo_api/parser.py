@@ -72,7 +72,9 @@ def surgery_parser():
     )
 
     # options
-    parser.add_argument("-ex", "--expand_name", type=str, default="")
+    parser.add_argument(
+        "-ex", "--expand_name", type=str, default="", help="'passing' or 'attention'"
+    )
 
     return parser.parse_args()
 
