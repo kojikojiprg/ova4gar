@@ -99,15 +99,18 @@ class PassingAnalyzer:
         results: List[Dict[str, list]],
         margin_frame_num: int,
     ):
-        for i, result_dict in enumerate(results):
-            i += 1
-            data_dir = os.path.join("data", room_num, surgery_num, f"{i:02d}")
-
-            # delete previous files
-            self._logger.info("=> delete files extracted previous process")
+        # delete previous files
+        self._logger.info("=> delete files extracted previous process")
+        for data_dir in sorted(glob(os.path.join("data", room_num, surgery_num, "*"))):
+            if data_dir.endswith("passing") or data_dir.endswith("attention"):
+                continue
             for p in glob(os.path.join(data_dir, "video", "passing", "*.mp4")):
                 if os.path.isfile(p):
                     os.remove(p)
+
+        for i, result_dict in enumerate(results):
+            i += 1
+            data_dir = os.path.join("data", room_num, surgery_num, f"{i:02d}")
 
             if len(result_dict) == 0:
                 self._logger.info(f"=> skip writing result {data_dir}")
