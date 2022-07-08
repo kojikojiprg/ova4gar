@@ -103,6 +103,12 @@ class PassingAnalyzer:
             i += 1
             data_dir = os.path.join("data", room_num, surgery_num, f"{i:02d}")
 
+            # delete previous files
+            self._logger.info("=> delete files extracted previous process")
+            for p in glob(os.path.join(data_dir, "video", "passing", "*.mp4")):
+                if os.path.isfile(p):
+                    os.remove(p)
+
             if len(result_dict) == 0:
                 self._logger.info(f"=> skip writing result {data_dir}")
                 continue
@@ -110,12 +116,6 @@ class PassingAnalyzer:
             # load json
             self._logger.info(f"=> load json files from {data_dir}")
             kps_data, ind_data, grp_data = self._load_jsons(data_dir)
-
-            # delete previous files
-            self._logger.info("=> delete files extracted previous process")
-            for p in glob(os.path.join(data_dir, "video", "passing", "*.mp4")):
-                if os.path.isfile(p):
-                    os.remove(p)
 
             # create capture
             self._logger.info(f"=> load surgery {i:02d}.mp4")
