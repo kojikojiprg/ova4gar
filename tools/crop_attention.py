@@ -25,7 +25,7 @@ def _setup_parser():
     parser.add_argument("-c", "--cfg_path", type=str, default="config/group.yaml")
     parser.add_argument("-ti", "--th_interval", type=int, default=1800)
     parser.add_argument("-ms", "--ma_size", type=int, default=1800)
-    parser.add_argument("-tm", "--peak_prominence", type=float, default=0.5)
+    parser.add_argument("-tm", "--peak_prominence", type=float, default=0.3)
     parser.add_argument("-mfn", "--margin_frame_num", type=int, default=1800)
 
     return parser.parse_args()
