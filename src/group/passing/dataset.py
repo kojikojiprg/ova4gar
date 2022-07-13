@@ -269,7 +269,7 @@ def extract_feature(
 
         p1p2_sim = cos_similarity(ind1_data.body, p1p2)
         p2p1_sim = cos_similarity(ind2_data.body, p2p1)
-        body_distance = (np.average([p1p2_sim, p2p1_sim]) + 1) / 2
+        body_direction = (np.average([p1p2_sim, p2p1_sim]) + 1) / 2
 
         # calc arm average
         arm_ave = np.average([ind1_data.arm, ind2_data.arm])
@@ -286,7 +286,7 @@ def extract_feature(
         wrist_distance = gauss(min_norm, mu=defs["wrist_mu"], sigma=defs["wrist_sig"])
 
         # concatnate to feature
-        feature = [distance, body_distance, arm_ave, wrist_distance]
+        feature = [distance, body_direction, arm_ave, wrist_distance]
         que.append(feature)
 
     if len(que) < defs["seq_len"]:
