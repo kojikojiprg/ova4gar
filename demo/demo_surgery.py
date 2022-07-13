@@ -13,7 +13,7 @@ def main():
 
     os.environ["CUDA_VISIBLE_DEVICES"] = str(args.gpu)
 
-    video_dir = os.path.join("video", args.room_num, args.surgery_num)
+    video_dir = os.path.join("video", args.room_num, args.surgery_num, args.expand_name)
     video_paths = sorted(glob(os.path.join(video_dir, "*.mp4")))
     logger.info(f"=> video paths:\n{video_paths}")
 
