@@ -1,3 +1,4 @@
+from builtins import FileNotFoundError
 import gc
 import os
 from logging import Logger
@@ -116,4 +117,9 @@ class Visalizer:
     def _load_json(self, data_dir: str, name: str):
         json_path = os.path.join(data_dir, ".json", f"{name}.json")
         self._logger.info(f"=> loading {name} data from {json_path}")
-        return json_handler.load(json_path)
+        try:
+            data = json_handler.load(json_path)
+            return data
+        except FileNotFoundError:
+            self._logger.info(f"=> {json_path} was not found.")
+            return None

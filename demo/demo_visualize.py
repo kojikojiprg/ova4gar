@@ -18,7 +18,9 @@ def main():
     data_dirs = []
     for video_path in video_paths:
         name = os.path.basename(video_path).replace(".mp4", "")
-        data_dir = os.path.join("data", args.room_num, args.surgery_num, name)
+        data_dir = os.path.join(
+            "data", args.room_num, args.surgery_num, args.expand_name, name
+        )
         data_dirs.append(data_dir)
         os.makedirs(data_dir, exist_ok=True)
 
