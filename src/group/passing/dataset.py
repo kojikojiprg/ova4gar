@@ -168,10 +168,10 @@ def _make_time_series_from_cfg(dataset_cfg: dict, logger: Logger):
     ret_data = {}
     for room_num, room_cfg in dataset_cfg.items():
         room_data = {}
-        for surgery_num, date_cfg in room_cfg.items():
+        for surgery_num, surgery_cfg in room_cfg.items():
             logger.info(f"=> createing time series {room_num}_{surgery_num}")
             surgery_data = {}
-            for data_num, row in tqdm(date_cfg.items()):
+            for data_num, row in tqdm(surgery_cfg.items()):
                 settings = []
                 for item in row:
                     settings.append(
