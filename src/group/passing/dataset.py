@@ -96,7 +96,7 @@ def make_data_loaders(
         logger.info("=> create val loader")
         x_val_dict = {key: x_dict[key] for key in val_keys}
         y_val_dict = {key: y_dict[key] for key in val_keys}
-        val_loader = make_data_loader(x_val_dict, y_val_dict, seq_len, 1, False)
+        val_loader = make_data_loader(x_val_dict, y_val_dict, seq_len, batch_size, False)
     else:
         logger.info("=> skip creating val loader")
         val_loader = None
@@ -105,7 +105,7 @@ def make_data_loaders(
         logger.info("=> create test loader")
         x_test_dict = {key: x_dict[key] for key in test_keys}
         y_test_dict = {key: y_dict[key] for key in test_keys}
-        test_loader = make_data_loader(x_test_dict, y_test_dict, seq_len, 1, False)
+        test_loader = make_data_loader(x_test_dict, y_test_dict, seq_len, batch_size, False)
     else:
         logger.info("=> skip creating test loader")
         test_loader = None
