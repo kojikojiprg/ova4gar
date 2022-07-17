@@ -3,13 +3,13 @@ config_path:
   group: "config/group.yaml"
 
 optim:
-  epoch: 120
+  epoch: 100
   lr: 0.001
   lr_rate: 1.0
-  pos_weight: [1, 16]
+  pos_weight: [1, 8]
 
 dataset:
-  batch_size: 4096
+  batch_size: 8192
   train_ratio: 0.8
   val_ratio: 0.0
   random_seed: 128
