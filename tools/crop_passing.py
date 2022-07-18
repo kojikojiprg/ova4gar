@@ -23,8 +23,8 @@ def _setup_parser():
         help="surgery number of each room",
     )
     parser.add_argument("-c", "--cfg_path", type=str, default="config/group.yaml")
-    parser.add_argument("-td", "--th_duration", type=int, default=30)
-    parser.add_argument("-ti", "--th_interval", type=int, default=1800)
+    parser.add_argument("-td", "--th_duration", type=int, default=10)
+    parser.add_argument("-ti", "--th_interval", type=int, default=30)
     parser.add_argument("-mfn", "--margin_frame_num", type=int, default=60)
 
     return parser.parse_args()
