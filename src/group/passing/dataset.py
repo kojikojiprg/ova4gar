@@ -69,17 +69,29 @@ def make_data_loaders(
     seq_len = passing_defs["seq_len"]
     batch_size = cfg["batch_size"]
 
+    np.random.seed(cfg["random_seed"])
+    keys_1 = [key for key in x_dict if 1 in y_dict[key]]
+    keys_0 = [key for key in x_dict if 1 not in y_dict[key]]
+    random_keys_1 = np.random.choice(keys_1, size=len(keys_1), replace=False)
+    random_keys_0 = np.random.choice(keys_0, size=len(keys_0), replace=False)
+
     train_ratio = cfg["train_ratio"]
     val_ratio = cfg["val_ratio"]
-    train_len = int(len(x_dict) * train_ratio)
-    val_len = int(len(x_dict) * val_ratio)
+    train_len_1 = int(len(keys_1) * train_ratio)
+    train_len_0 = int(len(keys_0) * train_ratio)
+    val_len_1 = int(len(keys_1) * val_ratio)
+    val_len_0 = int(len(keys_0) * val_ratio)
 
-    np.random.seed(cfg["random_seed"])
-    random_keys = np.random.choice(list(x_dict.keys()), size=len(x_dict), replace=False)
+    train_keys_1 = random_keys_1[:train_len_1].tolist()
+    val_keys_1 = random_keys_1[train_len_1 : train_len_1 + val_len_1].tolist()
+    test_keys_1 = random_keys_1[train_len_1 + val_len_1 :].tolist()
+    train_keys_0 = random_keys_0[:train_len_0].tolist()
+    test_keys_0 = random_keys_0[train_len_0:].tolist()
+    val_keys_0 = random_keys_1[train_len_0 : train_len_0 + val_len_0].tolist()
 
-    train_keys = random_keys[:train_len]
-    val_keys = random_keys[train_len : train_len + val_len]
-    test_keys = random_keys[train_len + val_len :]
+    train_keys = train_keys_1 + train_keys_0
+    val_keys = val_keys_1 + val_keys_0
+    test_keys = test_keys_1 + test_keys_0
 
     if len(train_keys) > 0:
         logger.info("=> create train loader")
@@ -96,7 +108,9 @@ def make_data_loaders(
         logger.info("=> create val loader")
         x_val_dict = {key: x_dict[key] for key in val_keys}
         y_val_dict = {key: y_dict[key] for key in val_keys}
-        val_loader = make_data_loader(x_val_dict, y_val_dict, seq_len, batch_size, False)
+        val_loader = make_data_loader(
+            x_val_dict, y_val_dict, seq_len, batch_size, False
+        )
     else:
         logger.info("=> skip creating val loader")
         val_loader = None
@@ -105,7 +119,9 @@ def make_data_loaders(
         logger.info("=> create test loader")
         x_test_dict = {key: x_dict[key] for key in test_keys}
         y_test_dict = {key: y_dict[key] for key in test_keys}
-        test_loader = make_data_loader(x_test_dict, y_test_dict, seq_len, batch_size, False)
+        test_loader = make_data_loader(
+            x_test_dict, y_test_dict, seq_len, batch_size, False
+        )
     else:
         logger.info("=> skip creating test loader")
         test_loader = None
