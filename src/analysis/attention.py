@@ -34,7 +34,7 @@ class AttentionAnalyzer:
         heatmaps: List[NDArray],
         th_interval: int,
         ma_size: int = 1800,
-        prominence: float = 0.5,
+        prominence: float = 0.3,
     ) -> List[Tuple[int, int]]:
         max_val = np.max(np.max(heatmaps, axis=1), axis=1)
         max_val_ma = moving_agerage(max_val, ma_size)
@@ -66,7 +66,7 @@ class AttentionAnalyzer:
         surgery_num: str,
         th_interval: int,
         ma_size: int = 1800,
-        prominence: float = 0.5,
+        prominence: float = 0.3,
     ) -> List[Tuple[int, int]]:
         data_dirs = get_data_dirs(room_num, surgery_num)
         self._logger.info(f"=> data directories: {data_dirs}")
