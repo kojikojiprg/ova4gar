@@ -75,7 +75,8 @@ class AttentionAnalyzer:
         plt.scatter(peaks_inv, max_val_ma[peaks_inv], color="red")
         xticks = range(0, len(max_val_ma), 1800 * 30)
         plt.xticks(xticks, [t // 1800 for t in xticks])
-        plt.xlim((-10000, len(max_val_ma) + 10000))
+        margin = len(max_val_ma) // 100
+        plt.xlim((-margin, len(max_val_ma) + margin))
         plt.ylim((0, 4.0))
         plt.xlabel("Minutes")
         plt.ylabel("Max of GA")
