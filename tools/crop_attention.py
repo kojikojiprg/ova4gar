@@ -25,9 +25,9 @@ def _setup_parser():
     )
     parser.add_argument("-c", "--cfg_path", type=str, default="config/group.yaml")
     parser.add_argument("-ms", "--ma_size", type=int, default=1800)
-    parser.add_argument("-pp", "--peak_prominence", type=float, default=0.2)
+    parser.add_argument("-pp", "--peak_prominence", type=float, default=0.3)
     parser.add_argument("-ph", "--peak_height", type=float, default=1.5)
-    parser.add_argument("-phi", "--peak_height_inv", type=float, default=1.0)
+    parser.add_argument("-phi", "--peak_height_inv", type=float, default=0.5)
     parser.add_argument("-mfn", "--margin_frame_num", type=int, default=900)
 
     return parser.parse_args()
@@ -36,6 +36,15 @@ def _setup_parser():
 def main():
     args = _setup_parser()
     analyzer = AttentionAnalyzer(args.cfg_path, logger)
+    fig_path = os.path.join(
+        "data", "attention", "image", f"{args.room_num}_{args.surgery_num}_max.pdf"
+    )
+    excel_path = os.path.join(
+        "data",
+        "attention",
+        f"ga_pr{args.peak_prominence}_h{args.peak_height}_hi{args.peak_height_inv}.xlsx",
+    )
+
     results = analyzer.extract_results(
         args.room_num,
         args.surgery_num,
@@ -43,12 +52,9 @@ def main():
         args.peak_prominence,
         args.peak_height,
         args.peak_height_inv,
+        fig_path,
     )
-    excel_path = os.path.join(
-        "data",
-        "attention",
-        f"ga_pr{args.peak_prominence}_h{args.peak_height}_hi{args.peak_height_inv}.xlsx",
-    )
+
     analyzer.crop_videos(
         args.room_num, args.surgery_num, results, args.margin_frame_num, excel_path
     )

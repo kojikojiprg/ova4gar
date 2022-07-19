@@ -9,6 +9,7 @@ import cv2
 import numpy as np
 import pandas as pd
 import yaml
+from matplotlib import pyplot as plt
 from numpy.typing import NDArray
 from scipy import signal
 from tqdm import tqdm
@@ -19,6 +20,11 @@ from utility.video import Capture, Writer, concat_field_with_frame, get_size
 from visualize.group import GroupVisualizer
 from visualize.individual import write_field as ind_write_field
 from visualize.keypoint import write_frame as kps_write_frame
+
+plt.rcParams["font.family"] = "Times New Roman"
+plt.rcParams["font.size"] = 32
+plt.rcParams["xtick.direction"] = "in"  # x axis in
+plt.rcParams["ytick.direction"] = "in"  # y axis in
 
 
 class AttentionAnalyzer:
@@ -38,6 +44,7 @@ class AttentionAnalyzer:
         prominence: float = 0.2,
         height: float = 1.5,
         height_inv: float = 1.0,
+        fig_path: str = None,
     ) -> List[Tuple[int, float, str]]:
         max_val = np.max(np.max(heatmaps, axis=1), axis=1)
         max_val_ma = moving_average(max_val, ma_size)
@@ -50,12 +57,29 @@ class AttentionAnalyzer:
             return []
         peaks_all = sorted(peaks.tolist() + peaks_inv.tolist())
 
+        self._save_plot(max_val_ma, peaks, peaks_inv, fig_path)
+
         result_lst: List[Tuple[int, float, str]] = []
         for peak in peaks_all:
             peak_shape = "Peak" if peak in peaks else "Trough"
             result_lst.append((peak, max_val_ma[peak], peak_shape))
 
         return result_lst
+
+    def _save_plot(self, max_val_ma, peaks, peaks_inv, fig_path):
+        self._logger.info(f"=> saving plot figure to {fig_path}")
+        fig = plt.figure(figsize=(20, 5))
+        fig.subplots_adjust(left=0.04, right=0.99, bottom=0.17, top=0.96)
+        plt.plot(max_val_ma, label="max")
+        plt.scatter(peaks, max_val_ma[peaks], color="orange")
+        plt.scatter(peaks_inv, max_val_ma[peaks_inv], color="red")
+        xticks = range(0, len(max_val_ma), 1800 * 30)
+        plt.xticks(xticks, [t // 1800 for t in xticks])
+        plt.xlim((-10000, len(max_val_ma) + 10000))
+        plt.ylim((0, 4.0))
+        plt.xlabel("Minutes")
+        plt.ylabel("Max of GA")
+        plt.savefig(fig_path)
 
     def extract_results(
         self,
@@ -65,6 +89,7 @@ class AttentionAnalyzer:
         prominence: float = 0.2,
         height: float = 1.5,
         height_inv: float = 1.0,
+        fig_path: str = None,
     ) -> List[Tuple[int, float, str]]:
         data_dirs = get_data_dirs(room_num, surgery_num)
         self._logger.info(f"=> data directories: {data_dirs}")
@@ -87,7 +112,9 @@ class AttentionAnalyzer:
                 del group, attention_dict
                 gc.collect()
 
-        return self._find_peaks(heatmaps, ma_size, prominence, height, height_inv)
+        return self._find_peaks(
+            heatmaps, ma_size, prominence, height, height_inv, fig_path
+        )
 
     def _load_jsons(self, data_dir):
         self._logger.info(f"=> load json files from {data_dir}")
