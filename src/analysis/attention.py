@@ -178,14 +178,14 @@ class AttentionAnalyzer:
                 "%H:%M:%S"
             )
             df.loc[i] = [
-                file_name,
-                start_time,
-                end_time,
-                peak_shape,
-                ga_val,
-                "",
-                "",
-                "",
+                file_name,  # ファイル名
+                start_time,  # 開始時間
+                end_time,  # 終了時間
+                peak_shape,  # ピーク形状
+                ga_val,  # GA値
+                "",  # 場所
+                "",  # 事象
+                "",  # 備考
             ]
 
             if pre_s_file_num < s_file_num:
