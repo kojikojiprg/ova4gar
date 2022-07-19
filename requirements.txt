@@ -26,3 +26,5 @@ colorama
 loguru
 thop
 tabulate
+xlrd
+openpyxl
