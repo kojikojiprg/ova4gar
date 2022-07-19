@@ -222,5 +222,5 @@ class AttentionAnalyzer:
         self._logger.info(f"=> writing excel file to {excel_path}, sheet: {sheet_name}")
         df.to_excel(excel_path, sheet_name, index=False, header=True)
 
-        del kps_data, ind_data, grp_data, cap
+        del kps_data, ind_data, grp_data, cap, df
         gc.collect()
