@@ -11,7 +11,7 @@ from numpy.typing import NDArray
 from scipy import signal
 from tqdm import tqdm
 from utility.activity_loader import get_data_dirs, load_group
-from utility.functions import moving_agerage
+from utility.functions import moving_average
 from utility.json_handler import load
 from utility.video import Capture, Writer, concat_field_with_frame, get_size
 from visualize.group import GroupVisualizer
@@ -37,7 +37,7 @@ class AttentionAnalyzer:
         prominence: float = 0.3,
     ) -> List[Tuple[int, int]]:
         max_val = np.max(np.max(heatmaps, axis=1), axis=1)
-        max_val_ma = moving_agerage(max_val, ma_size)
+        max_val_ma = moving_average(max_val, ma_size)
 
         peaks = signal.find_peaks(max_val_ma, prominence=prominence)[0]
         if len(peaks) == 0:

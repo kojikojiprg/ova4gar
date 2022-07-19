@@ -57,7 +57,7 @@ def rotation(vec, rad):
     return np.dot(R, vec)
 
 
-def moving_agerage(data, size):
+def moving_average(data, size):
     data_mean = np.convolve(data, np.ones(size) / size, mode="same")
     n_conv = size // 2
 
