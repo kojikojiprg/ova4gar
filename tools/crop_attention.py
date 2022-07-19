@@ -1,4 +1,5 @@
 import argparse
+import os
 import sys
 
 sys.path.append("src")
@@ -23,10 +24,11 @@ def _setup_parser():
         help="surgery number of each room",
     )
     parser.add_argument("-c", "--cfg_path", type=str, default="config/group.yaml")
-    parser.add_argument("-ti", "--th_interval", type=int, default=1800)
     parser.add_argument("-ms", "--ma_size", type=int, default=1800)
-    parser.add_argument("-tm", "--peak_prominence", type=float, default=0.3)
-    parser.add_argument("-mfn", "--margin_frame_num", type=int, default=1800)
+    parser.add_argument("-pp", "--peak_prominence", type=float, default=0.2)
+    parser.add_argument("-ph", "--peak_height", type=float, default=1.5)
+    parser.add_argument("-phi", "--peak_height_inv", type=float, default=1.0)
+    parser.add_argument("-mfn", "--margin_frame_num", type=int, default=900)
 
     return parser.parse_args()
 
@@ -37,12 +39,18 @@ def main():
     results = analyzer.extract_results(
         args.room_num,
         args.surgery_num,
-        args.th_interval,
         args.ma_size,
         args.peak_prominence,
+        args.peak_height,
+        args.peak_height_inv,
+    )
+    excel_path = os.path.join(
+        "data",
+        "attention",
+        f"ga_pr{args.peak_prominence}_h{args.peak_height}_hi{args.peak_height_inv}.xlsx",
     )
     analyzer.crop_videos(
-        args.room_num, args.surgery_num, results, args.margin_frame_num
+        args.room_num, args.surgery_num, results, args.margin_frame_num, excel_path
     )
 
 

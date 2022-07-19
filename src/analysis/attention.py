@@ -1,3 +1,4 @@
+import datetime
 import gc
 import os
 from glob import glob
@@ -6,6 +7,7 @@ from typing import List, Tuple
 
 import cv2
 import numpy as np
+import pandas as pd
 import yaml
 from numpy.typing import NDArray
 from scipy import signal
@@ -32,31 +34,26 @@ class AttentionAnalyzer:
     def _find_peaks(
         self,
         heatmaps: List[NDArray],
-        th_interval: int,
         ma_size: int = 1800,
-        prominence: float = 0.3,
-    ) -> List[Tuple[int, int]]:
+        prominence: float = 0.2,
+        height: float = 1.5,
+        height_inv: float = 1.0,
+    ) -> List[Tuple[int, float, str]]:
         max_val = np.max(np.max(heatmaps, axis=1), axis=1)
         max_val_ma = moving_average(max_val, ma_size)
 
-        peaks = signal.find_peaks(max_val_ma, prominence=prominence)[0]
+        peaks = signal.find_peaks(max_val_ma, prominence=prominence, height=height)[0]
+        peaks_inv = signal.find_peaks(
+            max_val_ma, prominence=prominence, height=(None, -height_inv)
+        )[0]
         if len(peaks) == 0:
             return []
+        peaks_all = sorted(peaks.tolist() + peaks_inv.tolist())
 
-        result_lst: List[Tuple[int, int]] = []
-        pre_frame_num = start_frame_num = peaks[0] + 1
-        for frame_num in peaks[1:]:
-            frame_num = frame_num + 1
-
-            if frame_num - pre_frame_num > th_interval:
-                # difference between current and previous is over interval
-                result_lst.append((start_frame_num, pre_frame_num))
-                start_frame_num = frame_num  # update start frame number
-
-            pre_frame_num = frame_num  # update previous frame number
-        else:
-            # process for last frame number
-            result_lst.append((start_frame_num, pre_frame_num))
+        result_lst: List[Tuple[int, float, str]] = []
+        for peak in peaks_all:
+            peak_shape = "Peak" if peak in peaks else "Trough"
+            result_lst.append((peak, max_val_ma[peak], peak_shape))
 
         return result_lst
 
@@ -64,10 +61,11 @@ class AttentionAnalyzer:
         self,
         room_num: str,
         surgery_num: str,
-        th_interval: int,
         ma_size: int = 1800,
-        prominence: float = 0.3,
-    ) -> List[Tuple[int, int]]:
+        prominence: float = 0.2,
+        height: float = 1.5,
+        height_inv: float = 1.0,
+    ) -> List[Tuple[int, float, str]]:
         data_dirs = get_data_dirs(room_num, surgery_num)
         self._logger.info(f"=> data directories: {data_dirs}")
 
@@ -89,10 +87,10 @@ class AttentionAnalyzer:
                 del group, attention_dict
                 gc.collect()
 
-        return self._find_peaks(heatmaps, th_interval, ma_size, prominence)
+        return self._find_peaks(heatmaps, ma_size, prominence, height, height_inv)
 
-    @staticmethod
-    def _load_jsons(data_dir):
+    def _load_jsons(self, data_dir):
+        self._logger.info(f"=> load json files from {data_dir}")
         json_path = os.path.join(data_dir, ".json", "keypoints.json")
         kps_data = load(json_path)
         json_path = os.path.join(data_dir, ".json", "individual.json")
@@ -101,12 +99,20 @@ class AttentionAnalyzer:
         grp_data = load(json_path)
         return kps_data, ind_data, grp_data
 
+    def _load_video(self, room_num, surgery_num, s_file_num):
+        self._logger.info(f"=> load surgery {s_file_num:02d}.mp4")
+        video_path = os.path.join(
+            "video", room_num, surgery_num, f"{s_file_num:02d}.mp4"
+        )
+        return Capture(video_path)
+
     def crop_videos(
         self,
         room_num: str,
         surgery_num: str,
-        peak_results: List[Tuple[int, int]],
+        peak_results: List[Tuple[int, float, str]],
         margin_frame_num: int,
+        excel_path: str,
         frame_total: int = 54000,
     ):
         # delete previous files
@@ -118,11 +124,15 @@ class AttentionAnalyzer:
                 if os.path.isfile(p):
                     os.remove(p)
 
+        # prepair dataframe for excel
+        cols = ["ファイル名", "開始時間", "終了時間", "ピーク形状", "GA値", "場所", "事象", "備考"]
+        df = pd.DataFrame(columns=cols)
+
         pre_s_file_num = 0
-        for s_frame_num, e_frame_num in peak_results:
+        for i, (frame_num, ga_val, peak_shape) in enumerate(peak_results):
             # add margin
-            s_frame_num = max(1, s_frame_num - margin_frame_num)
-            e_frame_num += margin_frame_num
+            s_frame_num = max(1, frame_num - margin_frame_num)
+            e_frame_num = frame_num + margin_frame_num
 
             # calc file num and frame num
             s_file_num = s_frame_num // frame_total + 1
@@ -132,19 +142,32 @@ class AttentionAnalyzer:
                 e_file_num - s_file_num
             ) * frame_total
 
+            # write dataframe
+            file_name = f"{s_file_num:02d}_{s_frame_num:05d}_{e_frame_num:05d}.mp4"
+            start_time = str(datetime.timedelta(seconds=s_frame_num // 30)).format(
+                "%H:%M:%S"
+            )
+            end_time = str(datetime.timedelta(seconds=e_frame_num // 30)).format(
+                "%H:%M:%S"
+            )
+            df.loc[i] = [
+                file_name,
+                start_time,
+                end_time,
+                peak_shape,
+                ga_val,
+                "",
+                "",
+                "",
+            ]
+
             if pre_s_file_num < s_file_num:
+                # load next video and json files
                 data_dir = os.path.join(
                     "data", room_num, surgery_num, f"{s_file_num:02d}"
                 )
-                # load json
-                self._logger.info(f"=> load json files from {data_dir}")
                 kps_data, ind_data, grp_data = self._load_jsons(data_dir)
-                # create capture
-                self._logger.info(f"=> load surgery {s_file_num:02d}.mp4")
-                video_path = os.path.join(
-                    "video", room_num, surgery_num, f"{s_file_num:02d}.mp4"
-                )
-                cap = Capture(video_path)
+                cap = self._load_video(room_num, surgery_num, s_file_num)
                 # calc output size
                 tmp_frame = cap.read()[1]
                 size = get_size(tmp_frame, self._field)
@@ -169,22 +192,15 @@ class AttentionAnalyzer:
                 if not ret:
                     del kps_data, ind_data, grp_data, cap
 
-                    # load next data and video
+                    # load next video and json files
                     s_file_num += 1
                     data_dir = os.path.join(
                         "data", room_num, surgery_num, f"{s_file_num:02d}"
                     )
 
                     if os.path.exists(data_dir):
-                        # load json
-                        self._logger.info(f"=> load json files from {data_dir}")
                         kps_data, ind_data, grp_data = self._load_jsons(data_dir)
-                        # create capture
-                        self._logger.info(f"=> load surgery {s_file_num:02d}.mp4")
-                        video_path = os.path.join(
-                            "video", room_num, surgery_num, f"{s_file_num:02d}.mp4"
-                        )
-                        cap = Capture(video_path)
+                        cap = self._load_video(room_num, surgery_num, s_file_num)
                         _, frame = cap.read()
                     else:
                         break
@@ -200,6 +216,11 @@ class AttentionAnalyzer:
 
             del wrt
             pre_s_file_num = s_file_num
+
+        # write dataframe for excel
+        sheet_name = f"{room_num}_{surgery_num}"
+        self._logger.info(f"=> writing excel file to {excel_path}, sheet: {sheet_name}")
+        df.to_excel(excel_path, sheet_name, index=False, header=True)
 
         del kps_data, ind_data, grp_data, cap
         gc.collect()
