@@ -31,7 +31,9 @@ class Group:
         self._logger = logger
 
         # dcreate indicator values
-        self._idc_dict: Dict[str, List[Dict[str, Any]]] = {k: [] for k in self._keys}
+        self._idc_dict: Dict[str, Dict[int, List[Dict[str, Any]]]] = {
+            k: {} for k in self._keys
+        }
         self._idc_que: Dict[str, Any] = {
             "attention": [],
             "passing": {},
@@ -71,18 +73,18 @@ class Group:
 
     @property
     def passing(self) -> Dict[str, List[int]]:
-        data = self._idc_dict["passing"]
+        passing_dict = self._idc_dict["passing"]
 
         data_dict: Dict[str, List[int]] = {}
-        for row in tqdm(data):
-            frame_num = row["frame"]
-            persons = row["persons"]
+        for frame_num, data in tqdm(passing_dict.items()):
+            for row in tqdm(data, leave=False):
+                persons = row["persons"]
 
-            pair_key = f"{persons[0]}_{persons[1]}"
-            if pair_key not in data_dict:
-                data_dict[pair_key] = []
+                pair_key = f"{persons[0]}_{persons[1]}"
+                if pair_key not in data_dict:
+                    data_dict[pair_key] = []
 
-            data_dict[pair_key].append(frame_num)
+                data_dict[pair_key].append(int(frame_num))
 
         return data_dict
 
@@ -96,9 +98,7 @@ class Group:
         )
 
         heatmap_dict = {}
-        for data in tqdm(all_data):
-            frame_num = data["frame"]
-
+        for frame_num, data in tqdm(all_data.items()):
             if frame_num not in heatmap_dict:
                 heatmap_dict[frame_num] = np.zeros(shape, dtype=np.float32)
             heatmap = heatmap_dict[frame_num]
@@ -130,8 +130,8 @@ class Group:
             else:
                 raise KeyError
 
-            if value is not None:
-                self._idc_dict[key] += value
+            if value is not None and len(value) > 0:
+                self._idc_dict[key][frame_num + 1] = value
             self._idc_que[key] = queue
 
     def to_dict(self):

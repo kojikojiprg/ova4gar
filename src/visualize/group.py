@@ -84,21 +84,23 @@ class GroupVisualizer:
         self,
         key: str,
         frame_num: int,
-        group_indicator_data: Dict[str, List[Dict[str, Any]]],
+        group_indicator_data: Dict[str, Dict[int, List[Dict[str, Any]]]],
         field: NDArray,
         alpha: float = 0.3,
     ) -> NDArray:
-        data = group_indicator_data[key]
+        if frame_num not in group_indicator_data[key]:
+            return field
+
+        data = group_indicator_data[key][frame_num]
 
         copy = field.copy()
         for item in data:
-            if item["frame"] == frame_num:
-                if key == "passing":
-                    copy = self._passing(item, copy)
-                elif key == "attention":
-                    copy = self._attention(item, copy)
-                else:
-                    raise KeyError
+            if key == "passing":
+                copy = self._passing(item, copy)
+            elif key == "attention":
+                copy = self._attention(item, copy)
+            else:
+                raise KeyError
         field = cv2.addWeighted(copy, alpha, field, 1 - alpha, 0)
 
         return field
@@ -137,7 +139,7 @@ class GroupVisualizer:
         max_value = self._heatmaps["attention"].xmax
         radius = int(value / max_value * max_radius)
         if radius == 0:
-            radius = 1
+            return field
 
         cv2.circle(field, tuple(point), radius, color, thickness=-1)
 

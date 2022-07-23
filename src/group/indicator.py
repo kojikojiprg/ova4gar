@@ -53,7 +53,6 @@ def passing(
         if pred == 1:
             data.append(
                 {
-                    "frame": frame_num,
                     "persons": [individuals[i].id, individuals[j].id],
                     "points": [
                         individuals[i].get_indicator("position", frame_num),
@@ -134,7 +133,6 @@ def attention(
         # concat result
         data = [
             {
-                "frame": frame_num,
                 "point": coor,
                 "value": ave[tuple(coor)],
             }
