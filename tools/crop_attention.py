@@ -37,7 +37,7 @@ def main():
     args = _setup_parser()
     analyzer = AttentionAnalyzer(args.cfg_path, logger)
     fig_path = os.path.join(
-        "data", "attention", "image", f"{args.room_num}_{args.surgery_num}_max.pdf"
+        "data", "attention", "image", f"{args.room_num}_{args.surgery_num}.pdf"
     )
     excel_path = os.path.join(
         "data",
