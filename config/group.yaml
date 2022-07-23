@@ -5,7 +5,7 @@ passing:
     wrist_mu: 133.86 #267.72  # 手首の距離に対するガウス分布の平均
     wrist_sig: 74.95 #149.90  # 手首の距離に対するガウス分布の分散
     seq_len: 30  # sequence length of LSTM input
-  cfg_path: "config/passing/pass_model_lstm_f1_ep100.yaml"
+  cfg_path: "config/passing/pass_model_lstm_f1_ep120.yaml"
 
 attention:
   default:
