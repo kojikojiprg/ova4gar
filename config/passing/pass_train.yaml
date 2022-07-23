@@ -6,7 +6,7 @@ optim:
   epoch: 100
   lr: 0.001
   lr_rate: 1.0
-  pos_weight: [1, 8]
+  pos_weight: [1, 16]
 
 dataset:
   batch_size: 8192
