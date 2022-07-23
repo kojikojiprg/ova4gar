@@ -70,16 +70,21 @@ class AttentionAnalyzer:
         self._logger.info(f"=> saving plot figure to {fig_path}")
         fig = plt.figure(figsize=(20, 5))
         fig.subplots_adjust(left=0.04, right=0.99, bottom=0.17, top=0.96)
+
         plt.plot(max_val_ma, label="max")
-        plt.scatter(peaks, max_val_ma[peaks], color="orange")
-        plt.scatter(peaks_inv, max_val_ma[peaks_inv], color="red")
+        plt.scatter(peaks, max_val_ma[peaks], color="tab:orange", s=64)
+        plt.scatter(peaks_inv, max_val_ma[peaks_inv], color="tab:green", s=64)
+
         xticks = range(0, len(max_val_ma), 1800 * 30)
         plt.xticks(xticks, [t // 1800 for t in xticks])
+
         margin = len(max_val_ma) // 100
         plt.xlim((-margin, len(max_val_ma) + margin))
         plt.ylim((0, 4.0))
+
         plt.xlabel("Minutes")
         plt.ylabel("Max of GA")
+
         plt.savefig(fig_path)
 
     def extract_results(
