@@ -163,10 +163,10 @@ class AttentionAnalyzer:
         df = pd.DataFrame(columns=cols)
 
         pre_s_file_num = 0
-        for i, (frame_num, ga_val, peak_shape) in enumerate(peak_results):
+        for i, (peak_frame_num, ga_val, peak_shape) in enumerate(peak_results):
             # add margin
-            s_frame_num = max(1, frame_num - margin_frame_num)
-            e_frame_num = frame_num + margin_frame_num
+            s_frame_num = max(1, peak_frame_num - margin_frame_num)
+            e_frame_num = peak_frame_num + margin_frame_num
 
             # calc file num and frame num
             s_file_num = s_frame_num // frame_total + 1
