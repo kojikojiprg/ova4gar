@@ -22,7 +22,7 @@ from visualize.individual import write_field as ind_write_field
 from visualize.keypoint import write_frame as kps_write_frame
 
 plt.rcParams["font.family"] = "Times New Roman"
-plt.rcParams["font.size"] = 32
+plt.rcParams["font.size"] = 40
 plt.rcParams["xtick.direction"] = "in"  # x axis in
 plt.rcParams["ytick.direction"] = "in"  # y axis in
 
@@ -68,21 +68,22 @@ class AttentionAnalyzer:
 
     def _save_plot(self, max_val_ma, peaks, peaks_inv, fig_path):
         self._logger.info(f"=> saving plot figure to {fig_path}")
+
         fig = plt.figure(figsize=(20, 5))
-        fig.subplots_adjust(left=0.04, right=0.99, bottom=0.17, top=0.96)
+        fig.subplots_adjust(left=0.05, right=0.99, bottom=0.23, top=0.95)
 
         plt.plot(max_val_ma, label="max")
-        plt.scatter(peaks, max_val_ma[peaks], color="tab:orange", s=64)
-        plt.scatter(peaks_inv, max_val_ma[peaks_inv], color="tab:green", s=64)
+        plt.scatter(peaks, max_val_ma[peaks], color="tab:orange", s=100)
+        plt.scatter(peaks_inv, max_val_ma[peaks_inv], color="tab:green", s=100)
 
-        xticks = range(0, len(max_val_ma), 1800 * 30)
-        plt.xticks(xticks, [t // 1800 for t in xticks])
+        xticks = range(0, len(max_val_ma) + 1800, 1800 * 60)
+        plt.xticks(xticks, [t // (1800 * 60) for t in xticks])
 
         margin = len(max_val_ma) // 100
         plt.xlim((-margin, len(max_val_ma) + margin))
         plt.ylim((0, 4.0))
 
-        plt.xlabel("Minutes")
+        plt.xlabel("Hours")
         plt.ylabel("Max of GA")
 
         plt.savefig(fig_path)
