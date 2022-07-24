@@ -37,36 +37,36 @@ class AttentionAnalyzer:
         self._logger = logger
         self._grp_vis = GroupVisualizer(["attention"])
 
-    def _find_peaks(
+    def _find_vertexs(
         self,
         heatmaps: List[NDArray],
         ma_size: int = 1800,
         prominence: float = 0.2,
-        height: float = 1.5,
-        height_inv: float = 1.0,
+        height_peak: float = 1.5,
+        height_trough: float = 1.0,
         fig_path: str = None,
     ) -> List[Tuple[int, float, str]]:
         max_val = np.max(np.max(heatmaps, axis=1), axis=1)
         max_val_ma = moving_average(max_val, ma_size)
 
-        peaks = signal.find_peaks(max_val_ma, prominence=prominence, height=height)[0]
-        peaks_inv = signal.find_peaks(
-            max_val_ma * -1, prominence=prominence, height=(None, -height_inv)
+        peaks = signal.find_peaks(
+            max_val_ma, prominence=prominence, height=height_peak
         )[0]
-        if len(peaks) == 0:
-            return []
-        peaks_all = sorted(peaks.tolist() + peaks_inv.tolist())
+        troughs = signal.find_peaks(
+            max_val_ma * -1, prominence=prominence, height=(None, -height_trough)
+        )[0]
+        vertexs = sorted(peaks.tolist() + troughs.tolist())
 
-        self._save_plot(max_val_ma, peaks, peaks_inv, fig_path)
+        self._save_plot(max_val_ma, peaks, troughs, fig_path)
 
         result_lst: List[Tuple[int, float, str]] = []
-        for peak in peaks_all:
-            peak_shape = "Peak" if peak in peaks else "Trough"
-            result_lst.append((peak, max_val_ma[peak], peak_shape))
+        for vtx in vertexs:
+            vertex_shape = "Peak" if vtx in peaks else "Trough"
+            result_lst.append((vtx, max_val_ma[vtx], vertex_shape))
 
         return result_lst
 
-    def _save_plot(self, max_val_ma, peaks, peaks_inv, fig_path):
+    def _save_plot(self, max_val_ma, peaks, troughs, fig_path):
         self._logger.info(f"=> saving plot figure to {fig_path}")
 
         fig = plt.figure(figsize=(20, 5))
@@ -74,7 +74,7 @@ class AttentionAnalyzer:
 
         plt.plot(max_val_ma, label="max")
         plt.scatter(peaks, max_val_ma[peaks], color="tab:orange", s=100)
-        plt.scatter(peaks_inv, max_val_ma[peaks_inv], color="tab:green", s=100)
+        plt.scatter(troughs, max_val_ma[troughs], color="tab:green", s=100)
 
         xticks = range(0, len(max_val_ma) + 1800, 1800 * 60)
         plt.xticks(xticks, [t // (1800 * 60) for t in xticks])
@@ -94,8 +94,8 @@ class AttentionAnalyzer:
         surgery_num: str,
         ma_size: int = 1800,
         prominence: float = 0.2,
-        height: float = 1.5,
-        height_inv: float = 1.0,
+        height_peak: float = 1.5,
+        height_trough: float = 1.0,
         fig_path: str = None,
     ) -> List[Tuple[int, float, str]]:
         data_dirs = get_data_dirs(room_num, surgery_num)
@@ -119,8 +119,8 @@ class AttentionAnalyzer:
                 del group, attention_dict
                 gc.collect()
 
-        return self._find_peaks(
-            heatmaps, ma_size, prominence, height, height_inv, fig_path
+        return self._find_vertexs(
+            heatmaps, ma_size, prominence, height_peak, height_trough, fig_path
         )
 
     def _load_jsons(self, data_dir):
@@ -144,7 +144,7 @@ class AttentionAnalyzer:
         self,
         room_num: str,
         surgery_num: str,
-        peak_results: List[Tuple[int, float, str]],
+        vertex_results: List[Tuple[int, float, str]],
         margin_frame_num: int,
         excel_path: str,
         frame_total: int = 54000,
@@ -159,14 +159,23 @@ class AttentionAnalyzer:
                     os.remove(p)
 
         # prepair dataframe for excel
-        cols = ["ファイル名", "開始時間", "終了時間", "ピーク形状", "GA値", "場所", "事象", "備考"]
+        cols = [
+            "File Name",
+            "Start Time",
+            "End Time",
+            "Vertex Shape",
+            "Max GA-Value",
+            "Locations",
+            "Events",
+            "Remarkes",
+        ]
         df = pd.DataFrame(columns=cols)
 
         pre_s_file_num = 0
-        for i, (peak_frame_num, ga_val, peak_shape) in enumerate(peak_results):
+        for i, (vertex_frame_num, ga_val, vertex_shape) in enumerate(vertex_results):
             # add margin
-            s_frame_num = max(1, peak_frame_num - margin_frame_num)
-            e_frame_num = peak_frame_num + margin_frame_num
+            s_frame_num = max(1, vertex_frame_num - margin_frame_num)
+            e_frame_num = vertex_frame_num + margin_frame_num
 
             # calc file num and frame num
             s_file_num = s_frame_num // frame_total + 1
@@ -184,15 +193,17 @@ class AttentionAnalyzer:
             end_time = str(datetime.timedelta(seconds=e_frame_num // 30)).format(
                 "%H:%M:%S"
             )
+
+            # add data for excel
             df.loc[i] = [
-                file_name,  # ファイル名
-                start_time,  # 開始時間
-                end_time,  # 終了時間
-                peak_shape,  # ピーク形状
-                ga_val,  # GA値
-                "",  # 場所
-                "",  # 事象
-                "",  # 備考
+                file_name,  # File Name
+                start_time,  # Start Time
+                end_time,  # End Time
+                vertex_shape,  # Vertex Shape
+                ga_val,  # Max GA-Value
+                "",  # Locations
+                "",  # Events
+                "",  # Remarkes
             ]
 
             if pre_s_file_num < s_file_num:

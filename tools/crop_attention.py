@@ -27,7 +27,7 @@ def _setup_parser():
     parser.add_argument("-ms", "--ma_size", type=int, default=1800)
     parser.add_argument("-pp", "--peak_prominence", type=float, default=0.3)
     parser.add_argument("-ph", "--peak_height", type=float, default=1.5)
-    parser.add_argument("-phi", "--peak_height_inv", type=float, default=0.5)
+    parser.add_argument("-th", "--trough_height", type=float, default=0.5)
     parser.add_argument("-mfn", "--margin_frame_num", type=int, default=900)
 
     return parser.parse_args()
@@ -42,7 +42,7 @@ def main():
     excel_path = os.path.join(
         "data",
         "attention",
-        f"ga_pr{args.peak_prominence}_h{args.peak_height}_hi{args.peak_height_inv}.xlsx",
+        f"ga_pr{args.peak_prominence}_ph{args.peak_height}_th{args.trough_height}.xlsx",
     )
 
     results = analyzer.extract_results(
@@ -51,7 +51,7 @@ def main():
         args.ma_size,
         args.peak_prominence,
         args.peak_height,
-        args.peak_height_inv,
+        args.trough_height,
         fig_path,
     )
 
