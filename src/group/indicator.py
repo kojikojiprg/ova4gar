@@ -47,19 +47,17 @@ def passing(
         preds = preds.max(1)[1]
         preds = preds.cpu().numpy()
 
-    data = []
-    for idx_pair, pred in zip(idx_pairs, preds):
-        i, j = idx_pair
-        if pred == 1:
-            data.append(
-                {
-                    "persons": [individuals[i].id, individuals[j].id],
-                    "points": [
-                        individuals[i].get_indicator("position", frame_num),
-                        individuals[j].get_indicator("position", frame_num),
-                    ],
-                }
-            )
+    data = [
+        {
+            "persons": [individuals[idx_pair[0]].id, individuals[idx_pair[1]].id],
+            "points": [
+                individuals[idx_pair[0]].get_indicator("position", frame_num),
+                individuals[idx_pair[1]].get_indicator("position", frame_num),
+            ],
+        }
+        for idx_pair, pred in zip(idx_pairs, preds)
+        if pred == 1
+    ]
 
     return data, queue_dict
 
@@ -128,19 +126,19 @@ def attention(
 
     if sum_data is not None:
         # moving average
-        ave = (sum_data + pixcel_data) / seq_len
-
-        # concat result
-        data = [
-            {
-                "point": coor,
-                "value": ave[tuple(coor)],
-            }
-            for coor in coors
-            if pixcel_data[tuple(coor)] > 1 / seq_len
-        ]
+        vals = (sum_data + pixcel_data) / seq_len
     else:
-        data = []
+        vals = pixcel_data
+
+    # concat result
+    data = [
+        {
+            "point": coor,
+            "value": vals[tuple(coor)],
+        }
+        for coor in coors
+        if pixcel_data[tuple(coor)] > 1 / seq_len
+    ]
 
     # push and pop queue
     queue.append(pixcel_data)

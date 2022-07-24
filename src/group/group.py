@@ -90,21 +90,22 @@ class Group:
 
     @property
     def attention(self) -> Dict[int, NDArray]:
-        all_data = self._idc_dict["attention"]
+        attention_dict = self._idc_dict["attention"]
 
         shape = tuple(
             np.array(self._field.shape[1::-1]) // self._defs["attention"]["division"]
             + 1
         )
 
-        heatmap_dict = {}
-        for frame_num, data in tqdm(all_data.items()):
-            if frame_num not in heatmap_dict:
-                heatmap_dict[frame_num] = np.zeros(shape, dtype=np.float32)
-            heatmap = heatmap_dict[frame_num]
-
-            coor = tuple(np.array(data["point"]) // self._defs["attention"]["division"])
-            heatmap[coor] = data["value"]
+        heatmap_dict = {
+            frame_num: np.zeros(shape, dtype=np.float32) for frame_num in attention_dict
+        }
+        for frame_num, data in tqdm(attention_dict.items()):
+            for row in data:
+                coor = tuple(
+                    np.array(row["point"]) // self._defs["attention"]["division"]
+                )
+                heatmap_dict[frame_num][coor] = row["value"]
 
         return heatmap_dict
 
@@ -130,7 +131,7 @@ class Group:
             else:
                 raise KeyError
 
-            if value is not None and len(value) > 0:
+            if len(value) > 0 or key == "attention":
                 self._idc_dict[key][frame_num + 1] = value
             self._idc_que[key] = queue
 
