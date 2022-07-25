@@ -265,7 +265,8 @@ class AttentionAnalyzer:
         # write dataframe for excel
         sheet_name = f"{room_num}_{surgery_num}"
         self._logger.info(f"=> writing excel file to {excel_path}, sheet: {sheet_name}")
-        with pd.ExcelWriter(excel_path, engine="openpyxl", mode="a") as writer:
+        mode = "a" if os.path.exists(excel_path) else "w"
+        with pd.ExcelWriter(excel_path, engine="openpyxl", mode=mode) as writer:
             df.to_excel(writer, sheet_name, index=False, header=True)
 
         del kps_data, ind_data, grp_data, cap, df
