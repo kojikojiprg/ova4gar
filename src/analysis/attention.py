@@ -159,6 +159,7 @@ class AttentionAnalyzer:
             "End Time",
             "Vertex Shape",
             "Max GA-Value",
+            "Status",
             "Locations",
             "Events",
             "Remarkes",
@@ -182,6 +183,7 @@ class AttentionAnalyzer:
                 end_time,  # End Time
                 vertex_shape,  # Vertex Shape
                 ga_val,  # Max GA-Value
+                "",  # Status
                 "",  # Locations
                 "",  # Events
                 "",  # Remarkes
