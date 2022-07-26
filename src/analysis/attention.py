@@ -173,8 +173,8 @@ class AttentionAnalyzer:
 
             # write dataframe
             file_name = f"{s_file_num:02d}_{s_frame_num:05d}_{e_frame_num:05d}.mp4"
-            s_frame_num = (s_file_num * frame_total + s_frame_num) // 30
-            e_frame_num = (s_file_num * frame_total + e_frame_num) // 30
+            s_frame_num = ((s_file_num - 1) * frame_total + s_frame_num) // 30
+            e_frame_num = ((s_file_num - 1) * frame_total + e_frame_num) // 30
             start_time = str(datetime.timedelta(seconds=s_frame_num)).format("%H:%M:%S")
             end_time = str(datetime.timedelta(seconds=e_frame_num)).format("%H:%M:%S")
             df.loc[i] = [
