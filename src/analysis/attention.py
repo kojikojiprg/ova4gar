@@ -43,7 +43,7 @@ class AttentionAnalyzer:
         self._vertex_result: List[Tuple[int, float, str]] = []
 
     @property
-    def vertex_result(self):
+    def vertex_result(self) -> List[Tuple[int, float, str]]:
         return self._vertex_result
 
     def _find_vertexs(
