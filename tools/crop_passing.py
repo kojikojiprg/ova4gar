@@ -32,13 +32,9 @@ def _setup_parser():
 
 def main():
     args = _setup_parser()
-    analyzer = PassingAnalyzer(args.cfg_path, logger)
-    results = analyzer.extract_results(
-        args.room_num, args.surgery_num, args.th_duration, args.th_interval
-    )
-    analyzer.crop_videos(
-        args.room_num, args.surgery_num, results, args.margin_frame_num
-    )
+    analyzer = PassingAnalyzer(args.room_num, args.surgery_num, args.cfg_path, logger)
+    analyzer.extract_results(args.th_duration, args.th_interval)
+    analyzer.crop_videos(args.margin_frame_num)
 
 
 if __name__ == "__main__":

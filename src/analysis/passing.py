@@ -17,7 +17,9 @@ from visualize.keypoint import write_frame as kps_write_frame
 
 
 class PassingAnalyzer:
-    def __init__(self, cfg_path: str, logger: Logger):
+    def __init__(self, room_num: str, surgery_num: str, cfg_path: str, logger: Logger):
+        self._room_num = room_num
+        self._surgery_num = surgery_num
         with open(cfg_path, "r") as f:
             self._grp_cfg = yaml.safe_load(f)
 
@@ -25,6 +27,12 @@ class PassingAnalyzer:
 
         self._logger = logger
         self._grp_vis = GroupVisualizer(["passing"])
+
+        self._passing_result: List[Dict[str, list]] = []
+
+    @property
+    def passing_result(self) -> List[Dict[str, list]]:
+        return self._passing_result
 
     def _calc_start2end(
         self, group: Group, th_duration: int, th_interval: int
@@ -57,10 +65,8 @@ class PassingAnalyzer:
 
         return result_dict
 
-    def extract_results(
-        self, room_num: str, surgery_num: str, th_duration: int, th_interval: int
-    ) -> List[Dict[str, list]]:
-        data_dirs = get_data_dirs(room_num, surgery_num)
+    def extract_results(self, th_duration: int, th_interval: int):
+        data_dirs = get_data_dirs(self._room_num, self._surgery_num)
         self._logger.info(f"=> data directories: {data_dirs}")
 
         results = []
@@ -80,8 +86,6 @@ class PassingAnalyzer:
                 del group
                 gc.collect()
 
-        return results
-
     @staticmethod
     def _load_jsons(data_dir):
         json_path = os.path.join(data_dir, ".json", "keypoints.json")
@@ -92,25 +96,23 @@ class PassingAnalyzer:
         grp_data = load(json_path)
         return kps_data, ind_data, grp_data
 
-    def crop_videos(
-        self,
-        room_num: str,
-        surgery_num: str,
-        results: List[Dict[str, list]],
-        margin_frame_num: int,
-    ):
+    def crop_videos(self, margin_frame_num: int):
         # delete previous files
         self._logger.info("=> delete files extracted previous process")
-        for data_dir in sorted(glob(os.path.join("data", room_num, surgery_num, "*"))):
+        for data_dir in sorted(
+            glob(os.path.join("data", self._room_num, self._surgery_num, "*"))
+        ):
             if data_dir.endswith("passing") or data_dir.endswith("attention"):
                 continue
             for p in glob(os.path.join(data_dir, "video", "passing", "*.mp4")):
                 if os.path.isfile(p):
                     os.remove(p)
 
-        for i, result_dict in enumerate(results):
+        for i, result_dict in enumerate(self.passing_result):
             i += 1
-            data_dir = os.path.join("data", room_num, surgery_num, f"{i:02d}")
+            data_dir = os.path.join(
+                "data", self._room_num, self._surgery_num, f"{i:02d}"
+            )
 
             if len(result_dict) == 0:
                 self._logger.info(f"=> skip writing result {data_dir}")
@@ -122,7 +124,9 @@ class PassingAnalyzer:
 
             # create capture
             self._logger.info(f"=> load surgery {i:02d}.mp4")
-            video_path = os.path.join("video", room_num, surgery_num, f"{i:02d}.mp4")
+            video_path = os.path.join(
+                "video", self._room_num, self._surgery_num, f"{i:02d}.mp4"
+            )
             cap = Capture(video_path)
 
             # calc output size
