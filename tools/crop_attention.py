@@ -29,13 +29,14 @@ def _setup_parser():
     parser.add_argument("-ph", "--peak_height", type=float, default=1.5)
     parser.add_argument("-th", "--trough_height", type=float, default=0.5)
     parser.add_argument("-mfn", "--margin_frame_num", type=int, default=900)
+    parser.add_argument("-ft", "--frame_total", type=int, default=54000)
 
     return parser.parse_args()
 
 
 def main():
     args = _setup_parser()
-    analyzer = AttentionAnalyzer(args.cfg_path, logger)
+    analyzer = AttentionAnalyzer(args.room_num, args.surgery_num, args.cfg_path, logger)
     fig_path = os.path.join(
         "data", "attention", "image", f"{args.room_num}_{args.surgery_num}.pdf"
     )
@@ -45,9 +46,7 @@ def main():
         f"ga_pr{args.peak_prominence}_ph{args.peak_height}_th{args.trough_height}.xlsx",
     )
 
-    results = analyzer.extract_results(
-        args.room_num,
-        args.surgery_num,
+    analyzer.extract_results(
         args.ma_size,
         args.peak_prominence,
         args.peak_height,
@@ -55,9 +54,8 @@ def main():
         fig_path,
     )
 
-    analyzer.crop_videos(
-        args.room_num, args.surgery_num, results, args.margin_frame_num, excel_path
-    )
+    analyzer.save_excel(args.margin_frame_num, args.frame_total, excel_path)
+    analyzer.crop_videos(args.margin_frame_num, args.frame_total)
 
 
 if __name__ == "__main__":

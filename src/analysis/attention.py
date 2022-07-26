@@ -7,6 +7,7 @@ from typing import List, Tuple
 
 import cv2
 import numpy as np
+import openpyxl
 import pandas as pd
 import yaml
 from matplotlib import pyplot as plt
@@ -28,7 +29,9 @@ plt.rcParams["ytick.direction"] = "in"  # y axis in
 
 
 class AttentionAnalyzer:
-    def __init__(self, cfg_path: str, logger: Logger):
+    def __init__(self, room_num: str, surgery_num: str, cfg_path: str, logger: Logger):
+        self._room_num = room_num
+        self._surgery_num = surgery_num
         with open(cfg_path, "r") as f:
             self._grp_cfg = yaml.safe_load(f)
 
@@ -36,6 +39,12 @@ class AttentionAnalyzer:
 
         self._logger = logger
         self._grp_vis = GroupVisualizer(["attention"])
+
+        self._vertex_result: List[Tuple[int, float, str]] = []
+
+    @property
+    def vertex_result(self):
+        return self._vertex_result
 
     def _find_vertexs(
         self,
@@ -90,15 +99,13 @@ class AttentionAnalyzer:
 
     def extract_results(
         self,
-        room_num: str,
-        surgery_num: str,
         ma_size: int = 1800,
         prominence: float = 0.2,
         height_peak: float = 1.5,
         height_trough: float = 1.0,
         fig_path: str = None,
-    ) -> List[Tuple[int, float, str]]:
-        data_dirs = get_data_dirs(room_num, surgery_num)
+    ):
+        data_dirs = get_data_dirs(self._room_num, self._surgery_num)
         self._logger.info(f"=> data directories: {data_dirs}")
 
         heatmaps = []
@@ -119,46 +126,33 @@ class AttentionAnalyzer:
                 del group, attention_dict
                 gc.collect()
 
-        return self._find_vertexs(
+        self._vertex_result = self._find_vertexs(
             heatmaps, ma_size, prominence, height_peak, height_trough, fig_path
         )
 
-    def _load_jsons(self, data_dir):
-        self._logger.info(f"=> load json files from {data_dir}")
-        json_path = os.path.join(data_dir, ".json", "keypoints.json")
-        kps_data = load(json_path)
-        json_path = os.path.join(data_dir, ".json", "individual.json")
-        ind_data = load(json_path)
-        json_path = os.path.join(data_dir, ".json", "group.json")
-        grp_data = load(json_path)
-        return kps_data, ind_data, grp_data
+    def _calc_video_position(
+        self, margin_frame_num: int, frame_total: int = 54000
+    ) -> List[Tuple[int, int, int]]:
+        ret = []
+        for (vertex_frame_num, _, _) in self.vertex_result:
+            # add margin
+            s_frame_num = max(1, vertex_frame_num - margin_frame_num)
+            e_frame_num = vertex_frame_num + margin_frame_num
 
-    def _load_video(self, room_num, surgery_num, s_file_num):
-        self._logger.info(f"=> load surgery {s_file_num:02d}.mp4")
-        video_path = os.path.join(
-            "video", room_num, surgery_num, f"{s_file_num:02d}.mp4"
-        )
-        return Capture(video_path)
+            # calc file num and frame num
+            s_file_num = s_frame_num // frame_total + 1
+            e_file_num = e_frame_num // frame_total + 1
+            s_frame_num = s_frame_num % frame_total + 1
+            e_frame_num = (e_frame_num % frame_total + 1) + (
+                e_file_num - s_file_num
+            ) * frame_total
+            ret.append((s_file_num, s_frame_num, e_frame_num))
 
-    def crop_videos(
-        self,
-        room_num: str,
-        surgery_num: str,
-        vertex_results: List[Tuple[int, float, str]],
-        margin_frame_num: int,
-        excel_path: str,
-        frame_total: int = 54000,
-    ):
-        # delete previous files
-        self._logger.info("=> delete files extracted previous process")
-        for data_dir in sorted(glob(os.path.join("data", room_num, surgery_num, "*"))):
-            if data_dir.endswith("passing") or data_dir.endswith("attention"):
-                continue
-            for p in glob(os.path.join(data_dir, "video", "attention", "*.mp4")):
-                if os.path.isfile(p):
-                    os.remove(p)
+        return ret
 
-        # prepair dataframe for excel
+    def save_excel(self, margin_frame_num: int, frame_total: int, excel_path: str):
+        video_pos = self._calc_video_position(margin_frame_num, frame_total)
+
         cols = [
             "File Name",
             "Start Time",
@@ -171,19 +165,10 @@ class AttentionAnalyzer:
         ]
         df = pd.DataFrame(columns=cols)
 
-        pre_s_file_num = 0
-        for i, (vertex_frame_num, ga_val, vertex_shape) in enumerate(vertex_results):
-            # add margin
-            s_frame_num = max(1, vertex_frame_num - margin_frame_num)
-            e_frame_num = vertex_frame_num + margin_frame_num
-
-            # calc file num and frame num
-            s_file_num = s_frame_num // frame_total + 1
-            e_file_num = e_frame_num // frame_total + 1
-            s_frame_num = s_frame_num % frame_total + 1
-            e_frame_num = (e_frame_num % frame_total + 1) + (
-                e_file_num - s_file_num
-            ) * frame_total
+        sheet_name = f"{self._room_num}_{self._surgery_num}"
+        self._logger.info(f"=> writing excel file to {excel_path}, sheet: {sheet_name}")
+        for i, (_, ga_val, vertex_shape) in enumerate(tqdm(self.vertex_result)):
+            s_file_num, s_frame_num, e_frame_num = video_pos[i]
 
             # write dataframe
             file_name = f"{s_file_num:02d}_{s_frame_num:05d}_{e_frame_num:05d}.mp4"
@@ -193,8 +178,6 @@ class AttentionAnalyzer:
             end_time = str(datetime.timedelta(seconds=e_frame_num // 30)).format(
                 "%H:%M:%S"
             )
-
-            # add data for excel
             df.loc[i] = [
                 file_name,  # File Name
                 start_time,  # Start Time
@@ -206,13 +189,63 @@ class AttentionAnalyzer:
                 "",  # Remarkes
             ]
 
+        # write dataframe for excel
+        if os.path.exists(excel_path):
+            # delete sheet if same sheet exists
+            workbook = openpyxl.load_workbook(filename=excel_path)
+            if sheet_name in workbook.sheetnames:
+                workbook.remove(workbook[sheet_name])
+                workbook.save(excel_path)
+            workbook.close()
+
+            # over write excel file
+            with pd.ExcelWriter(excel_path, engine="openpyxl", mode="a") as writer:
+                df.to_excel(writer, sheet_name, index=False, header=True)
+        else:
+            # create and write excel file
+            df.to_excel(writer, sheet_name, index=False, header=True)
+
+        del df
+
+    def _load_jsons(self, data_dir):
+        self._logger.info(f"=> load json files from {data_dir}")
+        json_path = os.path.join(data_dir, ".json", "keypoints.json")
+        kps_data = load(json_path)
+        json_path = os.path.join(data_dir, ".json", "individual.json")
+        ind_data = load(json_path)
+        json_path = os.path.join(data_dir, ".json", "group.json")
+        grp_data = load(json_path)
+        return kps_data, ind_data, grp_data
+
+    def _load_video(self, s_file_num):
+        self._logger.info(f"=> load surgery {s_file_num:02d}.mp4")
+        video_path = os.path.join(
+            "video", self._room_num, self._surgery_num, f"{s_file_num:02d}.mp4"
+        )
+        return Capture(video_path)
+
+    def crop_videos(self, margin_frame_num: int, frame_total: int):
+        # delete previous files
+        self._logger.info("=> delete files extracted previous process")
+        for data_dir in sorted(
+            glob(os.path.join("data", self._room_num, self._surgery_num, "*"))
+        ):
+            if data_dir.endswith("passing") or data_dir.endswith("attention"):
+                continue
+            for p in glob(os.path.join(data_dir, "video", "attention", "*.mp4")):
+                if os.path.isfile(p):
+                    os.remove(p)
+
+        pre_s_file_num = 0
+        video_pos = self._calc_video_position(margin_frame_num, frame_total)
+        for s_file_num, s_frame_num, e_frame_num in video_pos:
             if pre_s_file_num < s_file_num:
                 # load next video and json files
                 data_dir = os.path.join(
-                    "data", room_num, surgery_num, f"{s_file_num:02d}"
+                    "data", self._room_num, self._surgery_num, f"{s_file_num:02d}"
                 )
                 kps_data, ind_data, grp_data = self._load_jsons(data_dir)
-                cap = self._load_video(room_num, surgery_num, s_file_num)
+                cap = self._load_video(s_file_num)
                 # calc output size
                 tmp_frame = cap.read()[1]
                 size = get_size(tmp_frame, self._field)
@@ -240,12 +273,12 @@ class AttentionAnalyzer:
                     # load next video and json files
                     s_file_num += 1
                     data_dir = os.path.join(
-                        "data", room_num, surgery_num, f"{s_file_num:02d}"
+                        "data", self._room_num, self._surgery_num, f"{s_file_num:02d}"
                     )
 
                     if os.path.exists(data_dir):
                         kps_data, ind_data, grp_data = self._load_jsons(data_dir)
-                        cap = self._load_video(room_num, surgery_num, s_file_num)
+                        cap = self._load_video(s_file_num)
                         _, frame = cap.read()
                     else:
                         break
@@ -262,12 +295,5 @@ class AttentionAnalyzer:
             del wrt
             pre_s_file_num = s_file_num
 
-        # write dataframe for excel
-        sheet_name = f"{room_num}_{surgery_num}"
-        self._logger.info(f"=> writing excel file to {excel_path}, sheet: {sheet_name}")
-        mode = "a" if os.path.exists(excel_path) else "w"
-        with pd.ExcelWriter(excel_path, engine="openpyxl", mode=mode) as writer:
-            df.to_excel(writer, sheet_name, index=False, header=True)
-
-        del kps_data, ind_data, grp_data, cap, df
+        del kps_data, ind_data, grp_data, cap
         gc.collect()
