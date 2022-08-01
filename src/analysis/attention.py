@@ -190,7 +190,7 @@ class AttentionAnalyzer:
             "End Time",
             "Vertex Shape",
             "Max GA-Value",
-            "NUmber of Member",
+            "Number of Member",
             "Status",
             "Locations",
             "Events",
