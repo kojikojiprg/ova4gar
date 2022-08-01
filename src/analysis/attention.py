@@ -297,3 +297,114 @@ class AttentionAnalyzer:
 
         del kps_data, ind_data, grp_data, cap
         gc.collect()
+
+    def crop_videos_random(
+        self,
+        margin_frame_num: int,
+        frame_total: int,
+        video_num: int = 10,
+        seed: int = 128,
+    ):
+        # set random seed
+        np.random.seed(seed)
+
+        # delete previous files
+        # self._logger.info("=> delete files extracted previous process")
+        files = []
+        for data_dir in sorted(
+            glob(os.path.join("data", self._room_num, self._surgery_num, "*"))
+        ):
+            if data_dir.endswith("passing") or data_dir.endswith("attention"):
+                continue
+            files.append(int(os.path.basename(data_dir)))
+        #     for p in glob(os.path.join(data_dir, "video", "attention", "*.mp4")):
+        #         if os.path.isfile(p):
+        #             os.remove(p)
+
+        # extract not overlapped frame
+        video_pos = self._calc_video_position(margin_frame_num, frame_total)
+        not_overlapped_pos = []
+        for file_num in files:
+            pos_lst = [pos for pos in video_pos if pos[0] == file_num]
+            pre_pos = pos_lst[0]
+            for pos in pos_lst[1:-1]:
+                pre_e_frame_num = pre_pos[2]
+                s_frame_num = pos[1]
+                if s_frame_num - pre_e_frame_num > margin_frame_num * 2:
+                    middle_frame_num = (
+                        s_frame_num - pre_e_frame_num
+                    ) // 2 + s_frame_num
+                    not_overlapped_pos.append(
+                        (
+                            file_num,
+                            middle_frame_num - margin_frame_num,
+                            middle_frame_num + margin_frame_num,
+                        )
+                    )
+
+        # random choice
+        idx = np.random.choice(len(not_overlapped_pos), video_num, replace=False)
+        random_pos = np.array(not_overlapped_pos)[idx]
+
+        pre_s_file_num = 0
+        for s_file_num, s_frame_num, e_frame_num in random_pos:
+            if pre_s_file_num != s_file_num:
+                # load next video and json files
+                data_dir = os.path.join(
+                    "data", self._room_num, self._surgery_num, f"{s_file_num:02d}"
+                )
+                kps_data, ind_data, grp_data = self._load_jsons(data_dir)
+                cap = self._load_video(s_file_num)
+                # calc output size
+                tmp_frame = cap.read()[1]
+                size = get_size(tmp_frame, self._field)
+
+            # create video writer
+            out_path = os.path.join(
+                "data",
+                self._room_num,
+                self._surgery_num,
+                "attention",
+                "random",
+                f"random_{s_file_num:02d}_{s_frame_num}_{e_frame_num}.mp4",
+            )
+            wrt = Writer(out_path, cap.fps, size)
+
+            # write video
+            cap.set_pos_frame_count(s_frame_num - 1)
+            self._logger.info(
+                f"=> writing video file_num: {s_file_num}, frame: {s_frame_num}->{e_frame_num}"
+            )
+            for frame_num in tqdm(range(s_frame_num, e_frame_num)):
+                ret, frame = cap.read()
+
+                # if not ret:
+                #     del kps_data, ind_data, grp_data, cap
+
+                #     # load next video and json files
+                #     s_file_num += 1
+                #     data_dir = os.path.join(
+                #         "data", self._room_num, self._surgery_num, f"{s_file_num:02d}"
+                #     )
+
+                #     if os.path.exists(data_dir):
+                #         kps_data, ind_data, grp_data = self._load_jsons(data_dir)
+                #         cap = self._load_video(s_file_num)
+                #         _, frame = cap.read()
+                #     else:
+                #         break
+
+                frame_num %= frame_total
+                frame = kps_write_frame(frame, kps_data, frame_num)
+                field_tmp = ind_write_field(ind_data, self._field.copy(), frame_num)
+                field_tmp = self._grp_vis.write_field(
+                    "attention", frame_num, grp_data, field_tmp
+                )
+                frame = concat_field_with_frame(frame.copy(), field_tmp)
+                wrt.write(frame)
+
+            del wrt
+            pre_s_file_num = s_file_num
+
+        del kps_data, ind_data, grp_data, cap
+        gc.collect()
