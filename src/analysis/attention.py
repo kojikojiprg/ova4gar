@@ -325,8 +325,12 @@ class AttentionAnalyzer:
         video_pos = self._calc_video_position(margin_frame_num, frame_total)
         not_overlapped_pos = []
         files = get_data_dirs(self._room_num, self._surgery_num)
-        for file_num in files:
+        for file_path in files:
+            file_num = int(os.path.basename(file_path))
             pos_lst = [pos for pos in video_pos if pos[0] == file_num]
+            if len(pos_lst) == 0:
+                continue
+
             pre_pos = pos_lst[0]
             for pos in pos_lst[1:-1]:
                 pre_e_frame_num = pre_pos[2]
