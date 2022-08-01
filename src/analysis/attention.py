@@ -305,25 +305,26 @@ class AttentionAnalyzer:
         video_num: int = 10,
         seed: int = 128,
     ):
+        random_data_dir = os.path.join(
+            "data",
+            self._room_num,
+            self._surgery_num,
+            "attention",
+            "random",
+        )
         # set random seed
         np.random.seed(seed)
 
         # delete previous files
-        # self._logger.info("=> delete files extracted previous process")
-        files = []
-        for data_dir in sorted(
-            glob(os.path.join("data", self._room_num, self._surgery_num, "*"))
-        ):
-            if data_dir.endswith("passing") or data_dir.endswith("attention"):
-                continue
-            files.append(int(os.path.basename(data_dir)))
-        #     for p in glob(os.path.join(data_dir, "video", "attention", "*.mp4")):
-        #         if os.path.isfile(p):
-        #             os.remove(p)
+        self._logger.info("=> delete files extracted previous process")
+        for p in glob(os.path.join(random_data_dir, "*.mp4")):
+            if os.path.isfile(p):
+                os.remove(p)
 
         # extract not overlapped frame
         video_pos = self._calc_video_position(margin_frame_num, frame_total)
         not_overlapped_pos = []
+        files = get_data_dirs(self._room_num, self._surgery_num)
         for file_num in files:
             pos_lst = [pos for pos in video_pos if pos[0] == file_num]
             pre_pos = pos_lst[0]
@@ -341,6 +342,7 @@ class AttentionAnalyzer:
                             middle_frame_num + margin_frame_num,
                         )
                     )
+                pre_pos = pos
 
         # random choice
         idx = np.random.choice(len(not_overlapped_pos), video_num, replace=False)
@@ -361,11 +363,7 @@ class AttentionAnalyzer:
 
             # create video writer
             out_path = os.path.join(
-                "data",
-                self._room_num,
-                self._surgery_num,
-                "attention",
-                "random",
+                random_data_dir,
                 f"random_{s_file_num:02d}_{s_frame_num}_{e_frame_num}.mp4",
             )
             wrt = Writer(out_path, cap.fps, size)
@@ -377,22 +375,6 @@ class AttentionAnalyzer:
             )
             for frame_num in tqdm(range(s_frame_num, e_frame_num)):
                 ret, frame = cap.read()
-
-                # if not ret:
-                #     del kps_data, ind_data, grp_data, cap
-
-                #     # load next video and json files
-                #     s_file_num += 1
-                #     data_dir = os.path.join(
-                #         "data", self._room_num, self._surgery_num, f"{s_file_num:02d}"
-                #     )
-
-                #     if os.path.exists(data_dir):
-                #         kps_data, ind_data, grp_data = self._load_jsons(data_dir)
-                #         cap = self._load_video(s_file_num)
-                #         _, frame = cap.read()
-                #     else:
-                #         break
 
                 frame_num %= frame_total
                 frame = kps_write_frame(frame, kps_data, frame_num)
