@@ -3,7 +3,7 @@ import gc
 import os
 from glob import glob
 from logging import Logger
-from typing import List, Tuple
+from typing import Any, Dict, List, Tuple
 
 import cv2
 import numpy as np
@@ -40,60 +40,66 @@ class AttentionAnalyzer:
         self._logger = logger
         self._grp_vis = GroupVisualizer(["attention"])
 
-        self._vertex_result: List[Tuple[int, float, str]] = []
+        self._vertex_result: List[Tuple[int, float, str, int]] = []
 
     @property
-    def vertex_result(self) -> List[Tuple[int, float, str]]:
+    def vertex_result(self) -> List[Tuple[int, float, str, int]]:
         return self._vertex_result
 
     def _find_vertexs(
         self,
-        heatmaps: List[NDArray],
-        ma_size: int = 1800,
+        max_val_ma: NDArray,
         prominence: float = 0.2,
         height_peak: float = 1.5,
         height_trough: float = 1.0,
-        fig_path: str = None,
-    ) -> List[Tuple[int, float, str]]:
-        max_val = np.max(np.max(heatmaps, axis=1), axis=1)
-        max_val_ma = moving_average(max_val, ma_size)
-
+    ) -> Tuple[NDArray, NDArray]:
         peaks = signal.find_peaks(
             max_val_ma, prominence=prominence, height=height_peak
         )[0]
         troughs = signal.find_peaks(
             max_val_ma * -1, prominence=prominence, height=(None, -height_trough)
         )[0]
-        vertexs = sorted(peaks.tolist() + troughs.tolist())
 
-        self._save_plot(max_val_ma, peaks, troughs, fig_path)
+        return peaks, troughs
 
-        result_lst: List[Tuple[int, float, str]] = []
-        for vtx in vertexs:
-            vertex_shape = "Peak" if vtx in peaks else "Trough"
-            result_lst.append((vtx, max_val_ma[vtx], vertex_shape))
+    def _count_member(
+        self,
+        keypoints_data_lst: List[List[Dict[str, Any]]],
+    ):
+        self._logger.info("=> counting numbers of member")
+        member_nums = []
+        for keypoints_data in tqdm(keypoints_data_lst):
+            frame_total = max([kps["frame"] for kps in keypoints_data])
+            member_nums_per_data = [0 for _ in range(frame_total)]
+            for kps in keypoints_data:
+                frame_num = kps["frame"]
+                member_nums_per_data[frame_num - 1] += 1
+            member_nums += member_nums_per_data
 
-        return result_lst
+        return member_nums
 
-    def _save_plot(self, max_val_ma, peaks, troughs, fig_path):
+    def _save_plot(self, max_val_ma, peaks, troughs, member_nums_ma, fig_path):
         self._logger.info(f"=> saving plot figure to {fig_path}")
 
         fig = plt.figure(figsize=(20, 5))
-        fig.subplots_adjust(left=0.05, right=0.99, bottom=0.23, top=0.95)
+        fig.subplots_adjust(left=0.05, right=0.94, bottom=0.23, top=0.95)
+        ax1 = fig.add_subplot(111)
+        ax2 = ax1.twinx()
 
-        plt.plot(max_val_ma, label="max")
-        plt.scatter(peaks, max_val_ma[peaks], color="tab:orange", s=100)
-        plt.scatter(troughs, max_val_ma[troughs], color="tab:green", s=100)
-
+        ax1.plot(max_val_ma, label="max")
+        ax1.scatter(peaks, max_val_ma[peaks], color="tab:orange", s=100)
+        ax1.scatter(troughs, max_val_ma[troughs], color="tab:green", s=100)
         xticks = range(0, len(max_val_ma) + 1800, 1800 * 60)
-        plt.xticks(xticks, [t // (1800 * 60) for t in xticks])
-
+        ax1.set_xticks(xticks, [t // (1800 * 60) for t in xticks])
         margin = len(max_val_ma) // 100
-        plt.xlim((-margin, len(max_val_ma) + margin))
-        plt.ylim((0, 4.0))
+        ax1.set_xlim((-margin, len(max_val_ma) + margin))
+        ax1.set_ylim((0, 4.0))
+        ax1.set_xlabel("Hours")
+        ax1.set_ylabel("Max of GA")
 
-        plt.xlabel("Hours")
-        plt.ylabel("Max of GA")
+        ax2.plot(member_nums_ma, color="tab:red", linestyle=":")
+        ax2.set_ylim((0, 10))
+        ax2.set_ylabel("Member")
 
         plt.savefig(fig_path)
 
@@ -109,32 +115,57 @@ class AttentionAnalyzer:
         self._logger.info(f"=> data directories: {data_dirs}")
 
         heatmaps = []
+        keypoints_data_lst = []
         for data_dir in data_dirs:
             self._logger.info(f"=> load attention result from {data_dir}")
             json_path = os.path.join(data_dir, ".json", "group.json")
-            if os.path.exists(json_path):
-                group = load_group(
-                    json_path,
-                    self._grp_cfg,
-                    self._field,
-                    self._logger,
-                    only_data_loading=True,
-                )
-                attention_dict = group.attention
-                heatmaps += list(attention_dict.values())
+            group = load_group(
+                json_path,
+                self._grp_cfg,
+                self._field,
+                self._logger,
+                only_data_loading=True,
+            )
+            attention_dict = group.attention
+            heatmaps += list(attention_dict.values())
 
-                del group, attention_dict
-                gc.collect()
+            self._logger.info(f"=> loading keypoint data from {data_dir}")
+            json_path = os.path.join(data_dir, ".json", "keypoints.json")
+            keypoints_data_lst.append(load(json_path))
 
-        self._vertex_result = self._find_vertexs(
-            heatmaps, ma_size, prominence, height_peak, height_trough, fig_path
+            del group, attention_dict
+            gc.collect()
+
+        # max of group attention
+        max_val = np.max(np.max(heatmaps, axis=1), axis=1)
+        max_val_ma = moving_average(max_val, ma_size)
+
+        # member number
+        member_nums = self._count_member(keypoints_data_lst)
+        member_nums_ma = moving_average(member_nums, ma_size)
+
+        # find vertexs
+        peaks, troughs = self._find_vertexs(
+            max_val_ma,
+            prominence,
+            height_peak,
+            height_trough,
         )
+        vertexs = peaks.tolist() + troughs.tolist()
+
+        self._save_plot(max_val_ma, peaks, troughs, member_nums_ma, fig_path)
+
+        for vtx in vertexs:
+            vertex_shape = "Peak" if vtx in peaks else "Trough"
+            self._vertex_result.append(
+                (vtx, max_val_ma[vtx], vertex_shape, member_nums_ma[vtx])
+            )
 
     def _calc_video_position(
         self, margin_frame_num: int, frame_total: int = 54000
     ) -> List[Tuple[int, int, int]]:
         ret = []
-        for (vertex_frame_num, _, _) in self.vertex_result:
+        for (vertex_frame_num, _, _, _) in self.vertex_result:
             # add margin
             s_frame_num = max(1, vertex_frame_num - margin_frame_num)
             e_frame_num = vertex_frame_num + margin_frame_num
@@ -159,6 +190,7 @@ class AttentionAnalyzer:
             "End Time",
             "Vertex Shape",
             "Max GA-Value",
+            "NUmber of Member",
             "Status",
             "Locations",
             "Events",
@@ -168,7 +200,9 @@ class AttentionAnalyzer:
 
         sheet_name = f"{self._room_num}_{self._surgery_num}"
         self._logger.info(f"=> writing excel file to {excel_path}, sheet: {sheet_name}")
-        for i, (_, ga_val, vertex_shape) in enumerate(tqdm(self.vertex_result)):
+        for i, (_, ga_val, vertex_shape, member_num) in enumerate(
+            tqdm(self.vertex_result)
+        ):
             s_file_num, s_frame_num, e_frame_num = video_pos[i]
 
             # write dataframe
@@ -183,6 +217,7 @@ class AttentionAnalyzer:
                 end_time,  # End Time
                 vertex_shape,  # Vertex Shape
                 ga_val,  # Max GA-Value
+                member_num,  # Number of Member
                 "",  # Status
                 "",  # Locations
                 "",  # Events
@@ -338,7 +373,7 @@ class AttentionAnalyzer:
                 if s_frame_num - pre_e_frame_num > margin_frame_num * 2:
                     middle_frame_num = (
                         s_frame_num - pre_e_frame_num
-                    ) // 2 + s_frame_num
+                    ) // 2 + pre_e_frame_num
                     not_overlapped_pos.append(
                         (
                             file_num,
@@ -379,6 +414,8 @@ class AttentionAnalyzer:
             )
             for frame_num in tqdm(range(s_frame_num, e_frame_num)):
                 ret, frame = cap.read()
+                if not ret:
+                    break
 
                 frame_num %= frame_total
                 frame = kps_write_frame(frame, kps_data, frame_num)
