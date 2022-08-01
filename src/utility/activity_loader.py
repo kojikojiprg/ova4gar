@@ -12,11 +12,13 @@ from utility import json_handler
 
 
 def get_data_dirs(room_num: str, surgery_num: str, expand_name: str = "") -> List[str]:
-    data_dir = os.path.join("data", room_num, surgery_num, expand_name)
-    data_dirs = sorted(glob(os.path.join(data_dir, "*")))
-    for i in range(len(data_dirs)):
-        if data_dirs[i].endswith("passing") or data_dirs[i].endswith("attention"):
-            del data_dirs[i]
+    data_dirs = []
+    for data_dir in sorted(
+        glob(os.path.join("data", room_num, surgery_num, expand_name, "*"))
+    ):
+        if data_dir.endswith("passing") or data_dir.endswith("attention"):
+            continue
+        data_dirs.append(data_dir)
 
     return data_dirs
 
