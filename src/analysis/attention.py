@@ -117,7 +117,7 @@ class AttentionAnalyzer:
         heatmaps = []
         keypoints_data_lst = []
         for data_dir in data_dirs:
-            self._logger.info(f"=> load attention result from {data_dir}")
+            self._logger.info(f"=> loading attention result from {data_dir}")
             json_path = os.path.join(data_dir, ".json", "group.json")
             group = load_group(
                 json_path,
