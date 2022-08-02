@@ -385,11 +385,11 @@ class AttentionAnalyzer:
 
         # random choice
         idx = np.random.choice(len(not_overlapped_pos), video_num, replace=False)
-        random_pos = np.array(not_overlapped_pos)[idx]
+        random_pos = np.array(not_overlapped_pos)[sorted(idx)]
 
         pre_s_file_num = 0
         for s_file_num, s_frame_num, e_frame_num in random_pos:
-            if pre_s_file_num != s_file_num:
+            if pre_s_file_num < s_file_num:
                 # load next video and json files
                 data_dir = os.path.join(
                     "data", self._room_num, self._surgery_num, f"{s_file_num:02d}"
