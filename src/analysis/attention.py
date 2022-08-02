@@ -372,7 +372,6 @@ class AttentionAnalyzer:
                 diff = s_frame_num - pre_e_frame_num
                 if diff > margin_frame_num * 2:
                     middle_frame_num = diff // 2 + pre_e_frame_num
-                    print(s_frame_num, pre_e_frame_num, middle_frame_num)
                     not_overlapped_pos.append(
                         (
                             file_num,
