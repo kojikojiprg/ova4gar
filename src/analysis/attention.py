@@ -151,11 +151,10 @@ class AttentionAnalyzer:
             height_peak,
             height_trough,
         )
-        vertexs = peaks.tolist() + troughs.tolist()
 
         self._save_plot(max_val_ma, peaks, troughs, member_nums_ma, fig_path)
 
-        for vtx in vertexs:
+        for vtx in sorted(peaks.tolist() + troughs.tolist()):
             vertex_shape = "Peak" if vtx in peaks else "Trough"
             self._vertex_result.append(
                 (vtx, max_val_ma[vtx], vertex_shape, member_nums_ma[vtx])
@@ -370,10 +369,10 @@ class AttentionAnalyzer:
             for pos in pos_lst[1:-1]:
                 pre_e_frame_num = pre_pos[2]
                 s_frame_num = pos[1]
-                if s_frame_num - pre_e_frame_num > margin_frame_num * 2:
-                    middle_frame_num = (
-                        s_frame_num - pre_e_frame_num
-                    ) // 2 + pre_e_frame_num
+                diff = s_frame_num - pre_e_frame_num
+                if diff > margin_frame_num * 2:
+                    middle_frame_num = diff // 2 + pre_e_frame_num
+                    print(s_frame_num, pre_e_frame_num, middle_frame_num)
                     not_overlapped_pos.append(
                         (
                             file_num,
