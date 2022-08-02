@@ -30,6 +30,7 @@ def _setup_parser():
     parser.add_argument("-th", "--trough_height", type=float, default=0.5)
     parser.add_argument("-mfn", "--margin_frame_num", type=int, default=900)
     parser.add_argument("-ft", "--frame_total", type=int, default=54000)
+    parser.add_argument("-vn", "--video_number", type=int, default=20)
 
     return parser.parse_args()
 
@@ -48,7 +49,9 @@ def main():
         fig_path,
     )
 
-    analyzer.crop_videos_random(args.margin_frame_num, args.frame_total)
+    analyzer.crop_videos_random(
+        args.margin_frame_num, args.frame_total, args.video_number
+    )
 
 
 if __name__ == "__main__":
