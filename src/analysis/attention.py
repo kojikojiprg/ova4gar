@@ -89,13 +89,14 @@ class AttentionAnalyzer:
         ax1.plot(max_val_ma, label="max")
         ax1.scatter(peaks, max_val_ma[peaks], color="tab:orange", s=100)
         ax1.scatter(troughs, max_val_ma[troughs], color="tab:green", s=100)
-        xticks = range(0, len(max_val_ma) + 1800, 1800 * 60)
-        ax1.set_xticks(xticks, [t // (1800 * 60) for t in xticks])
-        margin = len(max_val_ma) // 100
+        xticks = range(0, len(max_val_ma) + 1800, 1800 * 30)
+        ax1.set_xticks(xticks, [t / (1800 * 60) for t in xticks])
+        margin = len(max_val_ma) // 80
         ax1.set_xlim((-margin, len(max_val_ma) + margin))
         ax1.set_ylim((0, int(max(max_val_ma)) + 1))
         ax1.set_xlabel("Hours")
         ax1.set_ylabel("Max of GA")
+        ax1.grid(axis="x", linestyle="dotted")
 
         ax2.plot(member_nums_ma, color="tab:red", linestyle=":")
         ax2.set_ylim((0, int(max(member_nums_ma)) + 1))
