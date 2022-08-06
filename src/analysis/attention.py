@@ -237,7 +237,7 @@ class AttentionAnalyzer:
                 df.to_excel(writer, sheet_name, index=False, header=True)
         else:
             # create and write excel file
-            df.to_excel(writer, sheet_name, index=False, header=True)
+            df.to_excel(excel_path, sheet_name, index=False, header=True)
 
         del df
 
