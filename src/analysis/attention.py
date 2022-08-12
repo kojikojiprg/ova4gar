@@ -79,6 +79,7 @@ class AttentionAnalyzer:
         return member_nums
 
     def _save_plot(self, max_val_ma, peaks, troughs, member_nums_ma, fig_path):
+        os.makedirs(os.path.dirname(fig_path), exist_ok=True)
         self._logger.info(f"=> saving plot figure to {fig_path}")
 
         fig = plt.figure(figsize=(20, 5))
@@ -225,7 +226,7 @@ class AttentionAnalyzer:
             ]
 
         # write dataframe for excel
-        save(excel_path, sheet_name, df, header=True)
+        save(excel_path, sheet_name, df, index=False, header=True)
         del df
 
     def _load_jsons(self, data_dir):
