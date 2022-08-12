@@ -7,7 +7,6 @@ from typing import Any, Dict, List, Tuple
 
 import cv2
 import numpy as np
-import openpyxl
 import pandas as pd
 import yaml
 from matplotlib import pyplot as plt
@@ -15,6 +14,7 @@ from numpy.typing import NDArray
 from scipy import signal
 from tqdm import tqdm
 from utility.activity_loader import get_data_dirs, load_group
+from utility.excel_handler import save
 from utility.functions import moving_average
 from utility.json_handler import load
 from utility.video import Capture, Writer, concat_field_with_frame, get_size
@@ -225,21 +225,7 @@ class AttentionAnalyzer:
             ]
 
         # write dataframe for excel
-        if os.path.exists(excel_path):
-            # delete sheet if same sheet exists
-            workbook = openpyxl.load_workbook(filename=excel_path)
-            if sheet_name in workbook.sheetnames:
-                workbook.remove(workbook[sheet_name])
-                workbook.save(excel_path)
-            workbook.close()
-
-            # over write excel file
-            with pd.ExcelWriter(excel_path, engine="openpyxl", mode="a") as writer:
-                df.to_excel(writer, sheet_name, index=False, header=True)
-        else:
-            # create and write excel file
-            df.to_excel(excel_path, sheet_name, index=False, header=True)
-
+        save(excel_path, sheet_name, df, header=True)
         del df
 
     def _load_jsons(self, data_dir):
