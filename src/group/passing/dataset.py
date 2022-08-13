@@ -142,20 +142,12 @@ def make_all_data(
         for surgery_num, surgery_data in room_data.items():
             logger.info(f"=> extracting feature {room_num}_{surgery_num}")
             for data_num, time_series in tqdm(surgery_data.items()):
-                queue_dict: Dict[str, list] = {}
                 for pair_key, row in time_series.items():
                     id1, id2 = pair_key.split("_")
+                    feature_que: list = []
                     for (frame_num, is_pass) in row:
-                        # frame_num, is_pass = row[0], row[1]
-
                         ind1 = individuals[f"{room_num}_{surgery_num}_{data_num}_{id1}"]
                         ind2 = individuals[f"{room_num}_{surgery_num}_{data_num}_{id2}"]
-
-                        # queue
-                        pair_key = f"{ind1.id}_{ind2.id}"
-                        if pair_key not in queue_dict:
-                            queue_dict[pair_key] = []
-                        feature_que = queue_dict[pair_key]
 
                         # extract feature
                         feature_que = extract_feature(
@@ -168,7 +160,7 @@ def make_all_data(
                         )
 
                         # save data
-                        key = f"{room_num}_{surgery_num}_{data_num}_{ind1.id}_{ind2.id}"
+                        key = f"{room_num}_{surgery_num}_{data_num}_{pair_key}"
                         if key not in x_dict:
                             x_dict[key] = []
                             y_dict[key] = []
@@ -212,15 +204,14 @@ def _make_time_series_from_cfg(dataset_cfg: dict, logger: Logger):
 
                 max_frame = kps_data[-1]["frame"]
                 time_series: Dict[str, list] = {}
-                for frame_num in range(max_frame):
+                for frame_num in range(1, max_frame + 1):
                     frame_data = [
                         data for data in kps_data if data["frame"] == frame_num
                     ]
 
                     for i in range(len(frame_data) - 1):
                         for j in range(i + 1, len(frame_data)):
-                            id1 = frame_data[i]["id"]
-                            id2 = frame_data[j]["id"]
+                            [id1, id2] = sorted([frame_data[i]["id"], frame_data[j]["id"]])
 
                             pair_key = f"{id1}_{id2}"
                             if pair_key not in time_series:
@@ -236,6 +227,7 @@ def _make_time_series_from_cfg(dataset_cfg: dict, logger: Logger):
                                         and frame_num <= item["end"]
                                     ):
                                         is_pass = 1
+                                        break
 
                             time_series[pair_key].append((frame_num, is_pass))
 
@@ -269,41 +261,41 @@ def extract_feature(
     ind1_data = _get_indicators(ind1, frame_num)
     ind2_data = _get_indicators(ind2, frame_num)
 
-    if not (None in ind1_data.values() or None in ind2_data.values()):
-        ind1_data = SimpleNamespace(**ind1_data)
-        ind2_data = SimpleNamespace(**ind2_data)
+    # if not (None in ind1_data.values() or None in ind2_data.values()):
+    ind1_data = SimpleNamespace(**ind1_data)
+    ind2_data = SimpleNamespace(**ind2_data)
 
-        # calc distance of position
-        p1_pos = np.array(ind1_data.pos)
-        p2_pos = np.array(ind2_data.pos)
+    # calc distance of position
+    p1_pos = np.array(ind1_data.pos)
+    p2_pos = np.array(ind2_data.pos)
 
-        norm = np.linalg.norm(p1_pos - p2_pos, ord=2)
-        distance = gauss(norm, mu=defs["dist_mu"], sigma=defs["dist_sig"])
+    norm = np.linalg.norm(p1_pos - p2_pos, ord=2)
+    distance = gauss(norm, mu=defs["dist_mu"], sigma=defs["dist_sig"])
 
-        p1p2 = p2_pos - p1_pos
-        p2p1 = p1_pos - p2_pos
+    p1p2 = p2_pos - p1_pos
+    p2p1 = p1_pos - p2_pos
 
-        p1p2_sim = cos_similarity(ind1_data.body, p1p2)
-        p2p1_sim = cos_similarity(ind2_data.body, p2p1)
-        body_direction = (np.average([p1p2_sim, p2p1_sim]) + 1) / 2
+    p1p2_sim = cos_similarity(ind1_data.body, p1p2)
+    p2p1_sim = cos_similarity(ind2_data.body, p2p1)
+    body_direction = (np.average([p1p2_sim, p2p1_sim]) + 1) / 2
 
-        # calc arm average
-        arm_ave = np.average([ind1_data.arm, ind2_data.arm])
+    # calc arm average
+    arm_ave = np.average([ind1_data.arm, ind2_data.arm])
 
-        # calc wrist distance
-        min_norm = np.inf
-        for i in range(2):
-            for j in range(2):
-                norm = np.linalg.norm(
-                    np.array(ind1_data.wrist[i]) - np.array(ind2_data.wrist[j]), ord=2
-                )
-                min_norm = float(norm) if norm < min_norm else min_norm
+    # calc wrist distance
+    min_norm = np.inf
+    for i in range(2):
+        for j in range(2):
+            norm = np.linalg.norm(
+                np.array(ind1_data.wrist[i]) - np.array(ind2_data.wrist[j]), ord=2
+            )
+            min_norm = float(norm) if norm < min_norm else min_norm
 
-        wrist_distance = gauss(min_norm, mu=defs["wrist_mu"], sigma=defs["wrist_sig"])
+    wrist_distance = gauss(min_norm, mu=defs["wrist_mu"], sigma=defs["wrist_sig"])
 
-        # concatnate to feature
-        feature = [distance, body_direction, arm_ave, wrist_distance]
-        que.append(feature)
+    # concatnate to feature
+    feature = [distance, body_direction, arm_ave, wrist_distance]
+    que.append(feature)
 
     if len(que) < defs["seq_len"]:
         # 0 padding
