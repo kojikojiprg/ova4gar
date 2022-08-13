@@ -61,10 +61,12 @@ class AttentionScore:
 
         results: Dict[int, float] = {}
         for frame_num, value in value_dict.items():
-            if len(value["values"]) > 0:
+            if len(value["weights"]) > 0:
                 results[frame_num] = np.average(
                     value["values"], weights=value["weights"]
                 )
+            else:
+                results[frame_num] = np.nan
 
         return results
 
@@ -107,6 +109,10 @@ class AttentionScore:
             key2 = f"04_{i + 1}"
             data1 = np.array(list(self._scores[key1].values()))
             data2 = np.array(list(self._scores[key2].values()))
+
+            # drop nan
+            data1 = data1[~np.isnan(data1)]
+            data2 = data2[~np.isnan(data2)]
 
             _, p = stats.mannwhitneyu(
                 data1, data2, alternative="greater", use_continuity=True
@@ -197,6 +203,7 @@ class AttentionScore:
 
             df = pd.DataFrame.from_dict(data_dict)
             df = pd.melt(df)
+            df = df.dropna()
             df_lst.append(df)
 
         self._boxplot(df_lst, fig_dir)
