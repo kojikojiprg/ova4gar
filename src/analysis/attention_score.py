@@ -48,6 +48,7 @@ class AttentionScore:
 
         value_dict: dict = {}
         for frame_num, data in tqdm(attention_data.items()):
+            frame_num += 1
             if frame_num not in value_dict:
                 value_dict[frame_num] = {"values": [], "weights": []}
 
