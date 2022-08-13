@@ -9,10 +9,16 @@ import pandas as pd
 import seaborn as sns
 import yaml
 from matplotlib import pyplot as plt
+from numpy.typing import NDArray
 from scipy import stats
 from tqdm import tqdm
 from utility.activity_loader import get_data_dirs, load_group
 from utility.excel_handler import save
+from utility.json_handler import load
+from utility.video import Capture, Writer, concat_field_with_frame, get_size
+from visualize.group import GroupVisualizer, Heatmap
+from visualize.individual import write_field as ind_write_field
+from visualize.keypoint import write_frame as kps_write_frame
 
 sns.set()
 sns.set_style("whitegrid")
@@ -34,6 +40,7 @@ class AttentionScore:
         self._field = cv2.imread("image/field.png")
 
         self._logger = logger
+        self._grp_vis = GroupVisualizer(["attention"])
 
         self._scores: Dict[str, Dict[int, float]] = {}
 
@@ -48,7 +55,6 @@ class AttentionScore:
 
         value_dict: dict = {}
         for frame_num, data in tqdm(attention_data.items()):
-            frame_num += 1
             if frame_num not in value_dict:
                 value_dict[frame_num] = {"values": [], "weights": []}
 
@@ -209,3 +215,124 @@ class AttentionScore:
 
         self._boxplot(df_lst, fig_dir)
         self._hist(df_lst, labels_lst, fig_dir)
+
+    def _load_jsons(self, data_dir):
+        self._logger.info(f"=> load json files from {data_dir}")
+        json_path = os.path.join(data_dir, ".json", "keypoints.json")
+        kps_data = load(json_path)
+        json_path = os.path.join(data_dir, ".json", "individual.json")
+        ind_data = load(json_path)
+        json_path = os.path.join(data_dir, ".json", "group.json")
+        grp_data = load(json_path)
+        return kps_data, ind_data, grp_data
+
+    def _write_score(
+        self,
+        value: float,
+        object_point: NDArray,
+        field: NDArray,
+        heatmap: Heatmap,
+        max_radius: int = 20,
+        alpha: float = 0.9,
+    ):
+        if np.isnan(value):
+            value = 0.0
+        color = heatmap.colormap(value)
+
+        copy = field.copy()
+
+        # calc radius of circle
+        max_value = heatmap.xmax
+        radius = int(value / max_value * max_radius)
+        if radius == 0:
+            radius = 1
+
+        # plot the heatmap circle
+        cv2.circle(copy, tuple(object_point), radius, color, thickness=-1)
+
+        # plot the center of object
+        cv2.circle(copy, tuple(object_point), 3, (0, 0, 0), -1)
+
+        # plot the value text
+        point = np.array(object_point) - [50, 10]
+        cv2.putText(
+            copy, f"{value:.1f}", tuple(point), cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, 2
+        )
+
+        field = cv2.addWeighted(copy, alpha, field, 1 - alpha, 0)
+
+        return field
+
+    def _write_frame(
+        self,
+        frame_num: int,
+        frame: NDArray,
+        kps_data,
+        ind_data,
+        grp_data,
+        score: float,
+        object_point: NDArray,
+        heatmap: Heatmap,
+    ):
+        frame = kps_write_frame(frame, kps_data, frame_num)
+        field_tmp = ind_write_field(ind_data, self._field.copy(), frame_num)
+        field_tmp = self._grp_vis.write_field(
+            "attention", frame_num, grp_data, field_tmp
+        )
+        field_tmp = self._write_score(score, object_point, field_tmp, heatmap)
+        frame = concat_field_with_frame(frame.copy(), field_tmp)
+        return frame
+
+    def save_videos(self, frame_total: int = 1800):
+        for i in range(3):
+            key1 = f"{i + 1:02d}_{1}"
+            key2 = f"04_{i + 1}"
+            data1 = self._scores[key1]
+            data2 = self._scores[key2]
+            obj1 = self._object_points[f"{i + 1:02d}"][0]
+            obj2 = self._object_points["04"][i]
+            label1 = f"O{i % 3 + 1}-A"
+            label2 = f"O{i % 3 + 1}-NA"
+            heatmap = Heatmap([0, np.nanmax(list(data1.values()))])
+
+            # load jsons
+            data_dir = os.path.join(
+                "data", self._room_num, self._surgery_num, "attention"
+            )
+            kps1, ind1, grp1 = self._load_jsons(os.path.join(data_dir, f"{i + 1:02d}"))
+            kps2, ind2, grp2 = self._load_jsons(os.path.join(data_dir, "04"))
+
+            # video capture
+            video_dir = os.path.join(
+                "video", self._room_num, self._surgery_num, "attention"
+            )
+            cap1 = Capture(os.path.join(video_dir, f"{i + 1:02d}.mp4"))
+            cap2 = Capture(os.path.join(video_dir, "04.mp4"))
+            size = get_size(cap1.read()[1], self._field)
+            cap1.set_pos_frame_count(0)
+
+            # video writer
+            out_path1 = os.path.join(data_dir, f"{i + 1:02d}", "video", f"{label1}.mp4")
+            wrt1 = Writer(out_path1, cap1.fps, size)
+            out_path2 = os.path.join(data_dir, "04", "video", f"{label2}.mp4")
+            wrt2 = Writer(out_path2, cap2.fps, size)
+            self._logger.info(f"=> writing video {out_path1}, {out_path2}")
+            for frame_num in tqdm(range(frame_total)):
+                frame_num += 1
+                _, frame1 = cap1.read()
+                _, frame2 = cap2.read()
+
+                frame1 = self._write_frame(
+                    frame_num, frame1, kps1, ind1, grp1, data1[frame_num], obj1, heatmap
+                )
+                frame2 = self._write_frame(
+                    frame_num, frame2, kps2, ind2, grp2, data2[frame_num], obj2, heatmap
+                )
+
+                wrt1.write(frame1)
+                wrt2.write(frame2)
+
+            del kps1, ind1, grp1
+            del kps2, ind2, grp2
+            del cap1, cap2, wrt1, wrt2
+            gc.collect()

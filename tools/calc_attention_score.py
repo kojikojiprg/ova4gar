@@ -39,6 +39,7 @@ def main():
     attention_score.calc_score(args.sigma)
     attention_score.mannwhitneyu(excel_path)
     attention_score.save_plot(fig_dir)
+    attention_score.save_videos()
 
 
 if __name__ == "__main__":
