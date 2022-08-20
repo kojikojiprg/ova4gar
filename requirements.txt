@@ -28,3 +28,4 @@ thop
 tabulate
 xlrd
 openpyxl
+optuna
