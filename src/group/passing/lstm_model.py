@@ -1,4 +1,7 @@
+import optuna
 from torch import nn
+
+optuna.logging.disable_default_handler()
 
 
 class LSTMModel(nn.Module):
@@ -26,8 +29,9 @@ class LSTMModel(nn.Module):
                 in_dim = config["hidden_dims"][i - 1]
 
             out_dim = config["hidden_dims"][i]
-            dropout = config["dropouts"][i]
-            self.linears.add_module(f"fc{i + 1}", Linear(in_dim, out_dim, dropout))
+            # dropout = config["dropouts"][i]
+            # self.linears.add_module(f"fc{i + 1}", Linear(in_dim, out_dim, dropout))
+            self.linears.add_module(f"fc{i + 1}", nn.Linear(in_dim, out_dim))
 
         # init output layers
         self.output_layer = nn.Linear(config["hidden_dims"][-1], config["n_classes"])
@@ -43,11 +47,11 @@ class LSTMModel(nn.Module):
         return x
 
 
-class Linear(nn.Sequential):
-    def __init__(self, in_dim, out_dim, dropout):
-        super(Linear, self).__init__(
-            nn.Linear(in_dim, out_dim),
-            nn.BatchNorm1d(out_dim),
-            nn.LeakyReLU(),
-            nn.Dropout(dropout),
-        )
+# class Linear(nn.Sequential):
+#     def __init__(self, in_dim, out_dim, dropout):
+#         super(Linear, self).__init__(
+#             nn.Linear(in_dim, out_dim),
+#             nn.BatchNorm1d(out_dim),
+#             nn.LeakyReLU(),
+#             nn.Dropout(dropout),
+#         )
