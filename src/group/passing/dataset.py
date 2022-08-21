@@ -76,21 +76,15 @@ def make_data_loaders(
     random_keys_0 = np.random.choice(keys_0, size=len(keys_0), replace=False)
 
     train_ratio = cfg["train_ratio"]
-    val_ratio = cfg["val_ratio"]
     train_len_1 = int(len(keys_1) * train_ratio)
     train_len_0 = int(len(keys_0) * train_ratio)
-    val_len_1 = int(len(keys_1) * val_ratio)
-    val_len_0 = int(len(keys_0) * val_ratio)
 
     train_keys_1 = random_keys_1[:train_len_1].tolist()
-    val_keys_1 = random_keys_1[train_len_1 : train_len_1 + val_len_1].tolist()
-    test_keys_1 = random_keys_1[train_len_1 + val_len_1 :].tolist()
+    test_keys_1 = random_keys_1[train_len_1:].tolist()
     train_keys_0 = random_keys_0[:train_len_0].tolist()
     test_keys_0 = random_keys_0[train_len_0:].tolist()
-    val_keys_0 = random_keys_1[train_len_0 : train_len_0 + val_len_0].tolist()
 
     train_keys = train_keys_1 + train_keys_0
-    val_keys = val_keys_1 + val_keys_0
     test_keys = test_keys_1 + test_keys_0
 
     if len(train_keys) > 0:
@@ -104,17 +98,6 @@ def make_data_loaders(
         logger.info("=> skip creating train loader")
         train_loader = None
 
-    if len(val_keys) > 0:
-        logger.info("=> create val loader")
-        x_val_dict = {key: x_dict[key] for key in val_keys}
-        y_val_dict = {key: y_dict[key] for key in val_keys}
-        val_loader = make_data_loader(
-            x_val_dict, y_val_dict, seq_len, batch_size, False
-        )
-    else:
-        logger.info("=> skip creating val loader")
-        val_loader = None
-
     if len(test_keys) > 0:
         logger.info("=> create test loader")
         x_test_dict = {key: x_dict[key] for key in test_keys}
@@ -126,7 +109,7 @@ def make_data_loaders(
         logger.info("=> skip creating test loader")
         test_loader = None
 
-    return train_loader, val_loader, test_loader
+    return train_loader, test_loader
 
 
 def make_all_data(
@@ -211,7 +194,9 @@ def _make_time_series_from_cfg(dataset_cfg: dict, logger: Logger):
 
                     for i in range(len(frame_data) - 1):
                         for j in range(i + 1, len(frame_data)):
-                            [id1, id2] = sorted([frame_data[i]["id"], frame_data[j]["id"]])
+                            [id1, id2] = sorted(
+                                [frame_data[i]["id"], frame_data[j]["id"]]
+                            )
 
                             pair_key = f"{id1}_{id2}"
                             if pair_key not in time_series:
@@ -283,15 +268,15 @@ def extract_feature(
     arm_ave = np.average([ind1_data.arm, ind2_data.arm])
 
     # calc wrist distance
-    min_norm = np.inf
+    wrist_norm = np.inf
     for i in range(2):
         for j in range(2):
-            norm = np.linalg.norm(
+            tmp_norm = np.linalg.norm(
                 np.array(ind1_data.wrist[i]) - np.array(ind2_data.wrist[j]), ord=2
             )
-            min_norm = float(norm) if norm < min_norm else min_norm
+            wrist_norm = min(wrist_norm, float(tmp_norm))
 
-    wrist_distance = gauss(min_norm, mu=defs["wrist_mu"], sigma=defs["wrist_sig"])
+    wrist_distance = gauss(wrist_norm, mu=defs["wrist_mu"], sigma=defs["wrist_sig"])
 
     # concatnate to feature
     feature = [distance, body_direction, arm_ave, wrist_distance]
