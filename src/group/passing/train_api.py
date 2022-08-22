@@ -88,9 +88,8 @@ def train(
         else:
             val_losses.append(np.nan)
 
+        te = time.time()
         if logger is not None:
-            te = time.time()
-
             train_loss = np.mean(train_losses)
             history["train"].append(train_loss)
             val_loss = np.mean(val_losses)
