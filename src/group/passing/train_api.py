@@ -24,6 +24,9 @@ def init_loss(pos_weight, device) -> nn.BCEWithLogitsLoss:
 def init_optimizer(
     optimizer_name, lr, weight_decay, model
 ) -> Union[optim.Adam, optim.SGD, optim.RMSprop]:
+    lr = float(lr)
+    weight_decay = float(weight_decay)
+
     if optimizer_name == "Adam":
         return optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
     elif optimizer_name == "SGD":
@@ -38,7 +41,7 @@ def init_optimizer(
 
 def init_scheduler(rate, optimizer) -> optim.lr_scheduler.LambdaLR:
     scheduler = optim.lr_scheduler.LambdaLR(
-        optimizer, lr_lambda=lambda epoch: rate**epoch
+        optimizer, lr_lambda=lambda epoch: float(rate) ** epoch
     )
     return scheduler
 
@@ -164,20 +167,17 @@ class Objective:
         if typ == "categorical":
             return trial.suggest_categorical(name, params)
         elif typ == "discrete_uniform":
-            params = np.array(params).astype(float)
-            return trial.suggest_discrete_uniform(name, params[0], params[1], params[2])
+            return trial.suggest_discrete_uniform(
+                name, float(params[0]), float(params[1]), float(params[2])
+            )
         elif typ == "float":
-            params = np.array(params).astype(float)
-            return trial.suggest_float(name, params[0], params[1])
+            return trial.suggest_float(name, float(params[0]), float(params[1]))
         elif typ == "int":
-            params = np.array(params).astype(int)
-            return trial.suggest_int(name, params[0], params[1])
+            return trial.suggest_int(name, int(params[0]), int(params[1]))
         elif typ == "loguniform":
-            params = np.array(params).astype(float)
-            return trial.suggest_loguniform(name, params[0], params[1])
+            return trial.suggest_loguniform(name, float(params[0]), float(params[1]))
         elif typ == "uniform":
-            params = np.array(params).astype(float)
-            return trial.suggest_uniform(name, params[0], params[1])
+            return trial.suggest_uniform(name, float(params[0]), float(params[1]))
         else:
             raise NameError
 
@@ -191,8 +191,8 @@ class Objective:
         self._mdl_cfg["rnn_dropout"] = rnn_dropout
         model = init_model(self._mdl_cfg, self._device)
 
-        pos_weight = int(self._set_trial("pos_weight", trial))
-        loss = init_loss(pos_weight, self._device)
+        pos_weight = self._set_trial("pos_weight", trial)
+        loss = init_loss(int(pos_weight), self._device)
 
         optimizer_name = "Adam"
         lr = self._set_trial("lr", trial)
@@ -224,9 +224,16 @@ def parameter_tuning(
     epoch: int,
     trial_size: int,
     device: str,
+    db_path: str,
+    study_name: str = "passing",
 ):
     objective = Objective(mdl_cfg, tuning_cfg, train_loader, test_loader, epoch, device)
-    study = optuna.create_study(pruner=optuna.pruners.MedianPruner())
+    study = optuna.create_study(
+        study_name=study_name,
+        storage=db_path,
+        load_if_exists=True,
+        pruner=optuna.pruners.MedianPruner(),
+    )
     study.optimize(
         objective, n_trials=trial_size, gc_after_trial=True, show_progress_bar=True
     )

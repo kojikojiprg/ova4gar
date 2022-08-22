@@ -39,6 +39,13 @@ def _setup_parser():
         action="store_true",
         help="if True, do model parameter tuning",
     )
+    parser.add_argument(
+        "-d",
+        "--db_path",
+        type=str,
+        default="sqlite:///data/passing/optuna.db",
+        help="the storage path of optuna result",
+    )
     parser.add_argument("-g", "--gpu", type=int, default=0)
     parser.add_argument(
         "-c",
@@ -117,6 +124,7 @@ def main():
             args.epoch,
             args.trial,
             device,
+            args.db_path,
         )
         mdl_cfg = mdl_cfg.update(best_params)
 
