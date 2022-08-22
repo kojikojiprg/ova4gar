@@ -105,7 +105,7 @@ def train(
 
 
 def test(
-    model: LSTMModel, test_loader: torch.utils.data.DataLoader, device: str
+    model: LSTMModel, test_loader: torch.utils.data.DataLoader, device: str, logger: Logger = None
 ) -> Tuple[float, float, float, float]:
     model.eval()
     preds, y_all = [], []
@@ -118,17 +118,24 @@ def test(
             preds += pred
             y_all += y
 
-    if 1 in preds:
-        accuracy = accuracy_score(y_all, preds)
-        precision = precision_score(y_all, preds)
-        recall = recall_score(y_all, preds)
+    try:
+        acc = accuracy_score(y_all, preds)
+        pre = precision_score(y_all, preds)
+        rcl = recall_score(y_all, preds)
         f1 = f1_score(y_all, preds)
-    else:
-        accuracy = 0.0
-        precision = 0.0
-        recall = 0.0
-        f1 = 0.0
-    return accuracy, precision, recall, f1
+    except ZeroDivisionError:
+        acc = np.nan
+        pre = np.nan
+        rcl = np.nan
+        f1 = np.nan
+
+    if logger is not None:
+        logger.info(f"accuracy: {acc}")
+        logger.info(f"precision: {pre}")
+        logger.info(f"recall: {rcl}")
+        logger.info(f"f1: {f1}")
+
+    return acc, pre, rcl, f1
 
 
 class Objective:

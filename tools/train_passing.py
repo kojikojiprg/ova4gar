@@ -133,11 +133,7 @@ def main():
 
     # test
     logger.info("=> testing")
-    acc, pre, rcl, f1, _ = test(model, test_loader, device)
-    logger.info(f"accuracy: {acc}")
-    logger.info(f"precision: {pre}")
-    logger.info(f"recall: {rcl}")
-    logger.info(f"f1: {f1}")
+    test(model, test_loader, device, logger)
 
     # save model
     model_path = f"models/passing/pass_model_lstm_ep{args.epoch}.pth"
