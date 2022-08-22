@@ -6,9 +6,9 @@ hidden_dims:
 - 8
 n_rnns: 3
 rnn_hidden_dim: 8
-rnn_dropout: 0.25
-pos_weight: 8.0
-lr: 0.0015504730351833674
-weight_decay: 3.0181342058612556e-05
-scheduler_rate: 0.9996323552968469
+rnn_dropout: 0.5
+pos_weight: 6.0
+lr: 0.0064055161273004375
+weight_decay: 1.8403007975739077e-05
+scheduler_rate: 0.9953401502427258
 pretrained_path: models/passing/pass_model_lstm_ep30.pth
