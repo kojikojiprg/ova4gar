@@ -47,6 +47,10 @@ def passing(
         preds = preds.max(1)[1]
         preds = preds.cpu().numpy()
 
+    # if a distance is long, overwrite predict result to 0
+    idx = np.where(np.array(all_features).T[0] > passing_defs["dist_max"])
+    preds[idx] = 0
+
     data = [
         {
             "persons": [individuals[idx_pair[0]].id, individuals[idx_pair[1]].id],

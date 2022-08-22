@@ -125,6 +125,7 @@ def make_all_data(
         for surgery_num, surgery_data in room_data.items():
             logger.info(f"=> extracting feature {room_num}_{surgery_num}")
             for data_num, time_series in tqdm(surgery_data.items()):
+                keys = []
                 for pair_key, row in time_series.items():
                     id1, id2 = pair_key.split("_")
                     feature_que: list = []
@@ -145,12 +146,21 @@ def make_all_data(
                         # save data
                         key = f"{room_num}_{surgery_num}_{data_num}_{pair_key}"
                         if key not in x_dict:
+                            keys.append(key)
                             x_dict[key] = []
                             y_dict[key] = []
 
                         if len(feature_que) > 0:
                             x_dict[key].append(feature_que[-1])
                             y_dict[key].append(is_pass)
+
+                # delete long distance data
+                for key in keys:
+                    distance = np.array(x_dict[key])
+                    mean = np.mean(distance)
+                    if mean > passing_defs["dist_max"] and 1 not in y_dict[key]:
+                        del x_dict[key]
+                        del y_dict[key]
 
     return x_dict, y_dict
 

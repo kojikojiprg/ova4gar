@@ -1,15 +1,12 @@
+import time
+from logging import Logger
 from typing import Tuple, Union
 
+import numpy as np
 import optuna
 import torch
 from group.passing.lstm_model import LSTMModel
-from sklearn.metrics import (
-    accuracy_score,
-    f1_score,
-    mean_squared_error,
-    precision_score,
-    recall_score,
-)
+from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
 from torch import nn, optim
 
 
@@ -54,10 +51,17 @@ def train(
     scheduler: optim.lr_scheduler.LambdaLR,
     epoch_len: int,
     device: str,
+    val_loader: torch.utils.data.DataLoader = None,
+    logger: Logger = None,
 ) -> LSTMModel:
-    model.train()
-    for _ in range(epoch_len):
+    history: dict = dict(train=[], val=[])
+    for epoch in range(1, epoch_len + 1):
+        ts = time.time()
+
+        # train
+        model.train()
         train_losses = []
+        lr = optimizer.param_groups[0]["lr"]
         for x, y in train_loader:
             optimizer.zero_grad()
 
@@ -71,12 +75,38 @@ def train(
 
         scheduler.step()
 
+        # validate
+        model.eval()
+        val_losses = []
+        if val_loader is not None:
+            with torch.no_grad():
+                for x, y in val_loader:
+                    pred = model(x.to(device))
+
+                    loss = criterion(pred.requires_grad_(), y.to(device))
+                    val_losses.append(loss.item())
+        else:
+            val_losses.append(np.nan)
+
+        if logger is not None:
+            te = time.time()
+
+            train_loss = np.mean(train_losses)
+            history["train"].append(train_loss)
+            val_loss = np.mean(val_losses)
+            history["val"].append(val_loss)
+
+            logger.info(
+                f"Epoch[{epoch}/{(epoch_len)}] train loss: {train_loss:.5f}, "
+                + f"val loss: {val_loss:.5f}, lr: {lr:.7f}, time: {te - ts:.2f}"
+            )
+
     return model
 
 
 def test(
     model: LSTMModel, test_loader: torch.utils.data.DataLoader, device: str
-) -> Tuple[float, float, float, float, float]:
+) -> Tuple[float, float, float, float]:
     model.eval()
     preds, y_all = [], []
     with torch.no_grad():
@@ -93,14 +123,12 @@ def test(
         precision = precision_score(y_all, preds)
         recall = recall_score(y_all, preds)
         f1 = f1_score(y_all, preds)
-        error = mean_squared_error(y_all, preds)
     else:
         accuracy = 0.0
         precision = 0.0
         recall = 0.0
         f1 = 0.0
-        error = 1.0
-    return accuracy, precision, recall, f1, error
+    return accuracy, precision, recall, f1
 
 
 class Objective:
@@ -120,20 +148,20 @@ class Objective:
 
     def __call__(self, trial: optuna.Trial):
         n_rnns = trial.suggest_int("n_rnns", 1, 3)
-        rnn_hidden_dim = int(trial.suggest_discrete_uniform("rnn_hidden_dim", 8, 32, 4))
-        rnn_dropout = trial.suggest_discrete_uniform("rnn_dropout", 0, 0.5, 0.25)
+        rnn_hidden_dim = trial.suggest_categorical("rnn_hidden_dim", [8, 16, 32])
+        rnn_dropout = trial.suggest_categorical("rnn_dropout", [0, 0.25, 0.5])
 
         self._mdl_cfg["n_rnns"] = n_rnns
         self._mdl_cfg["rnn_hidden_dim"] = rnn_hidden_dim
         self._mdl_cfg["rnn_dropout"] = rnn_dropout
         model = init_model(self._mdl_cfg, self._device)
 
-        pos_weight = int(trial.suggest_discrete_uniform("pos_weight", 4, 8, 2))
+        pos_weight = int(trial.suggest_discrete_uniform("pos_weight", 2, 8, 2))
         loss = init_loss(pos_weight, self._device)
 
         optimizer_name = "Adam"
         lr = trial.suggest_loguniform("lr", 1e-4, 1e-2)
-        weight_decay = trial.suggest_loguniform("weight_decay", 1e-10, 1e-3)
+        weight_decay = trial.suggest_loguniform("weight_decay", 1e-5, 1e-3)
         optimizer = init_optimizer(optimizer_name, lr, weight_decay, model)
 
         scheduler_rate = trial.suggest_uniform("scheduler_rate", 0.99, 1.0)
@@ -148,9 +176,9 @@ class Objective:
             self._epoch,
             self._device,
         )
-        _, _, _, f1, error = test(model, self._test_loader, self._device)
+        _, _, _, f1 = test(model, self._test_loader, self._device)
 
-        return error  # return error rate
+        return 1 - f1  # return error rate
 
 
 def parameter_tuning(mdl_cfg, train_loader, test_loader, epoch, trial_size, device):
