@@ -126,7 +126,7 @@ def main():
             device,
             args.db_path,
         )
-        mdl_cfg = mdl_cfg.update(best_params)
+        mdl_cfg.update(best_params)
 
     # training
     logger.info("=> start training")
