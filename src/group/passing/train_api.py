@@ -225,9 +225,9 @@ def parameter_tuning(
     trial_size: int,
     device: str,
     db_path: str,
-    study_name: str = "passing",
 ):
     objective = Objective(mdl_cfg, tuning_cfg, train_loader, test_loader, epoch, device)
+    study_name = f"passing_ep{epoch}"
     study = optuna.create_study(
         study_name=study_name,
         storage=db_path,
