@@ -30,9 +30,9 @@ class InferenceModel:
         # homography
         self._homo, self._field = self._create_homography(cfg, args.room_num)
 
-        self._do_keypoint = not args.without_keypoint
-        self._do_individual = not args.without_individual
-        self._do_group = not args.without_group
+        self._do_keypoint = args.keypoint
+        self._do_individual = args.individual
+        self._do_group = args.group
         self._write_video = args.video
 
         device = "cuda" if torch.cuda.is_available() else "cpu"

@@ -30,9 +30,9 @@ class Visalizer:
         # group visualizer
         self._grp_vis = GroupVisualizer(self._group_keys)
 
-        self._do_keypoint = not args.without_keypoint
-        self._do_individual = not args.without_individual
-        self._do_group = not args.without_group
+        self._do_keypoint = args.keypoint
+        self._do_individual = args.individual
+        self._do_group = args.group
 
     def write_video(self, video_path: str, data_dir: str):
         # load data from json file
