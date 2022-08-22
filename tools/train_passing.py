@@ -108,8 +108,15 @@ def main():
     if args.parameter_tuning:
         # parameter tuning
         logger.info("=> start parameter tuning")
+        tuning_cfg = train_cfg["tuning_params"]
         best_params = parameter_tuning(
-            mdl_cfg, train_loader, test_loader, args.epoch, args.trial, device
+            mdl_cfg,
+            tuning_cfg,
+            train_loader,
+            test_loader,
+            args.epoch,
+            args.trial,
+            device,
         )
         mdl_cfg = mdl_cfg.update(best_params)
 

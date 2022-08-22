@@ -104,7 +104,10 @@ def train(
 
 
 def test(
-    model: LSTMModel, test_loader: torch.utils.data.DataLoader, device: str, logger: Logger = None
+    model: LSTMModel,
+    test_loader: torch.utils.data.DataLoader,
+    device: str,
+    logger: Logger = None,
 ) -> Tuple[float, float, float, float]:
     model.eval()
     preds, y_all = [], []
@@ -141,36 +144,62 @@ class Objective:
     def __init__(
         self,
         mdl_cfg: dict,
+        tuning_cfg: dict,
         train_loader: torch.utils.data.DataLoader,
         test_loader: torch.utils.data.DataLoader,
         epoch: int,
         device: str,
     ):
         self._mdl_cfg = mdl_cfg
+        self._tuning_cfg = tuning_cfg
         self._train_loader = train_loader
         self._test_loader = test_loader
         self._epoch = epoch
         self._device = device
 
+    def _set_trial(self, name: str, trial: optuna.Trial):
+        typ = self._tuning_cfg[name][0]
+        params = self._tuning_cfg[name][1]
+
+        if typ == "categorical":
+            return trial.suggest_categorical(name, params)
+        elif typ == "discrete_uniform":
+            params = np.array(params).astype(float)
+            return trial.suggest_discrete_uniform(name, params[0], params[1], params[2])
+        elif typ == "float":
+            params = np.array(params).astype(float)
+            return trial.suggest_float(name, params[0], params[1])
+        elif typ == "int":
+            params = np.array(params).astype(int)
+            return trial.suggest_int(name, params[0], params[1])
+        elif typ == "loguniform":
+            params = np.array(params).astype(float)
+            return trial.suggest_loguniform(name, params[0], params[1])
+        elif typ == "uniform":
+            params = np.array(params).astype(float)
+            return trial.suggest_uniform(name, params[0], params[1])
+        else:
+            raise NameError
+
     def __call__(self, trial: optuna.Trial):
-        n_rnns = trial.suggest_int("n_rnns", 1, 3)
-        rnn_hidden_dim = trial.suggest_categorical("rnn_hidden_dim", [8, 16, 32])
-        rnn_dropout = trial.suggest_categorical("rnn_dropout", [0, 0.25, 0.5])
+        n_rnns = self._set_trial("n_rnns", trial)
+        rnn_hidden_dim = self._set_trial("rnn_hidden_dim", trial)
+        rnn_dropout = self._set_trial("rnn_dropout", trial)
 
         self._mdl_cfg["n_rnns"] = n_rnns
         self._mdl_cfg["rnn_hidden_dim"] = rnn_hidden_dim
         self._mdl_cfg["rnn_dropout"] = rnn_dropout
         model = init_model(self._mdl_cfg, self._device)
 
-        pos_weight = int(trial.suggest_discrete_uniform("pos_weight", 2, 8, 2))
+        pos_weight = int(self._set_trial("pos_weight", trial))
         loss = init_loss(pos_weight, self._device)
 
         optimizer_name = "Adam"
-        lr = trial.suggest_loguniform("lr", 1e-4, 1e-2)
-        weight_decay = trial.suggest_loguniform("weight_decay", 1e-5, 1e-3)
+        lr = self._set_trial("lr", trial)
+        weight_decay = self._set_trial("weight_decay", trial)
         optimizer = init_optimizer(optimizer_name, lr, weight_decay, model)
 
-        scheduler_rate = trial.suggest_uniform("scheduler_rate", 0.99, 1.0)
+        scheduler_rate = self._set_trial("scheduler_rate", trial)
         scheduler = init_scheduler(scheduler_rate, optimizer)
 
         model = train(
@@ -187,8 +216,16 @@ class Objective:
         return 1 - f1  # return error rate
 
 
-def parameter_tuning(mdl_cfg, train_loader, test_loader, epoch, trial_size, device):
-    objective = Objective(mdl_cfg, train_loader, test_loader, epoch, device)
+def parameter_tuning(
+    mdl_cfg: dict,
+    tuning_cfg: dict,
+    train_loader: torch.utils.data.DataLoader,
+    test_loader: torch.utils.data.DataLoader,
+    epoch: int,
+    trial_size: int,
+    device: str,
+):
+    objective = Objective(mdl_cfg, tuning_cfg, train_loader, test_loader, epoch, device)
     study = optuna.create_study(pruner=optuna.pruners.MedianPruner())
     study.optimize(
         objective, n_trials=trial_size, gc_after_trial=True, show_progress_bar=True
