@@ -173,7 +173,7 @@ class Objective:
         scheduler_rate = trial.suggest_uniform("scheduler_rate", 0.99, 1.0)
         scheduler = init_scheduler(scheduler_rate, optimizer)
 
-        train(
+        model = train(
             model,
             self._train_loader,
             loss,
