@@ -4,11 +4,11 @@ n_linears: 2
 hidden_dims:
 - 16
 - 8
-n_rnns: 3
-rnn_hidden_dim: 8
-rnn_dropout: 0.5
-pos_weight: 6.0
-lr: 0.0064055161273004375
-weight_decay: 1.8403007975739077e-05
-scheduler_rate: 0.9953401502427258
+n_rnns: 2
+rnn_hidden_dim: 128
+rnn_dropout: 0.30000000000000004
+pos_weight: 8.0
+lr: 0.009786035542576245
+weight_decay: 7.353560330475696e-05
+scheduler_rate: 0.9970096062015013
 pretrained_path: models/passing/pass_model_lstm_ep30.pth
