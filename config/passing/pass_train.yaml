@@ -24,7 +24,7 @@ tuning_params:
   lr: ["loguniform", [1e-4, 1e-2]]
   weight_decay: ["loguniform", [1e-5, 1e-3]]
   scheduler_rate: ["uniform", [0.99, 1.0]]
-  f_beta: 2.0
+  f_beta: 2.0  # for objective func
 
 dataset:
   batch_size: 1024
