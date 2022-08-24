@@ -1,6 +1,6 @@
 import time
 from logging import Logger
-from typing import Tuple, Union
+from typing import Tuple
 
 import numpy as np
 import optuna
@@ -21,22 +21,11 @@ def init_loss(pos_weight, device) -> nn.BCEWithLogitsLoss:
     return criterion
 
 
-def init_optimizer(
-    optimizer_name, lr, weight_decay, model
-) -> Union[optim.Adam, optim.SGD, optim.RMSprop]:
+def init_optimizer(lr, weight_decay, model) -> optim.Adam:
     lr = float(lr)
     weight_decay = float(weight_decay)
 
-    if optimizer_name == "Adam":
-        return optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
-    elif optimizer_name == "SGD":
-        return optim.SGD(
-            model.parameters(), lr=lr, momentum=0.9, weight_decay=weight_decay
-        )
-    elif optimizer_name == "rmsprop":
-        return optim.RMSprop(model.parameters())
-    else:
-        raise NameError
+    return optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
 
 
 def init_scheduler(rate, optimizer) -> optim.lr_scheduler.LambdaLR:
@@ -50,7 +39,7 @@ def train(
     model: LSTMModel,
     train_loader: torch.utils.data.DataLoader,
     criterion: nn.BCEWithLogitsLoss,
-    optimizer: Union[optim.Adam, optim.SGD, optim.RMSprop],
+    optimizer: optim.Adam,
     scheduler: optim.lr_scheduler.LambdaLR,
     epoch_len: int,
     device: str,
@@ -123,16 +112,16 @@ def test(
             preds += pred
             y_all += y
 
-    try:
+    if 1 in preds:
         acc = accuracy_score(y_all, preds)
         pre = precision_score(y_all, preds)
         rcl = recall_score(y_all, preds)
         f1 = f1_score(y_all, preds)
-    except ZeroDivisionError:
+    else:
         acc = np.nan
         pre = np.nan
         rcl = np.nan
-        f1 = np.nan
+        f1 = 0.0
 
     if logger is not None:
         logger.info(f"accuracy: {acc}")
@@ -194,10 +183,9 @@ class Objective:
         pos_weight = self._set_trial("pos_weight", trial)
         loss = init_loss(int(pos_weight), self._device)
 
-        optimizer_name = "Adam"
         lr = self._set_trial("lr", trial)
         weight_decay = self._set_trial("weight_decay", trial)
-        optimizer = init_optimizer(optimizer_name, lr, weight_decay, model)
+        optimizer = init_optimizer(lr, weight_decay, model)
 
         scheduler_rate = self._set_trial("scheduler_rate", trial)
         scheduler = init_scheduler(scheduler_rate, optimizer)
@@ -213,7 +201,7 @@ class Objective:
         )
         _, _, _, f1 = test(model, self._test_loader, self._device)
 
-        return 1 - f1  # return error rate
+        return f1
 
 
 def parameter_tuning(
@@ -231,6 +219,7 @@ def parameter_tuning(
     study = optuna.create_study(
         study_name=study_name,
         storage=db_path,
+        direction="maximize",
         load_if_exists=True,
         pruner=optuna.pruners.MedianPruner(),
     )

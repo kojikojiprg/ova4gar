@@ -132,7 +132,7 @@ def main():
     logger.info("=> start training")
     model = init_model(mdl_cfg, device)
     criterion = init_loss(mdl_cfg["pos_weight"], device)
-    optimizer = init_optimizer("Adam", mdl_cfg["lr"], mdl_cfg["weight_decay"], model)
+    optimizer = init_optimizer(mdl_cfg["lr"], mdl_cfg["weight_decay"], model)
     scheduler = init_scheduler(mdl_cfg["scheduler_rate"], optimizer)
     model = train(
         model,
