@@ -6,7 +6,13 @@ import numpy as np
 import optuna
 import torch
 from group.passing.lstm_model import LSTMModel
-from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
+from sklearn.metrics import (
+    accuracy_score,
+    f1_score,
+    fbeta_score,
+    precision_score,
+    recall_score,
+)
 from torch import nn, optim
 
 
@@ -100,7 +106,8 @@ def test(
     test_loader: torch.utils.data.DataLoader,
     device: str,
     logger: Logger = None,
-) -> Tuple[float, float, float, float]:
+    beta: float = 2.0,
+) -> Tuple[float, float, float, float, float]:
     model.eval()
     preds, y_all = [], []
     with torch.no_grad():
@@ -117,11 +124,13 @@ def test(
         pre = precision_score(y_all, preds)
         rcl = recall_score(y_all, preds)
         f1 = f1_score(y_all, preds)
+        fb = fbeta_score(y_all, preds, beta=beta)  # for objective func
     else:
         acc = np.nan
         pre = np.nan
         rcl = np.nan
         f1 = 0.0
+        fb = 0.0
 
     if logger is not None:
         logger.info(f"accuracy: {acc}")
@@ -129,7 +138,7 @@ def test(
         logger.info(f"recall: {rcl}")
         logger.info(f"f1: {f1}")
 
-    return acc, pre, rcl, f1
+    return acc, pre, rcl, f1, fb
 
 
 class Objective:
@@ -199,9 +208,11 @@ class Objective:
             self._epoch,
             self._device,
         )
-        _, _, _, f1 = test(model, self._test_loader, self._device)
+        _, _, _, _, fb = test(
+            model, self._test_loader, self._device, beta=self._tuning_cfg["f_beta"]
+        )
 
-        return f1
+        return fb
 
 
 def parameter_tuning(
