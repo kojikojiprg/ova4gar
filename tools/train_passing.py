@@ -21,6 +21,8 @@ from group.passing.train_api import (
 from utility.activity_loader import load_individuals
 from utility.logger import logger
 
+torch.manual_seed(0)  # fix random seed for pytorch
+
 
 def _setup_parser():
     parser = argparse.ArgumentParser()
