@@ -22,8 +22,8 @@ tuning_params:
   rnn_dropout: ["discrete_uniform", [0.0, 0.5, 0.05]]
   pos_weight: ["discrete_uniform", [2, 8, 2]]
   lr: ["loguniform", [1e-4, 1e-2]]
-  weight_decay: ["loguniform", [1e-5, 1e-3]]
-  scheduler_rate: ["uniform", [0.99, 1.0]]
+  weight_decay: ["loguniform", [1e-6, 1e-4]]
+  scheduler_rate: ["uniform", [0.98, 1.0]]
   f_beta: 8.0  # for objective func
 
 dataset:
