@@ -1,0 +1,14 @@
+n_classes: 2
+size: 4
+n_linears: 2
+hidden_dims:
+- 16
+- 8
+n_rnns: 3
+rnn_hidden_dim: 8
+rnn_dropout: 0.25
+pos_weight: 8.0
+lr: 0.002497976734052322
+weight_decay: 3.420923433716575e-05
+scheduler_rate: 0.9919657610206916
+pretrained_path: models/passing/pass_model_lstm_ep50.pth
