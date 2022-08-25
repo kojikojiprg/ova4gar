@@ -51,7 +51,7 @@ def train(
     device: str,
     val_loader: torch.utils.data.DataLoader = None,
     logger: Logger = None,
-) -> LSTMModel:
+):
     history: dict = dict(train=[], val=[])
     for epoch in range(1, epoch_len + 1):
         ts = time.time()
@@ -97,8 +97,6 @@ def train(
                 f"Epoch[{epoch}/{(epoch_len)}] train loss: {train_loss:.5f}, "
                 + f"val loss: {val_loss:.5f}, lr: {lr:.7f}, time: {te - ts:.2f}"
             )
-
-    return model
 
 
 def test(
@@ -150,6 +148,7 @@ class Objective:
         test_loader: torch.utils.data.DataLoader,
         epoch: int,
         device: str,
+        study: optuna.Study,
     ):
         self._mdl_cfg = mdl_cfg
         self._tuning_cfg = tuning_cfg
@@ -157,6 +156,15 @@ class Objective:
         self._test_loader = test_loader
         self._epoch = epoch
         self._device = device
+
+        try:
+            self._best_score = study.best_value
+            self._best_model = init_model(mdl_cfg, device)
+            param = torch.load(mdl_cfg["pretrained_path"])
+            self._best_model.load_state_dict(param)
+        except ValueError:
+            self._best_score = 0.0
+            self._best_model = None
 
     def _set_trial(self, name: str, trial: optuna.Trial):
         typ = self._tuning_cfg[name][0]
@@ -179,6 +187,19 @@ class Objective:
         else:
             raise NameError
 
+    @property
+    def best_model(self) -> LSTMModel:
+        return self._best_model
+
+    @property
+    def best_score(self) -> float:
+        return self._best_score
+
+    def _update_best_model(self, model, score):
+        if self._best_score < score:
+            self._best_score = score
+            self._best_model = model
+
     def __call__(self, trial: optuna.Trial):
         n_rnns = self._set_trial("n_rnns", trial)
         rnn_hidden_dim = self._set_trial("rnn_hidden_dim", trial)
@@ -199,7 +220,7 @@ class Objective:
         scheduler_rate = self._set_trial("scheduler_rate", trial)
         scheduler = init_scheduler(scheduler_rate, optimizer)
 
-        model = train(
+        train(
             model,
             self._train_loader,
             loss,
@@ -211,6 +232,8 @@ class Objective:
         _, _, _, _, fb = test(
             model, self._test_loader, self._device, beta=self._tuning_cfg["f_beta"]
         )
+
+        self._update_best_model(model, fb)
 
         return fb
 
@@ -224,8 +247,7 @@ def parameter_tuning(
     trial_size: int,
     device: str,
     db_path: str,
-):
-    objective = Objective(mdl_cfg, tuning_cfg, train_loader, test_loader, epoch, device)
+) -> LSTMModel:
     study_name = f"passing_ep{epoch}"
     study = optuna.create_study(
         study_name=study_name,
@@ -234,8 +256,12 @@ def parameter_tuning(
         load_if_exists=True,
         pruner=optuna.pruners.MedianPruner(),
     )
+
+    objective = Objective(
+        mdl_cfg, tuning_cfg, train_loader, test_loader, epoch, device, study
+    )
     study.optimize(
         objective, n_trials=trial_size, gc_after_trial=True, show_progress_bar=True
     )
 
-    return study.best_params
+    return objective.best_model

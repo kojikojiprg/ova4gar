@@ -110,13 +110,14 @@ def main():
         logger.info(f"=> model config {mdl_cfg_path} was not found")
         # initial model config
         mdl_cfg = train_cfg["default"]
-        logger.info(f"=> model config is initialized {mdl_cfg}")
+        if not args.parameter_tuning:
+            logger.info(f"=> model config is initialized {mdl_cfg}")
 
     if args.parameter_tuning:
         # parameter tuning
         logger.info("=> start parameter tuning")
         tuning_cfg = train_cfg["tuning_params"]
-        best_params = parameter_tuning(
+        model = parameter_tuning(
             mdl_cfg,
             tuning_cfg,
             train_loader,
@@ -126,29 +127,27 @@ def main():
             device,
             args.db_path,
         )
-        mdl_cfg.update(best_params)
-
-    # training
-    logger.info("=> start training")
-    model = init_model(mdl_cfg, device)
-    criterion = init_loss(mdl_cfg["pos_weight"], device)
-    optimizer = init_optimizer(mdl_cfg["lr"], mdl_cfg["weight_decay"], model)
-    scheduler = init_scheduler(mdl_cfg["scheduler_rate"], optimizer)
-    model = train(
-        model,
-        train_loader,
-        criterion,
-        optimizer,
-        scheduler,
-        args.epoch,
-        device,
-        val_loader=test_loader,
-        logger=logger,
-    )
-
-    # test
-    logger.info("=> testing")
-    test(model, test_loader, device, logger)
+    else:
+        # training
+        logger.info("=> start training")
+        model = init_model(mdl_cfg, device)
+        criterion = init_loss(mdl_cfg["pos_weight"], device)
+        optimizer = init_optimizer(mdl_cfg["lr"], mdl_cfg["weight_decay"], model)
+        scheduler = init_scheduler(mdl_cfg["scheduler_rate"], optimizer)
+        train(
+            model,
+            train_loader,
+            criterion,
+            optimizer,
+            scheduler,
+            args.epoch,
+            device,
+            val_loader=test_loader,
+            logger=logger,
+        )
+        # test
+        logger.info("=> testing")
+        test(model, test_loader, device, logger)
 
     # save model
     model_path = f"models/passing/pass_model_lstm_ep{args.epoch}.pth"
