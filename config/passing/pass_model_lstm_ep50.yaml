@@ -5,8 +5,8 @@ hidden_dims:
 - 16
 - 8
 n_rnns: 3
-rnn_hidden_dim: 8
-rnn_dropout: 0.25
+rnn_hidden_dim: 16
+rnn_dropout: 0.45
 pos_weight: 8.0
 lr: 0.002497976734052322
 weight_decay: 3.420923433716575e-05
