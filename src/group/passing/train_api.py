@@ -165,6 +165,7 @@ class Objective:
         except ValueError:
             self._best_score = 0.0
             self._best_model = None
+        self._best_mdl_cfg = mdl_cfg
 
     def _set_trial(self, name: str, trial: optuna.Trial):
         typ = self._tuning_cfg[name][0]
@@ -188,19 +189,27 @@ class Objective:
             raise NameError
 
     @property
+    def best_score(self) -> float:
+        return self._best_score
+
+    @property
     def best_model(self) -> LSTMModel:
         return self._best_model
 
     @property
-    def best_score(self) -> float:
-        return self._best_score
+    def best_model_config(self) -> dict:
+        return self._best_mdl_cfg
 
-    def _update_best_model(self, model, score):
+    def _update_best_model(self, model: LSTMModel, score: float):
         if self._best_score < score:
             self._best_score = score
             self._best_model = model
+            self._best_mdl_cfg = self._mdl_cfg
 
     def __call__(self, trial: optuna.Trial):
+        torch.manual_seed(self._tuning_cfg["random_seed"])
+        torch.cuda.manual_seed_all(self._tuning_cfg["random_seed"])
+
         n_rnns = self._set_trial("n_rnns", trial)
         rnn_hidden_dim = self._set_trial("rnn_hidden_dim", trial)
         rnn_dropout = self._set_trial("rnn_dropout", trial)
@@ -247,7 +256,7 @@ def parameter_tuning(
     trial_size: int,
     device: str,
     db_path: str,
-) -> LSTMModel:
+) -> Tuple[LSTMModel, dict]:
     study_name = f"passing_ep{epoch}"
     study = optuna.create_study(
         study_name=study_name,
@@ -260,8 +269,11 @@ def parameter_tuning(
     objective = Objective(
         mdl_cfg, tuning_cfg, train_loader, test_loader, epoch, device, study
     )
-    study.optimize(
-        objective, n_trials=trial_size, gc_after_trial=True, show_progress_bar=True
-    )
+    try:
+        study.optimize(
+            objective, n_trials=trial_size, gc_after_trial=True, show_progress_bar=True
+        )
+    except KeyboardInterrupt:
+        pass
 
-    return objective.best_model
+    return objective.best_model, objective.best_model_config

@@ -21,8 +21,6 @@ from group.passing.train_api import (
 from utility.activity_loader import load_individuals
 from utility.logger import logger
 
-torch.manual_seed(0)
-
 
 def _setup_parser():
     parser = argparse.ArgumentParser()
@@ -119,7 +117,7 @@ def main():
         # parameter tuning
         logger.info("=> start parameter tuning")
         tuning_cfg = train_cfg["tuning_params"]
-        model = parameter_tuning(
+        model, mdl_cfg = parameter_tuning(
             mdl_cfg,
             tuning_cfg,
             train_loader,
@@ -129,6 +127,7 @@ def main():
             device,
             args.db_path,
         )
+        logger.info("=> finish parameter tuning")
     else:
         # training
         logger.info("=> start training")
@@ -147,6 +146,7 @@ def main():
             val_loader=test_loader,
             logger=logger,
         )
+        logger.info("=> finish training")
         # test
         logger.info("=> testing")
         test(model, test_loader, device, logger)
@@ -155,10 +155,13 @@ def main():
     model_path = f"models/passing/pass_model_lstm_ep{args.epoch}.pth"
     logger.info(f"=> saving model {model_path}")
     torch.save(model.state_dict(), model_path)
-    logger.info(f"=> saving model config to {mdl_cfg_path}")
-    mdl_cfg["pretrained_path"] = model_path
-    with open(mdl_cfg_path, "w") as f:
-        yaml.dump(mdl_cfg, f, sort_keys=False)
+
+    # save model config after parameter tuning
+    if args.parameter_tuning:
+        logger.info(f"=> saving model config to {mdl_cfg_path}")
+        mdl_cfg["pretrained_path"] = model_path
+        with open(mdl_cfg_path, "w") as f:
+            yaml.dump(mdl_cfg, f, sort_keys=False)
 
 
 if __name__ == "__main__":
