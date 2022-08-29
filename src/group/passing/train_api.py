@@ -139,7 +139,7 @@ def test(
     return acc, pre, rcl, f1, fb
 
 
-class Objective:
+class Tuner:
     def __init__(
         self,
         mdl_cfg: dict,
@@ -206,7 +206,7 @@ class Objective:
             self._best_model = model
             self._best_mdl_cfg = self._mdl_cfg
 
-    def __call__(self, trial: optuna.Trial):
+    def objective(self, trial: optuna.Trial):
         torch.manual_seed(self._tuning_cfg["random_seed"])
         torch.cuda.manual_seed_all(self._tuning_cfg["random_seed"])
 
@@ -266,14 +266,15 @@ def parameter_tuning(
         pruner=optuna.pruners.MedianPruner(),
     )
 
-    objective = Objective(
-        mdl_cfg, tuning_cfg, train_loader, test_loader, epoch, device, study
-    )
+    tuner = Tuner(mdl_cfg, tuning_cfg, train_loader, test_loader, epoch, device, study)
     try:
         study.optimize(
-            objective, n_trials=trial_size, gc_after_trial=True, show_progress_bar=True
+            tuner.objective,
+            n_trials=trial_size,
+            gc_after_trial=True,
+            show_progress_bar=True,
         )
     except KeyboardInterrupt:
         pass
 
-    return objective.best_model, objective.best_model_config
+    return tuner.best_model, tuner.best_model_config
