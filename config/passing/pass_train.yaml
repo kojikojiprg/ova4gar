@@ -25,9 +25,10 @@ tuning_params:
   weight_decay: ["loguniform", [1e-6, 1e-4]]
   scheduler_rate: ["uniform", [0.98, 1.0]]
   f_beta: 8.0  # for objective func
+  random_seed: 256  # for objective func
 
 dataset:
-  batch_size: 1024
+  batch_size: 4096
   train_ratio: 0.8
   random_seed: 256
   setting:
