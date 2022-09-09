@@ -1,15 +1,12 @@
 import gc
 import os
 from logging import Logger
-from typing import Any, Dict, List
 
 import torch
 from numpy.typing import NDArray
 from tqdm import tqdm
 from utility import json_handler
 from utility.activity_loader import load_individuals
-from utility.video import Capture, Writer, concat_field_with_frame
-from visualize.individual import write_field as individual_vis
 
 from group.group import Group
 
@@ -30,7 +27,8 @@ class GroupAnalyzer:
         # load individual data from json file
         ind_json_path = os.path.join(data_dir, ".json", "individual.json")
         self._logger.info(f"=> load individual data from {ind_json_path}")
-        inds, last_frame_num = load_individuals(ind_json_path, self._ind_cfg)
+        inds = load_individuals(ind_json_path, self._ind_cfg)
+        last_frame_num = max([ind.last_frame_num for ind in inds.values()])
 
         # create group class
         self._logger.info(f"=> construct group activity model for {data_dir}")

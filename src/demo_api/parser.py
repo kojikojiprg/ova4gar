@@ -22,32 +22,38 @@ def _common_parser():
         help="config file path.",
     )
     parser.add_argument(
-        "-g",
         "--gpu",
         type=int,
         default=0,
         help="gpu number",
     )
     parser.add_argument(
-        "-wk",
-        "--without_keypoint",
+        "-k",
+        "--keypoint",
         default=False,
         action="store_true",
-        help="without keypoint extraction",
+        help="with keypoint extraction",
     )
     parser.add_argument(
-        "-wi",
-        "--without_individual",
+        "-i",
+        "--individual",
         default=False,
         action="store_true",
-        help="without idividual analyzation",
+        help="with idividual analyzation",
     )
     parser.add_argument(
-        "-wg",
-        "--without_group",
+        "-g",
+        "--group",
         default=False,
         action="store_true",
         help="without group analyzation",
+    )
+    parser.add_argument(
+        "-v",
+        "--video",
+        default=False,
+        action="store_true",
+        help="with writing video",
     )
     return parser
 
@@ -62,6 +68,11 @@ def surgery_parser():
         required=True,
         type=str,
         help="surgery number of each room",
+    )
+
+    # options
+    parser.add_argument(
+        "-ex", "--expand_name", type=str, default="", help="'passing' or 'attention'"
     )
 
     return parser.parse_args()

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Tuple, overload
+from typing import Any, Dict, Tuple
 
 import numpy as np
 from keypoint.keypoint import Keypoints

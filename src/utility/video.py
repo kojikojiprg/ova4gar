@@ -1,5 +1,6 @@
 import gc
 import os
+from typing import Tuple, Union
 
 import cv2
 import numpy as np
@@ -24,8 +25,9 @@ class Capture:
         gc.collect()
 
     @property
-    def frame_count(self):
+    def frame_count(self) -> int:
         # cv2.CAP_PROP_FRAME_COUNT is not correct.
+        self.set_pos_frame_count(0)  # initialize
         count: int = 0
         ret, frame = self._cap.read()
         while ret:
@@ -37,7 +39,7 @@ class Capture:
         return count
 
     @property
-    def is_opened(self):
+    def is_opened(self) -> bool:
         return self._cap.isOpened()
 
     def set_pos_frame_count(self, idx: int):
@@ -46,7 +48,7 @@ class Capture:
     def set_pos_frame_time(self, begin_sec: int):
         self._cap.set(cv2.CAP_PROP_POS_FRAMES, begin_sec * self.fps)
 
-    def read(self, idx: int = None):
+    def read(self, idx: int = None) -> Tuple[bool, Union[NDArray, None]]:
         if idx is not None:
             self.set_pos_frame_count(idx)
 
@@ -82,13 +84,15 @@ class Writer:
             self._writer.write(frame)
 
 
-def concat_field_with_frame(frame: NDArray, field: NDArray):
+def concat_field_with_frame(frame: NDArray, field: NDArray) -> NDArray:
     ratio = 1 - (field.shape[0] - frame.shape[0]) / field.shape[0]
     size = [round(field.shape[1] * ratio), round(field.shape[0] * ratio)]
-    # if frame.shape[0] != size[1]:
-    #     # 丸め誤差が起きる
-    #     size[1] = frame.shape[0]
     field = cv2.resize(field, size)
     frame = np.concatenate([frame, field], axis=1)
 
     return frame
+
+
+def get_size(frame: NDArray, field: NDArray) -> Tuple[int, ...]:
+    cmb_img = concat_field_with_frame(frame, field)
+    return cmb_img.shape[1::-1]

@@ -1,5 +1,7 @@
+import os
+from glob import glob
 from logging import Logger
-from typing import Dict, Tuple
+from typing import Dict, List
 
 from group.group import Group
 from individual.individual import Individual
@@ -9,19 +11,29 @@ from numpy.typing import NDArray
 from utility import json_handler
 
 
-def load_individuals(json_path: str, cfg: dict) -> Tuple[Dict[int, Individual], int]:
+def get_data_dirs(room_num: str, surgery_num: str, expand_name: str = "") -> List[str]:
+    data_dirs = []
+    for data_dir in sorted(
+        glob(os.path.join("data", room_num, surgery_num, expand_name, "*"))
+    ):
+        if data_dir.endswith("passing") or data_dir.endswith("attention"):
+            continue
+        data_dirs.append(data_dir)
+
+    return data_dirs
+
+
+def load_individuals(json_path: str, cfg: dict) -> Dict[int, Individual]:
     defs = IndividualAnalyzer.load_default(cfg)
     inds = {}
-    last_frame_num = 0
     json_data = json_handler.load(json_path)
     for item in json_data:
         frame_num = item["frame"]
         if item["id"] not in inds:
             inds[item["id"]] = Individual(item["id"], defs)
         inds[item["id"]].from_json(item, frame_num)
-        last_frame_num = max(last_frame_num, frame_num)
 
-    return inds, last_frame_num
+    return inds
 
 
 def load_group(

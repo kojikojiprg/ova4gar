@@ -9,6 +9,14 @@ def load(json_path):
     data = {}
     with open(json_path, "r") as f:
         data = json.load(f)
+
+    # convert frame number to int in group data
+    if "group" in os.path.basename(json_path):
+        data = {
+            k: {int(frame_num): lst for frame_num, lst in v.items()}
+            for k, v in data.items()
+        }
+
     return data
 
 

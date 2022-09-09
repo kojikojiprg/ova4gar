@@ -12,9 +12,8 @@ from utility.functions import cos_similarity, gauss
 
 
 class PassingDataset(torch.utils.data.Dataset):
-    def __init__(self, x_dict, y_dict, seq_len, logger):
+    def __init__(self, x_dict, y_dict, seq_len):
         self.x, self.y = [], []
-        logger.info("=> create dataset")
         for key in tqdm(x_dict.keys()):
             x_lst = x_dict[key]
             y_lst = y_dict[key]
@@ -49,9 +48,8 @@ def make_data_loader(
     seq_len: int,
     batch_size: int,
     shuffle: bool,
-    logger: Logger,
 ):
-    dataset = PassingDataset(x_dict, y_dict, seq_len, logger)
+    dataset = PassingDataset(x_dict, y_dict, seq_len)
     loader = torch.utils.data.DataLoader(
         dataset, batch_size=batch_size, shuffle=shuffle, num_workers=8, pin_memory=True
     )
@@ -71,33 +69,47 @@ def make_data_loaders(
     seq_len = passing_defs["seq_len"]
     batch_size = cfg["batch_size"]
 
-    train_ratio = cfg["train_ratio"]
-    val_ratio = cfg["val_ratio"]
-    train_len = int(len(x_dict) * train_ratio)
-    val_len = int(len(x_dict) * val_ratio)
-
     np.random.seed(cfg["random_seed"])
-    random_keys = np.random.choice(list(x_dict.keys()), size=len(x_dict), replace=False)
+    keys_1 = [key for key in x_dict if 1 in y_dict[key]]
+    keys_0 = [key for key in x_dict if 1 not in y_dict[key]]
+    random_keys_1 = np.random.choice(keys_1, size=len(keys_1), replace=False)
+    random_keys_0 = np.random.choice(keys_0, size=len(keys_0), replace=False)
 
-    train_keys = random_keys[:train_len]
-    val_keys = random_keys[train_len : train_len + val_len]
-    test_keys = random_keys[train_len + val_len :]
+    train_ratio = cfg["train_ratio"]
+    train_len_1 = int(len(keys_1) * train_ratio)
+    train_len_0 = int(len(keys_0) * train_ratio)
 
-    x_train_dict = {key: x_dict[key] for key in train_keys}
-    y_train_dict = {key: y_dict[key] for key in train_keys}
-    train_loader = make_data_loader(
-        x_train_dict, y_train_dict, seq_len, batch_size, True, logger
-    )
+    train_keys_1 = random_keys_1[:train_len_1].tolist()
+    test_keys_1 = random_keys_1[train_len_1:].tolist()
+    train_keys_0 = random_keys_0[:train_len_0].tolist()
+    test_keys_0 = random_keys_0[train_len_0:].tolist()
 
-    x_val_dict = {key: x_dict[key] for key in val_keys}
-    y_val_dict = {key: y_dict[key] for key in val_keys}
-    val_loader = make_data_loader(x_val_dict, y_val_dict, seq_len, 1, False, logger)
+    train_keys = train_keys_1 + train_keys_0
+    test_keys = test_keys_1 + test_keys_0
 
-    x_test_dict = {key: x_dict[key] for key in test_keys}
-    y_test_dict = {key: y_dict[key] for key in test_keys}
-    test_loader = make_data_loader(x_test_dict, y_test_dict, seq_len, 1, False, logger)
+    if len(train_keys) > 0:
+        logger.info("=> create train loader")
+        x_train_dict = {key: x_dict[key] for key in train_keys}
+        y_train_dict = {key: y_dict[key] for key in train_keys}
+        train_loader = make_data_loader(
+            x_train_dict, y_train_dict, seq_len, batch_size, True
+        )
+    else:
+        logger.info("=> skip creating train loader")
+        train_loader = None
 
-    return train_loader, val_loader, test_loader
+    if len(test_keys) > 0:
+        logger.info("=> create test loader")
+        x_test_dict = {key: x_dict[key] for key in test_keys}
+        y_test_dict = {key: y_dict[key] for key in test_keys}
+        test_loader = make_data_loader(
+            x_test_dict, y_test_dict, seq_len, batch_size, False
+        )
+    else:
+        logger.info("=> skip creating test loader")
+        test_loader = None
+
+    return train_loader, test_loader
 
 
 def make_all_data(
@@ -113,20 +125,13 @@ def make_all_data(
         for surgery_num, surgery_data in room_data.items():
             logger.info(f"=> extracting feature {room_num}_{surgery_num}")
             for data_num, time_series in tqdm(surgery_data.items()):
-                queue_dict: Dict[str, list] = {}
+                keys = []
                 for pair_key, row in time_series.items():
                     id1, id2 = pair_key.split("_")
+                    feature_que: list = []
                     for (frame_num, is_pass) in row:
-                        # frame_num, is_pass = row[0], row[1]
-
                         ind1 = individuals[f"{room_num}_{surgery_num}_{data_num}_{id1}"]
                         ind2 = individuals[f"{room_num}_{surgery_num}_{data_num}_{id2}"]
-
-                        # queue
-                        pair_key = f"{ind1.id}_{ind2.id}"
-                        if pair_key not in queue_dict:
-                            queue_dict[pair_key] = []
-                        feature_que = queue_dict[pair_key]
 
                         # extract feature
                         feature_que = extract_feature(
@@ -139,14 +144,23 @@ def make_all_data(
                         )
 
                         # save data
-                        key = f"{room_num}_{surgery_num}_{data_num}_{ind1.id}_{ind2.id}"
+                        key = f"{room_num}_{surgery_num}_{data_num}_{pair_key}"
                         if key not in x_dict:
+                            keys.append(key)
                             x_dict[key] = []
                             y_dict[key] = []
 
                         if len(feature_que) > 0:
                             x_dict[key].append(feature_que[-1])
                             y_dict[key].append(is_pass)
+
+                # delete long distance data
+                for key in keys:
+                    distance = np.array(x_dict[key])
+                    mean = np.mean(distance)
+                    if mean > passing_defs["dist_max"] and 1 not in y_dict[key]:
+                        del x_dict[key]
+                        del y_dict[key]
 
     return x_dict, y_dict
 
@@ -155,10 +169,10 @@ def _make_time_series_from_cfg(dataset_cfg: dict, logger: Logger):
     ret_data = {}
     for room_num, room_cfg in dataset_cfg.items():
         room_data = {}
-        for surgery_num, date_cfg in room_cfg.items():
+        for surgery_num, surgery_cfg in room_cfg.items():
             logger.info(f"=> createing time series {room_num}_{surgery_num}")
             surgery_data = {}
-            for data_num, row in tqdm(date_cfg.items()):
+            for data_num, row in tqdm(surgery_cfg.items()):
                 settings = []
                 for item in row:
                     settings.append(
@@ -183,15 +197,16 @@ def _make_time_series_from_cfg(dataset_cfg: dict, logger: Logger):
 
                 max_frame = kps_data[-1]["frame"]
                 time_series: Dict[str, list] = {}
-                for frame_num in range(max_frame):
+                for frame_num in range(1, max_frame + 1):
                     frame_data = [
                         data for data in kps_data if data["frame"] == frame_num
                     ]
 
                     for i in range(len(frame_data) - 1):
                         for j in range(i + 1, len(frame_data)):
-                            id1 = frame_data[i]["id"]
-                            id2 = frame_data[j]["id"]
+                            [id1, id2] = sorted(
+                                [frame_data[i]["id"], frame_data[j]["id"]]
+                            )
 
                             pair_key = f"{id1}_{id2}"
                             if pair_key not in time_series:
@@ -207,6 +222,7 @@ def _make_time_series_from_cfg(dataset_cfg: dict, logger: Logger):
                                         and frame_num <= item["end"]
                                     ):
                                         is_pass = 1
+                                        break
 
                             time_series[pair_key].append((frame_num, is_pass))
 
@@ -224,7 +240,7 @@ def _get_indicators(ind: Individual, frame_num: int):
         ind.get_keypoints("LWrist", frame_num),
         ind.get_keypoints("RWrist", frame_num),
     )
-    ret = SimpleNamespace(**{"pos": pos, "body": body, "arm": arm, "wrist": wrist})
+    ret = {"pos": pos, "body": body, "arm": arm, "wrist": wrist}
     return ret
 
 
@@ -240,8 +256,9 @@ def extract_feature(
     ind1_data = _get_indicators(ind1, frame_num)
     ind2_data = _get_indicators(ind2, frame_num)
 
-    if None in ind1_data.__dict__.values() or None in ind2_data.__dict__.values():
-        return que
+    # if not (None in ind1_data.values() or None in ind2_data.values()):
+    ind1_data = SimpleNamespace(**ind1_data)
+    ind2_data = SimpleNamespace(**ind2_data)
 
     # calc distance of position
     p1_pos = np.array(ind1_data.pos)
@@ -255,24 +272,24 @@ def extract_feature(
 
     p1p2_sim = cos_similarity(ind1_data.body, p1p2)
     p2p1_sim = cos_similarity(ind2_data.body, p2p1)
-    body_distance = (np.average([p1p2_sim, p2p1_sim]) + 1) / 2
+    body_direction = (np.average([p1p2_sim, p2p1_sim]) + 1) / 2
 
     # calc arm average
     arm_ave = np.average([ind1_data.arm, ind2_data.arm])
 
     # calc wrist distance
-    min_norm = np.inf
+    wrist_norm = np.inf
     for i in range(2):
         for j in range(2):
-            norm = np.linalg.norm(
+            tmp_norm = np.linalg.norm(
                 np.array(ind1_data.wrist[i]) - np.array(ind2_data.wrist[j]), ord=2
             )
-            min_norm = float(norm) if norm < min_norm else min_norm
+            wrist_norm = min(wrist_norm, float(tmp_norm))
 
-    wrist_distance = gauss(min_norm, mu=defs["wrist_mu"], sigma=defs["wrist_sig"])
+    wrist_distance = gauss(wrist_norm, mu=defs["wrist_mu"], sigma=defs["wrist_sig"])
 
     # concatnate to feature
-    feature = [distance, body_distance, arm_ave, wrist_distance]
+    feature = [distance, body_direction, arm_ave, wrist_distance]
     que.append(feature)
 
     if len(que) < defs["seq_len"]:

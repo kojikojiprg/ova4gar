@@ -20,8 +20,12 @@ class Individual:
 
         self._kps_dict: Dict[int, Keypoints] = {}
         self._kps_que: KeypointQue = KeypointQue(defaults["keypoint"])
-        self._idc_dict: Dict[str, Any] = {k: {} for k in self._keys}
+        self._idc_dict: Dict[str, Dict[int, Any]] = {k: {} for k in self._keys}
         self._idc_que: Dict[str, Que] = {k: Que(self._defs[k]) for k in self._keys}
+
+    @property
+    def last_frame_num(self):
+        return max(self._kps_dict.keys())
 
     def calc_indicator(self, frame_num: int, kps: Any, homo: Homography):
         # calc keypoints
@@ -49,6 +53,12 @@ class Individual:
             return self._idc_dict[key][frame_num]
         else:
             return None
+
+    def get_indicator_all(self, key: str) -> Dict[int, Any]:
+        if key not in self._keys:
+            raise KeyError
+
+        return self._idc_dict[key]
 
     def get_keypoints(
         self, key: str, frame_num: int, ignore_confidence: bool = True

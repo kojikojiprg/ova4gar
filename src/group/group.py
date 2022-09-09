@@ -31,7 +31,9 @@ class Group:
         self._logger = logger
 
         # dcreate indicator values
-        self._idc_dict: Dict[str, List[Dict[str, Any]]] = {k: [] for k in self._keys}
+        self._idc_dict: Dict[str, Dict[int, List[Dict[str, Any]]]] = {
+            k: {} for k in self._keys
+        }
         self._idc_que: Dict[str, Any] = {
             "attention": [],
             "passing": {},
@@ -71,41 +73,39 @@ class Group:
 
     @property
     def passing(self) -> Dict[str, List[int]]:
-        data = self._idc_dict["passing"]
+        passing_dict = self._idc_dict["passing"]
 
         data_dict: Dict[str, List[int]] = {}
-        for row in data:
-            frame_num = row["frame"]
-            persons = row["persons"]
+        for frame_num, data in tqdm(passing_dict.items()):
+            for row in tqdm(data, leave=False):
+                persons = row["persons"]
 
-            pair_key = f"{persons[0]}_{persons[1]}"
-            if pair_key not in data_dict:
-                data_dict[pair_key] = []
+                pair_key = f"{persons[0]}_{persons[1]}"
+                if pair_key not in data_dict:
+                    data_dict[pair_key] = []
 
-            data_dict[pair_key].append(frame_num)
+                data_dict[pair_key].append(int(frame_num))
 
         return data_dict
 
     @property
     def attention(self) -> Dict[int, NDArray]:
-        self._logger.info("=> loading attention result")
-        all_data = self._idc_dict["attention"]
+        attention_dict = self._idc_dict["attention"]
 
         shape = tuple(
             np.array(self._field.shape[1::-1]) // self._defs["attention"]["division"]
             + 1
         )
 
-        heatmap_dict = {}
-        for data in tqdm(all_data):
-            frame_num = data["frame"]
-
-            if frame_num not in heatmap_dict:
-                heatmap_dict[frame_num] = np.zeros(shape, dtype=np.float32)
-            heatmap = heatmap_dict[frame_num]
-
-            coor = tuple(np.array(data["point"]) // self._defs["attention"]["division"])
-            heatmap[coor] = data["value"]
+        heatmap_dict = {
+            frame_num: np.zeros(shape, dtype=np.float32) for frame_num in attention_dict
+        }
+        for frame_num, data in tqdm(attention_dict.items()):
+            for row in data:
+                coor = tuple(
+                    np.array(row["point"]) // self._defs["attention"]["division"]
+                )
+                heatmap_dict[frame_num][coor] = row["value"]
 
         return heatmap_dict
 
@@ -131,8 +131,8 @@ class Group:
             else:
                 raise KeyError
 
-            if value is not None:
-                self._idc_dict[key] += value
+            if len(value) > 0 or key == "attention":
+                self._idc_dict[key][frame_num + 1] = value
             self._idc_que[key] = queue
 
     def to_dict(self):

@@ -1,149 +1,61 @@
 import argparse
 import os
 import sys
-import time
 from glob import glob
 
-import numpy as np
 import torch
 import yaml
-from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
-from torch import nn, optim
+from tqdm import tqdm
 
 sys.path.append("src")
 from group.passing.dataset import make_data_loaders
-from group.passing.lstm_model import LSTMModel
+from group.passing.train_api import (
+    init_loss,
+    init_model,
+    init_optimizer,
+    init_scheduler,
+    parameter_tuning,
+    test,
+    train,
+)
 from utility.activity_loader import load_individuals
 from utility.logger import logger
 
 
 def _setup_parser():
     parser = argparse.ArgumentParser()
+    parser.add_argument("-e", "--epoch", required=True, type=int)
     parser.add_argument(
-        "-c", "--cfg_path", type=str, default="config/passing/pass_train.yaml"
+        "-t",
+        "--trial",
+        type=int,
+        default=100,
+        help="the number of trials of model parameter tuning",
+    )
+    parser.add_argument(
+        "-p",
+        "--parameter_tuning",
+        default=False,
+        action="store_true",
+        help="if True, do model parameter tuning",
+    )
+    parser.add_argument(
+        "-d",
+        "--db_path",
+        type=str,
+        default="sqlite:///data/passing/optuna.db",
+        help="the storage path of optuna result",
     )
     parser.add_argument("-g", "--gpu", type=int, default=0)
+    parser.add_argument(
+        "-c",
+        "--cfg_path",
+        type=str,
+        default="config/passing/pass_train.yaml",
+        help="config path for model training",
+    )
 
     return parser.parse_args()
-
-
-def init_model(model_cfg, device):
-    model = LSTMModel(**model_cfg).to(device)
-    return model
-
-
-def init_loss(pos_weight, device):
-    pos_weight = torch.tensor(pos_weight).to(device)
-    criterion = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
-    return criterion
-
-
-def init_optim(model, lr, rate):
-    optimizer = optim.Adam(model.parameters(), lr=lr)
-    scheduler = optim.lr_scheduler.LambdaLR(
-        optimizer, lr_lambda=lambda epoch: rate**epoch
-    )
-    return optimizer, scheduler
-
-
-def scores(model, loader, device):
-    preds, y_all = [], []
-    for x, y in loader:
-        pred = model(x.to(device))
-        pred = pred.max(1)[1]
-        pred = pred.cpu().numpy().tolist()
-        y = y.cpu().numpy().T[1].astype(int).tolist()
-        preds += pred
-        y_all += y
-
-    accuracy = accuracy_score(y_all, preds)
-    precision = precision_score(y_all, preds)
-    recall = recall_score(y_all, preds)
-    f1 = f1_score(y_all, preds)
-    return accuracy, precision, recall, f1
-
-
-def train(
-    model,
-    train_loader,
-    val_loader,
-    criterion,
-    optimizer,
-    scheduler,
-    epoch_len,
-    logger,
-    device,
-):
-    logger.info("=> start training")
-    history = dict(train=[], val=[])
-    try:
-        for epoch in range(1, epoch_len + 1):
-            ts = time.time()
-
-            # train
-            model.train()
-            lr = optimizer.param_groups[0]["lr"]
-            train_losses = []
-            for x, y in train_loader:
-                optimizer.zero_grad()
-
-                pred = model(x.to(device))
-
-                loss = criterion(pred.requires_grad_(), y)
-                loss.backward()
-                train_losses.append(loss.item())
-
-                optimizer.step()
-
-            scheduler.step()
-
-            # validate
-            model.eval()
-            val_losses = []
-            if len(val_loader) > 0:
-                with torch.no_grad():
-                    for x, y in val_loader:
-                        pred = model(x.to(device))
-
-                        loss = criterion(pred.requires_grad_(), y)
-                        val_losses.append(loss.item())
-            else:
-                val_losses.append(np.nan)
-
-            te = time.time()
-            train_loss = np.mean(train_losses)
-            val_loss = np.mean(val_losses)
-            history["train"].append(train_loss)
-            history["val"].append(val_loss)
-
-            logger.info(
-                f"Epoch[{epoch}/{(epoch_len)}] train loss: {train_loss:.5f}, "
-                + f"val loss: {val_loss:.5f}, lr: {lr:.7f}, time: {te - ts:.2f}"
-            )
-    except KeyboardInterrupt:
-        logger.info("KeyboardInterrupt")
-        pass
-    logger.info("=> end training")
-
-    logger.info("=> calculating train scores")
-    acc, pre, rcl, f1 = scores(model, train_loader, device)
-    logger.info(
-        f"=> train score\naccuracy: {acc}\npresision: {pre}\nrecall: {rcl}\nf1: {f1}"
-    )
-
-    return model, epoch, history
-
-
-def test(model, test_loader, logger, device):
-    model.eval()
-    with torch.no_grad():
-        logger.info("=> calculating test scores")
-        acc, pre, rcl, f1 = scores(model, test_loader, device)
-        logger.info(
-            f"=> test score\naccuracy: {acc}\npresision: {pre}\nrecall: {rcl}\nf1: {f1}"
-        )
-
-    return acc, pre, rcl, f1
 
 
 def main():
@@ -156,13 +68,6 @@ def main():
         ind_cfg = yaml.safe_load(f)
     with open(train_cfg["config_path"]["group"], "r") as f:
         grp_cfg = yaml.safe_load(f)
-    mdl_cfg_path = grp_cfg["passing"]["cfg_path"]
-    with open(mdl_cfg_path, "r") as f:
-        mdl_cfg = yaml.safe_load(f)
-
-    # set cuda and device
-    os.environ["CUDA_VISIBLE_DEVICES"] = str(args.gpu)
-    device = "cuda" if torch.cuda.is_available() else "cpu"
 
     # get data directories
     data_dirs_all = {}
@@ -177,50 +82,86 @@ def main():
     logger.info(f"=> loading individuals from {data_dirs_all}")
     inds = {}
     for key_prefix, dirs in data_dirs_all.items():
-        for model_path in dirs:
-            num = model_path.split("/")[-1]
-            json_path = os.path.join(model_path, ".json", "individual.json")
-            tmp_inds, _ = load_individuals(json_path, ind_cfg)
+        for path in tqdm(dirs):
+            num = path.split("/")[-1]
+            json_path = os.path.join(path, ".json", "individual.json")
+            tmp_inds = load_individuals(json_path, ind_cfg)
             for pid, ind in tmp_inds.items():
                 inds[f"{key_prefix}_{num}_{pid}"] = ind
-
-    # create model
-    model = init_model(mdl_cfg, device)
 
     # create data loader
     dataset_cfg = train_cfg["dataset"]
     passing_defs = grp_cfg["passing"]["default"]
-    train_loader, val_loader, test_loader = make_data_loaders(
+    train_loader, test_loader = make_data_loaders(
         inds, dataset_cfg, passing_defs, logger
     )
 
-    # init optimizer
-    criterion = init_loss(train_cfg["optim"]["pos_weight"], device)
-    optimizer, scheduler = init_optim(
-        model, train_cfg["optim"]["lr"], train_cfg["optim"]["lr_rate"]
-    )
+    # set cuda and device
+    os.environ["CUDA_VISIBLE_DEVICES"] = str(args.gpu)
+    device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    # train and test
-    epoch_len = train_cfg["optim"]["epoch"]
-    model, epoch, history = train(
-        model,
-        train_loader,
-        val_loader,
-        criterion,
-        optimizer,
-        scheduler,
-        epoch_len,
-        logger,
-        device,
-    )
-    test(model, test_loader, logger, device)
+    mdl_cfg_path = f"config/passing/pass_model_lstm_ep{args.epoch}.yaml"
+    if os.path.exists(mdl_cfg_path):
+        # load model config
+        logger.info(f"=> loading model config from {mdl_cfg_path}")
+        with open(mdl_cfg_path, "r") as f:
+            mdl_cfg = yaml.safe_load(f)
+    else:
+        logger.info(f"=> model config {mdl_cfg_path} was not found")
+        # initial model config
+        mdl_cfg = train_cfg["default"]
+        if not args.parameter_tuning:
+            logger.info(f"=> model config is initialized {mdl_cfg}")
+
+    if args.parameter_tuning:
+        # parameter tuning
+        logger.info("=> start parameter tuning")
+        tuning_cfg = train_cfg["tuning_params"]
+        model, mdl_cfg = parameter_tuning(
+            mdl_cfg,
+            tuning_cfg,
+            train_loader,
+            test_loader,
+            args.epoch,
+            args.trial,
+            device,
+            args.db_path,
+        )
+        logger.info("=> finish parameter tuning")
+    else:
+        # training
+        logger.info("=> start training")
+        model = init_model(mdl_cfg, device)
+        criterion = init_loss(mdl_cfg["pos_weight"], device)
+        optimizer = init_optimizer(mdl_cfg["lr"], mdl_cfg["weight_decay"], model)
+        scheduler = init_scheduler(mdl_cfg["scheduler_rate"], optimizer)
+        train(
+            model,
+            train_loader,
+            criterion,
+            optimizer,
+            scheduler,
+            args.epoch,
+            device,
+            val_loader=test_loader,
+            logger=logger,
+        )
+        logger.info("=> finish training")
+        # test
+        logger.info("=> testing")
+        test(model, test_loader, device, logger)
 
     # save model
-    model_path = os.path.join("models", "passing", f"pass_model_ep{epoch}.pth")
-    logger.info(f"=> saving model params to {model_path}")
+    model_path = f"models/passing/pass_model_lstm_ep{args.epoch}.pth"
+    logger.info(f"=> saving model {model_path}")
     torch.save(model.state_dict(), model_path)
 
-    torch.cuda.empty_cache()
+    # save model config after parameter tuning
+    if args.parameter_tuning:
+        logger.info(f"=> saving model config to {mdl_cfg_path}")
+        mdl_cfg["pretrained_path"] = model_path
+        with open(mdl_cfg_path, "w") as f:
+            yaml.dump(mdl_cfg, f, sort_keys=False)
 
 
 if __name__ == "__main__":

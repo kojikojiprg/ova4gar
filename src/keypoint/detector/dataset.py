@@ -1,5 +1,3 @@
-import os
-
 import torch
 from utility.video import Capture
 

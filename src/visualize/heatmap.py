@@ -42,7 +42,7 @@ class Population(Heatmap):
         # ターゲットにホモグラフィ変換する
         points = []
         for keypoints in keypoints_lst:
-            p = keypoints.get_middle('Ankle')
+            p = keypoints.get_middle("Ankle")
             p = self.homo.transform_point(p)
             points.append(p)
         x, y = zip(*points)

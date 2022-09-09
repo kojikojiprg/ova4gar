@@ -36,7 +36,11 @@ def write_video(video_path, data_dir, start_frame_num, end_frame_num):
     gc.collect()
 
 
-def write_frame(frame: NDArray, kps_data: List[Dict[str, Any]], frame_num: int):
+def write_frame(
+    frame: NDArray,
+    kps_data: List[Dict[str, Any]],
+    frame_num: int,
+):
     # add keypoints to image
     frame = _put_frame_num(frame, frame_num)
     for kps in kps_data:

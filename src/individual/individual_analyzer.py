@@ -3,7 +3,6 @@ import os
 from logging import Logger
 from typing import Any, Dict, List
 
-from numpy.typing import NDArray
 from tqdm import tqdm
 from utility import json_handler
 from utility.transform import Homography
