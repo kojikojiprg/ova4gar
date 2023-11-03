@@ -1,5 +1,4 @@
 config_path:
-  keypoint: "config/keypoint.yaml"
   individual: "config/individual.yaml"
   group: "config/group.yaml"
 
