@@ -36,7 +36,7 @@ class Visalizer:
 
     def write_video(self, video_path: str, data_dir: str):
         # load data from json file
-        kps_data = self._load_json(data_dir, "keypoints")
+        kps_data = self._load_json(data_dir, "pose")
         ind_data = self._load_json(data_dir, "individual")
         grp_data = self._load_json(data_dir, "group")
 
@@ -115,7 +115,7 @@ class Visalizer:
         gc.collect()
 
     def _load_json(self, data_dir: str, name: str):
-        json_path = os.path.join(data_dir, ".json", f"{name}.json")
+        json_path = os.path.join(data_dir, "json", f"{name}.json")
         self._logger.info(f"=> loading {name} data from {json_path}")
         try:
             data = json_handler.load(json_path)

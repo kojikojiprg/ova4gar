@@ -9,7 +9,6 @@ import yaml
 sys.path.append("src")
 from group.group_analyzer import GroupAnalyzer
 from individual.individual_analyzer import IndividualAnalyzer
-from keypoint.extracter import Extractor
 from utility.transform import Homography
 
 from demo_api.visualizer import Visalizer
@@ -20,8 +19,6 @@ class InferenceModel:
         # open config file
         with open(args.cfg_path) as f:
             cfg = yaml.safe_load(f)
-        with open(cfg["config_path"]["keypoint"]) as f:
-            kps_cfg = yaml.safe_load(f)
         with open(cfg["config_path"]["individual"]) as f:
             ind_cfg = yaml.safe_load(f)
         with open(cfg["config_path"]["group"]) as f:
@@ -30,14 +27,11 @@ class InferenceModel:
         # homography
         self._homo, self._field = self._create_homography(cfg, args.room_num)
 
-        self._do_keypoint = args.keypoint
         self._do_individual = args.individual
         self._do_group = args.group
         self._write_video = args.video
 
         device = "cuda" if torch.cuda.is_available() else "cpu"
-        if self._do_keypoint:
-            self.extractor = Extractor(kps_cfg, logger, device)
         if self._do_individual:
             self.individual_analyzer = IndividualAnalyzer(ind_cfg, logger)
         if self._do_group:
@@ -66,9 +60,6 @@ class InferenceModel:
         return homo, field
 
     def inference(self, video_path, data_dir):
-        if self._do_keypoint:
-            self.extractor.predict(video_path, data_dir)
-
         if self._do_individual:
             self.individual_analyzer.analyze(data_dir, self._homo)
 

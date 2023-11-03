@@ -12,6 +12,7 @@ from matplotlib import pyplot as plt
 from numpy.typing import NDArray
 from scipy import stats
 from tqdm import tqdm
+
 from utility.activity_loader import get_data_dirs, load_group
 from utility.excel_handler import save
 from utility.json_handler import load
@@ -88,7 +89,7 @@ class AttentionScore:
         for data_dir in data_dirs:
             self._logger.info(f"=> loading attention result from {data_dir}")
             num = os.path.basename(data_dir)
-            json_path = os.path.join(data_dir, ".json", "group.json")
+            json_path = os.path.join(data_dir, "json", "group.json")
             if os.path.exists(json_path):
                 group = load_group(
                     json_path,
@@ -218,11 +219,11 @@ class AttentionScore:
 
     def _load_jsons(self, data_dir):
         self._logger.info(f"=> load json files from {data_dir}")
-        json_path = os.path.join(data_dir, ".json", "keypoints.json")
+        json_path = os.path.join(data_dir, "json", "keypoints.json")
         kps_data = load(json_path)
-        json_path = os.path.join(data_dir, ".json", "individual.json")
+        json_path = os.path.join(data_dir, "json", "individual.json")
         ind_data = load(json_path)
-        json_path = os.path.join(data_dir, ".json", "group.json")
+        json_path = os.path.join(data_dir, "json", "group.json")
         grp_data = load(json_path)
         return kps_data, ind_data, grp_data
 

@@ -11,7 +11,6 @@ from tqdm import tqdm
 sys.path.append("src")
 from utility.json_handler import load
 from utility.video import Capture, Writer, concat_field_with_frame
-
 from visualize.heatmap import Heatmap
 from visualize.individual import write_field as ind_write_field
 from visualize.keypoint import write_frame as kps_write_frame
@@ -39,11 +38,11 @@ def write_video(data_dir, keys, field, start_frame_num, end_frame_num):
         writers[key] = Writer(out_path, cap.fps, size)
 
     # load json file
-    json_path = os.path.join(data_dir, ".json", "keypoints.json")
+    json_path = os.path.join(data_dir, "json", "keypoints.json")
     kps_data = load(json_path)
-    json_path = os.path.join(data_dir, ".json", "individual.json")
+    json_path = os.path.join(data_dir, "json", "individual.json")
     ind_data = load(json_path)
-    json_path = os.path.join(data_dir, ".json", "group.json")
+    json_path = os.path.join(data_dir, "json", "group.json")
     grp_data = load(json_path)
 
     visualizer = GroupVisualizer(keys)

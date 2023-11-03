@@ -5,10 +5,10 @@ from logging import Logger
 import torch
 from numpy.typing import NDArray
 from tqdm import tqdm
-from utility import json_handler
-from utility.activity_loader import load_individuals
 
 from group.group import Group
+from utility import json_handler
+from utility.activity_loader import load_individuals
 
 
 class GroupAnalyzer:
@@ -25,7 +25,7 @@ class GroupAnalyzer:
 
     def analyze(self, data_dir: str, field: NDArray):
         # load individual data from json file
-        ind_json_path = os.path.join(data_dir, ".json", "individual.json")
+        ind_json_path = os.path.join(data_dir, "json", "individual.json")
         self._logger.info(f"=> load individual data from {ind_json_path}")
         inds = load_individuals(ind_json_path, self._ind_cfg)
         last_frame_num = max([ind.last_frame_num for ind in inds.values()])
@@ -42,7 +42,7 @@ class GroupAnalyzer:
             group.calc_indicator(frame_num, inds_per_frame)
 
         # write json
-        grp_json_path = os.path.join(data_dir, ".json", "group.json")
+        grp_json_path = os.path.join(data_dir, "json", "group.json")
         self._logger.info(f"=> write group data to {grp_json_path}")
         json_handler.dump(group.to_dict(), grp_json_path)
 

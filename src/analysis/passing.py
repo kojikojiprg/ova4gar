@@ -6,8 +6,9 @@ from typing import Dict, List
 
 import cv2
 import yaml
-from group.group import Group
 from tqdm import tqdm
+
+from group.group import Group
 from utility.activity_loader import get_data_dirs, load_group
 from utility.json_handler import load
 from utility.video import Capture, Writer, concat_field_with_frame, get_size
@@ -72,7 +73,7 @@ class PassingAnalyzer:
         results = []
         for data_dir in data_dirs:
             self._logger.info(f"=> load passing result from {data_dir}")
-            json_path = os.path.join(data_dir, ".json", "group.json")
+            json_path = os.path.join(data_dir, "json", "group.json")
             if os.path.exists(json_path):
                 group = load_group(
                     json_path,
@@ -88,11 +89,11 @@ class PassingAnalyzer:
 
     @staticmethod
     def _load_jsons(data_dir):
-        json_path = os.path.join(data_dir, ".json", "keypoints.json")
+        json_path = os.path.join(data_dir, "json", "keypoints.json")
         kps_data = load(json_path)
-        json_path = os.path.join(data_dir, ".json", "individual.json")
+        json_path = os.path.join(data_dir, "json", "individual.json")
         ind_data = load(json_path)
-        json_path = os.path.join(data_dir, ".json", "group.json")
+        json_path = os.path.join(data_dir, "json", "group.json")
         grp_data = load(json_path)
         return kps_data, ind_data, grp_data
 

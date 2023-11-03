@@ -5,8 +5,9 @@ from typing import Any, Dict
 
 import numpy as np
 import torch
-from individual.individual import Individual
 from tqdm import tqdm
+
+from individual.individual import Individual
 from utility import json_handler
 from utility.functions import cos_similarity, gauss
 
@@ -129,7 +130,7 @@ def make_all_data(
                 for pair_key, row in time_series.items():
                     id1, id2 = pair_key.split("_")
                     feature_que: list = []
-                    for (frame_num, is_pass) in row:
+                    for frame_num, is_pass in row:
                         ind1 = individuals[f"{room_num}_{surgery_num}_{data_num}_{id1}"]
                         ind2 = individuals[f"{room_num}_{surgery_num}_{data_num}_{id2}"]
 
@@ -190,7 +191,7 @@ def _make_time_series_from_cfg(dataset_cfg: dict, logger: Logger):
                     surgery_num,
                     "passing",
                     data_num,
-                    ".json",
+                    "json",
                     "keypoints.json",
                 )
                 kps_data = json_handler.load(kps_json_path)
