@@ -9,8 +9,8 @@ scikit-learn
 scikit-image
 tslearn
 tensorboardX
-torch==1.11.0+cu115
-torchvision==0.12.0+cu115
+torch==2.1.0+cu121
+torchvision==0.16.0+cu121
 pytorch-lightning
 pycocotools
 Cython
