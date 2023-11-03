@@ -13,6 +13,7 @@ from matplotlib import pyplot as plt
 from numpy.typing import NDArray
 from scipy import signal
 from tqdm import tqdm
+
 from utility.activity_loader import get_data_dirs, load_group
 from utility.excel_handler import save
 from utility.functions import moving_average
@@ -120,7 +121,7 @@ class AttentionAnalyzer:
         keypoints_data_lst = []
         for data_dir in data_dirs:
             self._logger.info(f"=> loading attention result from {data_dir}")
-            json_path = os.path.join(data_dir, ".json", "group.json")
+            json_path = os.path.join(data_dir, "json", "group.json")
             group = load_group(
                 json_path,
                 self._grp_cfg,
@@ -132,7 +133,7 @@ class AttentionAnalyzer:
             heatmaps += list(attention_dict.values())
 
             self._logger.info(f"=> loading keypoint data from {data_dir}")
-            json_path = os.path.join(data_dir, ".json", "keypoints.json")
+            json_path = os.path.join(data_dir, "json", "keypoints.json")
             keypoints_data_lst.append(load(json_path))
 
             del group, attention_dict
@@ -166,7 +167,7 @@ class AttentionAnalyzer:
         self, margin_frame_num: int, frame_total: int = 54000
     ) -> List[Tuple[int, int, int]]:
         ret = []
-        for (vertex_frame_num, _, _, _) in self.vertex_result:
+        for vertex_frame_num, _, _, _ in self.vertex_result:
             # add margin
             s_frame_num = max(1, vertex_frame_num - margin_frame_num)
             e_frame_num = vertex_frame_num + margin_frame_num
@@ -231,11 +232,11 @@ class AttentionAnalyzer:
 
     def _load_jsons(self, data_dir):
         self._logger.info(f"=> load json files from {data_dir}")
-        json_path = os.path.join(data_dir, ".json", "keypoints.json")
+        json_path = os.path.join(data_dir, "json", "keypoints.json")
         kps_data = load(json_path)
-        json_path = os.path.join(data_dir, ".json", "individual.json")
+        json_path = os.path.join(data_dir, "json", "individual.json")
         ind_data = load(json_path)
-        json_path = os.path.join(data_dir, ".json", "group.json")
+        json_path = os.path.join(data_dir, "json", "group.json")
         grp_data = load(json_path)
         return kps_data, ind_data, grp_data
 

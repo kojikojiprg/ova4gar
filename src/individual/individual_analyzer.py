@@ -4,10 +4,10 @@ from logging import Logger
 from typing import Any, Dict, List
 
 from tqdm import tqdm
-from utility import json_handler
-from utility.transform import Homography
 
 from individual.individual import Individual
+from utility import json_handler
+from utility.transform import Homography
 
 
 class IndividualAnalyzer:
@@ -34,7 +34,7 @@ class IndividualAnalyzer:
         homo: Homography,
     ):
         # load keypoints data from json file
-        kps_json_path = os.path.join(data_dir, ".json", "keypoints.json")
+        kps_json_path = os.path.join(data_dir, "json", "keypoints.json")
         self._logger.info(f"=> loading keypoint data from {kps_json_path}")
         keypoints_data = json_handler.load(kps_json_path)
 
@@ -63,7 +63,7 @@ class IndividualAnalyzer:
                 pre_frame_num = frame_num  # update pre_frame_num
 
         # write json
-        ind_json_path = os.path.join(data_dir, ".json", "individual.json")
+        ind_json_path = os.path.join(data_dir, "json", "individual.json")
         self._logger.info(f"=> writing individual data to {ind_json_path}")
         json_handler.dump(json_data, ind_json_path)
 

@@ -84,7 +84,7 @@ def main():
     for key_prefix, dirs in data_dirs_all.items():
         for path in tqdm(dirs):
             num = path.split("/")[-1]
-            json_path = os.path.join(path, ".json", "individual.json")
+            json_path = os.path.join(path, "json", "individual.json")
             tmp_inds = load_individuals(json_path, ind_cfg)
             for pid, ind in tmp_inds.items():
                 inds[f"{key_prefix}_{num}_{pid}"] = ind

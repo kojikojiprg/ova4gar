@@ -22,7 +22,7 @@ def write_video(video_path, data_dir, start_frame_num, end_frame_num):
     wrt = Writer(out_path, cap.fps, cap.size)
 
     # load json file
-    json_path = os.path.join(data_dir, ".json", "keypoints.json")
+    json_path = os.path.join(data_dir, "json", "keypoints.json")
     kps_data = load(json_path)
 
     # write video
