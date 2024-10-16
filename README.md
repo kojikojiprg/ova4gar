@@ -1,3 +1,5 @@
+# Operating Room Surveillance Video Analysis for Group Activity Recognition
+
 # Environment
 - OS: Ubuntu-20.04
 - Pyhon: 3.9.12
@@ -78,3 +80,17 @@ without keypoint extraction.
 without idividual analyzation.
 - -wg, --without_group : 
 without group analyzation.
+
+# Reference
+```
+@article{Yokoyama202312_171,
+  title={Operating Room Surveillance Video Analysis for Group Activity Recognition},
+  author={Koji Yokoyama and Goshiro Yamamoto and Chang Liu and Kazumasa Kishimoto and Tomohiro Kuroda},
+  journal={Advanced Biomedical Engineering},
+  volume={12},
+  number={ },
+  pages={171-181},
+  year={2023},
+  doi={10.14326/abe.12.171}
+}
+```

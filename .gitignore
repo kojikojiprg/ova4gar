@@ -3,12 +3,12 @@
 .vscode
 
 __pycache__
-data/*
+data/
 video/
 video_raw/
 json/
 out/
-models/*
+models/
 
 *.zip
 *.mp4
@@ -19,3 +19,6 @@ models/*
 
 .ipynb_checkpoints
 .mypy_cache
+
+notebooks/
+requirements-dev.txt
