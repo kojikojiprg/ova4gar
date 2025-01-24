@@ -67,7 +67,7 @@ class PassingAnalyzer:
         return result_dict
 
     def extract_results(self, th_duration: int, th_interval: int):
-        data_dirs = get_data_dirs(self._room_num, self._surgery_num)
+        data_dirs = get_data_dirs(self._room_num, self._surgery_num, "passing")
         self._logger.info(f"=> data directories: {data_dirs}")
 
         results = []
