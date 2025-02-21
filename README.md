@@ -82,15 +82,26 @@ without idividual analyzation.
 without group analyzation.
 
 # Reference
+
 ```
-@article{Yokoyama202312_171,
+@article{yokoyama2023abe,
   title={Operating Room Surveillance Video Analysis for Group Activity Recognition},
-  author={Koji Yokoyama and Goshiro Yamamoto and Chang Liu and Kazumasa Kishimoto and Tomohiro Kuroda},
+  author={Yokoyama, Koji and Yamamoto, Goshiro and Liu, Chang and Kishimoto, Kazumasa and Kuroda, Tomohiro},
   journal={Advanced Biomedical Engineering},
   volume={12},
-  number={ },
-  pages={171-181},
+  pages={171--181},
   year={2023},
-  doi={10.14326/abe.12.171}
+  publisher={Japanese Society for Medical and Biological Engineering},
+  doi={https://doi.org/10.14326/abe.12.171}
+}
+
+@article{yokoyama2022abe,
+  title={Recognition of Instrument Passing and Group Attention for Understanding Intraoperative State of Surgical Team},
+  author={Koji Yokoyama and Goshiro Yamamoto and Chang Liu and Osamu Sugiyama and Luciano HO Santos and Tomohiro Kuroda},
+  journal={Advanced Biomedical Engineering},
+  volume={11},
+  pages={37-47},
+  year={2022},
+  doi={10.14326/abe.11.37}
 }
 ```
