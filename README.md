@@ -86,7 +86,7 @@ without group analyzation.
 ```
 @article{yokoyama2023abe,
   title={Operating Room Surveillance Video Analysis for Group Activity Recognition},
-  author={Yokoyama, Koji and Yamamoto, Goshiro and Liu, Chang and Kishimoto, Kazumasa and Kuroda, Tomohiro},
+  author={Koji Yokoyama and Goshiro Yamamoto and Chang Liu and Kazumasa Kishimoto and Tomohiro Kuroda},
   journal={Advanced Biomedical Engineering},
   volume={12},
   pages={171--181},
